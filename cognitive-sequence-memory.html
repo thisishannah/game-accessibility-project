@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css">
+    <title>Sequence Memory · 인지 측정</title>
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #7c3aed;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --ok: #4ade80;
+        --danger: #f97373;
+        --wait: #fbbf24;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: #020617;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      header {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+      }
+      .back-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.9);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 12px;
+      }
+      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+      .test-container {
+        width: 100%;
+        max-width: 600px;
+        margin-top: 60px;
+      }
+      .instruction {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        color: var(--text-main);
+      }
+      .grid-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        max-width: 400px;
+        margin: 0 auto 30px;
+      }
+      .grid-cell {
+        aspect-ratio: 1;
+        background: #1a1a1a;
+        border: 2px solid rgba(148, 163, 184, 0.6);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .grid-cell.active {
+        background: var(--ok);
+        border-color: var(--ok);
+        box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+      }
+      .grid-cell.clicked {
+        background: var(--wait);
+        border-color: var(--wait);
+      }
+      .grid-cell.wrong {
+        background: var(--danger);
+        border-color: var(--danger);
+        animation: shake 0.3s;
+      }
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+      }
+      .info-panel {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        min-height: 40px;
+      }
+      .results-panel {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        width: 100%;
+        display: none;
+      }
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        font-size: 14px;
+      }
+      .result-item:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        color: var(--ok);
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 2px solid rgba(51, 65, 85, 0.9);
+      }
+      .btn-primary {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #22c55e);
+        color: white;
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+      .btn-primary:hover { filter: brightness(1.1); }
+      .btn-primary:disabled { opacity: 0.5; cursor: default; }
+      .retry-btn {
+        margin-top: 10px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.8);
+        color: var(--text-main);
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 13px;
+        width: 100%;
+      }
+      .retry-btn:hover {
+        background: rgba(2, 6, 23, 0.95);
+        border-color: rgba(148, 163, 184, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="cognitive_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: var(--text-muted);">Sequence Memory</div>
+    </header>
+
+    <div class="test-container">
+      <div class="instruction" id="instruction">준비되면 시작 버튼을 누르세요</div>
+      <div class="info-panel" id="info-panel"></div>
+      
+      <div class="grid-container" id="grid-container"></div>
+
+      <div class="results-panel" id="results-panel">
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+        <div id="results-content"></div>
+        <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+        <button class="retry-btn" id="retry-btn">다시 측정하기</button>
+      </div>
+    </div>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const instruction = document.getElementById("instruction");
+        const infoPanel = document.getElementById("info-panel");
+        const gridContainer = document.getElementById("grid-container");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsContent = document.getElementById("results-content");
+        const saveBtn = document.getElementById("save-btn");
+        const retryBtn = document.getElementById("retry-btn");
+
+        let sequence = [];
+        let userSequence = [];
+        let currentLevel = 1;
+        let state = "waiting"; // waiting, showing, inputting, finished
+        let reactionTimes = [];
+        let successes = 0;
+        let failures = 0;
+        let testCompleted = false;
+
+        function createGrid() {
+          gridContainer.innerHTML = "";
+          for (let i = 0; i < 9; i++) {
+            const cell = document.createElement("div");
+            cell.className = "grid-cell";
+            cell.dataset.index = i;
+            cell.addEventListener("click", handleCellClick);
+            gridContainer.appendChild(cell);
+          }
+        }
+
+        function generateSequence(level) {
+          const seq = [];
+          for (let i = 0; i < level; i++) {
+            seq.push(Math.floor(Math.random() * 9));
+          }
+          return seq;
+        }
+
+        function showSequence() {
+          state = "showing";
+          instruction.textContent = "순서를 기억하세요";
+          infoPanel.textContent = "레벨 " + currentLevel;
+          userSequence = [];
+          
+          let index = 0;
+          const showNext = function() {
+            if (index < sequence.length) {
+              const cellIndex = sequence[index];
+              const cell = gridContainer.children[cellIndex];
+              cell.classList.add("active");
+              
+              setTimeout(function() {
+                cell.classList.remove("active");
+                index++;
+                setTimeout(showNext, 300);
+              }, 500);
+            } else {
+              state = "inputting";
+              instruction.textContent = "방금 본 순서대로 클릭하세요";
+              infoPanel.textContent = "";
+            }
+          };
+          
+          setTimeout(showNext, 500);
+        }
+
+        function handleCellClick(e) {
+          if (state !== "inputting" || testCompleted) return;
+          
+          const cellIndex = parseInt(e.target.dataset.index);
+          const startTime = Date.now();
+          
+          if (userSequence.length === 0) {
+            reactionTimes.push({ level: currentLevel, startTime: startTime });
+          }
+          
+          userSequence.push(cellIndex);
+          e.target.classList.add("clicked");
+          
+          setTimeout(function() {
+            e.target.classList.remove("clicked");
+          }, 200);
+          
+          const expectedIndex = userSequence.length - 1;
+          if (cellIndex !== sequence[expectedIndex]) {
+            handleFailure();
+            return;
+          }
+          
+          if (userSequence.length === sequence.length) {
+            handleSuccess();
+          }
+        }
+
+        function handleSuccess() {
+          successes++;
+          const reactionTime = Date.now() - reactionTimes[reactionTimes.length - 1].startTime;
+          reactionTimes[reactionTimes.length - 1].reactionTime = reactionTime;
+          reactionTimes[reactionTimes.length - 1].success = true;
+          
+          currentLevel++;
+          if (currentLevel > 5) {
+            endTest();
+          } else {
+            sequence = generateSequence(currentLevel);
+            setTimeout(function() {
+              showSequence();
+            }, 1000);
+          }
+        }
+
+        function handleFailure() {
+          failures++;
+          const lastReaction = reactionTimes[reactionTimes.length - 1];
+          if (lastReaction) {
+            lastReaction.reactionTime = Date.now() - lastReaction.startTime;
+            lastReaction.success = false;
+          }
+          
+          const wrongCell = gridContainer.children[userSequence[userSequence.length - 1]];
+          wrongCell.classList.add("wrong");
+          
+          setTimeout(function() {
+            endTest();
+          }, 1500);
+        }
+
+        function startTest() {
+          testCompleted = false;
+          currentLevel = 1;
+          sequence = generateSequence(currentLevel);
+          reactionTimes = [];
+          successes = 0;
+          failures = 0;
+          showSequence();
+        }
+
+        function endTest() {
+          testCompleted = true;
+          state = "finished";
+          instruction.style.display = "none";
+          gridContainer.style.display = "none";
+          infoPanel.style.display = "none";
+          resultsPanel.style.display = "block";
+          
+          const successfulReactions = reactionTimes.filter(function(r) { return r.success; });
+          const avgReactionTime = successfulReactions.length > 0
+            ? successfulReactions.reduce(function(sum, r) { return sum + r.reactionTime; }, 0) / successfulReactions.length
+            : 0;
+          const successRate = reactionTimes.length > 0 ? (successes / (successes + failures)) * 100 : 0;
+          
+          showResults(avgReactionTime, successRate);
+        }
+
+        function showResults(avgReactionTime, successRate) {
+          let html = '<div class="result-item"><span>도달 레벨</span><span>' + currentLevel + '</span></div>';
+          html += '<div class="result-item"><span>성공 횟수</span><span>' + successes + ' 회</span></div>';
+          html += '<div class="result-item"><span>실패 횟수</span><span>' + failures + ' 회</span></div>';
+          html += '<div class="result-item"><span>성공률</span><span>' + successRate.toFixed(1) + '%</span></div>';
+          html += '<div class="result-item"><span>평균 반응 시간</span><span>' + Math.round(avgReactionTime) + ' ms</span></div>';
+          resultsContent.innerHTML = html;
+        }
+
+        function resetTest() {
+          testCompleted = false;
+          currentLevel = 1;
+          sequence = [];
+          userSequence = [];
+          state = "waiting";
+          reactionTimes = [];
+          successes = 0;
+          failures = 0;
+          
+          instruction.style.display = "block";
+          instruction.textContent = "준비되면 시작 버튼을 누르세요";
+          infoPanel.style.display = "block";
+          infoPanel.textContent = "";
+          gridContainer.style.display = "grid";
+          resultsPanel.style.display = "none";
+          
+          createGrid();
+        }
+
+        saveBtn.addEventListener("click", function () {
+          const successfulReactions = reactionTimes.filter(function(r) { return r.success; });
+          const avgReactionTime = successfulReactions.length > 0
+            ? successfulReactions.reduce(function(sum, r) { return sum + r.reactionTime; }, 0) / successfulReactions.length
+            : 0;
+          const successRate = reactionTimes.length > 0 ? (successes / (successes + failures)) * 100 : 0;
+          
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          if (!session.user_data) session.user_data = {};
+          const cognitive = session.user_data.cognitive_results || {};
+          cognitive.sequenceMemory = {
+            maxLevel: currentLevel,
+            successes: successes,
+            failures: failures,
+            successRate: parseFloat(successRate.toFixed(2)),
+            averageReactionTime: Math.round(avgReactionTime),
+            reactionTimes: reactionTimes.map(function(r) {
+              return {
+                level: r.level,
+                reactionTime: r.reactionTime,
+                success: r.success
+              };
+            }),
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ cognitive: cognitive });
+          }
+          window.location.href = "cognitive_hub.html";
+        });
+
+        retryBtn.addEventListener("click", resetTest);
+
+        window.startTest = startTest;
+
+        createGrid();
+        instruction.textContent = "준비되면 시작 버튼을 누르세요";
+        infoPanel.innerHTML = '<button class="btn-primary" onclick="window.startTest()" style="width: auto; padding: 12px 30px;">시작하기</button>';
+      })();
+    </script>
+  </body>
+</html>

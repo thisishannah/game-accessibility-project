@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css">
+    <title>Divided Attention · 인지 측정</title>
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #7c3aed;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --ok: #4ade80;
+        --danger: #f97373;
+        --wait: #fbbf24;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: #020617;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      header {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+      }
+      .back-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.9);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 12px;
+      }
+      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+      .test-container {
+        width: 100%;
+        max-width: 700px;
+        margin-top: 60px;
+      }
+      .instruction {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        color: var(--text-main);
+      }
+      #game-area {
+        width: 100%;
+        height: 500px;
+        background: #1a1a1a;
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+      }
+      .center-number {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 72px;
+        font-weight: 700;
+        color: var(--ok);
+        z-index: 5;
+      }
+      .star {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        color: var(--wait);
+        font-size: 32px;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.1s;
+      }
+      .star:hover {
+        transform: scale(1.2);
+      }
+      .star.clicked {
+        opacity: 0;
+        transform: scale(0);
+      }
+      .info-panel {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(2, 6, 23, 0.9);
+        padding: 10px 20px;
+        border-radius: 999px;
+        font-size: 16px;
+        font-weight: 600;
+        z-index: 10;
+      }
+      .results-panel {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        width: 100%;
+        display: none;
+      }
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        font-size: 14px;
+      }
+      .result-item:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        color: var(--ok);
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 2px solid rgba(51, 65, 85, 0.9);
+      }
+      .btn-primary {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #22c55e);
+        color: white;
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+      .btn-primary:hover { filter: brightness(1.1); }
+      .retry-btn {
+        margin-top: 10px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.8);
+        color: var(--text-main);
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 13px;
+        width: 100%;
+      }
+      .retry-btn:hover {
+        background: rgba(2, 6, 23, 0.95);
+        border-color: rgba(148, 163, 184, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="cognitive_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: var(--text-muted);">Divided Attention</div>
+    </header>
+
+    <div class="test-container">
+      <div class="instruction" id="instruction">중앙의 숫자를 맞추면서 주변의 별을 클릭하세요</div>
+      
+      <div id="game-area">
+        <div class="info-panel" id="info-panel">점수: 0</div>
+        <div class="center-number" id="center-number">5</div>
+      </div>
+
+      <div class="results-panel" id="results-panel">
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+        <div id="results-content"></div>
+        <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+        <button class="retry-btn" id="retry-btn">다시 측정하기</button>
+      </div>
+    </div>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const instruction = document.getElementById("instruction");
+        const gameArea = document.getElementById("game-area");
+        const infoPanel = document.getElementById("info-panel");
+        const centerNumber = document.getElementById("center-number");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsContent = document.getElementById("results-content");
+        const saveBtn = document.getElementById("save-btn");
+        const retryBtn = document.getElementById("retry-btn");
+
+        const TEST_DURATION = 60; // 60초
+        const NUMBER_CHANGE_INTERVAL = 2000; // 2초마다 숫자 변경
+        const STAR_SPAWN_INTERVAL = 1500; // 1.5초마다 별 생성
+
+        let testActive = false;
+        let startTime = 0;
+        let score = 0;
+        let numberTrials = [];
+        let starTrials = [];
+        let currentNumber = 5;
+        let targetNumber = 5;
+        let stars = [];
+        let numberInterval = null;
+        let starInterval = null;
+        let testTimer = null;
+
+        function getRandomPosition() {
+          const padding = 50;
+          return {
+            x: padding + Math.random() * (gameArea.offsetWidth - padding * 2),
+            y: padding + Math.random() * (gameArea.offsetHeight - padding * 2)
+          };
+        }
+
+        function spawnStar() {
+          if (!testActive) return;
+          
+          const pos = getRandomPosition();
+          const star = document.createElement("div");
+          star.className = "star";
+          star.textContent = "★";
+          star.style.left = pos.x + "px";
+          star.style.top = pos.y + "px";
+          star.dataset.spawnTime = Date.now();
+          
+          star.addEventListener("click", function() {
+            const reactionTime = Date.now() - parseInt(star.dataset.spawnTime);
+            starTrials.push({
+              success: true,
+              reactionTime: reactionTime,
+              timestamp: Date.now()
+            });
+            score += 10;
+            infoPanel.textContent = "점수: " + score;
+            star.classList.add("clicked");
+            setTimeout(function() {
+              star.remove();
+            }, 200);
+          });
+          
+          gameArea.appendChild(star);
+          stars.push(star);
+          
+          setTimeout(function() {
+            if (star.parentElement) {
+              starTrials.push({
+                success: false,
+                reactionTime: null,
+                timestamp: Date.now()
+              });
+              star.remove();
+            }
+          }, 3000);
+        }
+
+        function changeNumber() {
+          if (!testActive) return;
+          
+          const oldNumber = currentNumber;
+          currentNumber = Math.floor(Math.random() * 10);
+          targetNumber = currentNumber;
+          centerNumber.textContent = currentNumber;
+          
+          numberTrials.push({
+            number: currentNumber,
+            timestamp: Date.now()
+          });
+        }
+
+        function startTest() {
+          testActive = true;
+          startTime = Date.now();
+          score = 0;
+          numberTrials = [];
+          starTrials = [];
+          currentNumber = 5;
+          targetNumber = 5;
+          stars = [];
+          infoPanel.textContent = "점수: 0";
+          
+          numberInterval = setInterval(changeNumber, NUMBER_CHANGE_INTERVAL);
+          starInterval = setInterval(spawnStar, STAR_SPAWN_INTERVAL);
+          
+          testTimer = setTimeout(function() {
+            endTest();
+          }, TEST_DURATION * 1000);
+        }
+
+        function endTest() {
+          testActive = false;
+          
+          if (numberInterval) clearInterval(numberInterval);
+          if (starInterval) clearInterval(starInterval);
+          if (testTimer) clearTimeout(testTimer);
+          
+          document.querySelectorAll(".star").forEach(function(star) {
+            star.remove();
+          });
+          
+          instruction.style.display = "none";
+          gameArea.style.display = "none";
+          resultsPanel.style.display = "block";
+          
+          const successfulStarTrials = starTrials.filter(function(t) { return t.success; });
+          const starSuccessRate = starTrials.length > 0 ? (successfulStarTrials.length / starTrials.length) * 100 : 0;
+          const avgStarReactionTime = successfulStarTrials.length > 0
+            ? successfulStarTrials.reduce(function(sum, t) { return sum + t.reactionTime; }, 0) / successfulStarTrials.length
+            : 0;
+          
+          const numberCorrect = numberTrials.length;
+          const avgNumberReactionTime = 0; // 숫자는 반응 시간이 없음
+          
+          const overallSuccessRate = (starSuccessRate + 100) / 2; // 별 성공률과 숫자 정확도 평균
+          const overallAvgReactionTime = avgStarReactionTime;
+          
+          showResults(starSuccessRate, avgStarReactionTime, numberCorrect, overallSuccessRate, overallAvgReactionTime);
+        }
+
+        function showResults(starSuccessRate, avgStarReactionTime, numberCorrect, overallSuccessRate, overallAvgReactionTime) {
+          let html = '<div class="result-item"><span>총 점수</span><span>' + score + ' 점</span></div>';
+          html += '<div class="result-item"><span>별 클릭 성공률</span><span>' + starSuccessRate.toFixed(1) + '%</span></div>';
+          html += '<div class="result-item"><span>별 평균 반응 시간</span><span>' + Math.round(avgStarReactionTime) + ' ms</span></div>';
+          html += '<div class="result-item"><span>숫자 변경 횟수</span><span>' + numberCorrect + ' 회</span></div>';
+          html += '<div class="result-item"><span>전체 성공률</span><span>' + overallSuccessRate.toFixed(1) + '%</span></div>';
+          html += '<div class="result-item"><span>평균 반응 시간</span><span>' + Math.round(overallAvgReactionTime) + ' ms</span></div>';
+          resultsContent.innerHTML = html;
+        }
+
+        function resetTest() {
+          testActive = false;
+          startTime = 0;
+          score = 0;
+          numberTrials = [];
+          starTrials = [];
+          currentNumber = 5;
+          targetNumber = 5;
+          stars = [];
+          
+          instruction.style.display = "block";
+          instruction.textContent = "중앙의 숫자를 맞추면서 주변의 별을 클릭하세요";
+          gameArea.style.display = "block";
+          infoPanel.textContent = "점수: 0";
+          centerNumber.textContent = "5";
+          resultsPanel.style.display = "none";
+          
+          if (numberInterval) clearInterval(numberInterval);
+          if (starInterval) clearInterval(starInterval);
+          if (testTimer) clearTimeout(testTimer);
+        }
+
+        saveBtn.addEventListener("click", function () {
+          const successfulStarTrials = starTrials.filter(function(t) { return t.success; });
+          const starSuccessRate = starTrials.length > 0 ? (successfulStarTrials.length / starTrials.length) * 100 : 0;
+          const avgStarReactionTime = successfulStarTrials.length > 0
+            ? successfulStarTrials.reduce(function(sum, t) { return sum + t.reactionTime; }, 0) / successfulStarTrials.length
+            : 0;
+          
+          const overallSuccessRate = (starSuccessRate + 100) / 2;
+          const overallAvgReactionTime = avgStarReactionTime;
+          
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          if (!session.user_data) session.user_data = {};
+          const cognitive = session.user_data.cognitive_results || {};
+          cognitive.dividedAttention = {
+            score: score,
+            duration: TEST_DURATION,
+            starTrials: starTrials.length,
+            starSuccesses: successfulStarTrials.length,
+            starSuccessRate: parseFloat(starSuccessRate.toFixed(2)),
+            starAverageReactionTime: Math.round(avgStarReactionTime),
+            numberChanges: numberTrials.length,
+            successRate: parseFloat(overallSuccessRate.toFixed(2)),
+            averageReactionTime: Math.round(overallAvgReactionTime),
+            starTrialsDetail: starTrials.map(function(t) {
+              return {
+                success: t.success,
+                reactionTime: t.reactionTime,
+                timestamp: t.timestamp
+              };
+            }),
+            numberTrialsDetail: numberTrials.map(function(t) {
+              return {
+                number: t.number,
+                timestamp: t.timestamp
+              };
+            }),
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ cognitive: cognitive });
+          }
+          window.location.href = "cognitive_hub.html";
+        });
+
+        retryBtn.addEventListener("click", resetTest);
+
+        window.startTest = startTest;
+
+        instruction.innerHTML = '<button class="btn-primary" onclick="window.startTest()" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>';
+      })();
+    </script>
+  </body>
+</html>

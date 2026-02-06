@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>9포인트 FOV 측정 · 시각 측정</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background-color: #000; color: #fff; margin: 0; overflow: hidden; font-family: sans-serif; }
+        #canvas { width: 100vw; height: 100vh; display: block; cursor: none; }
+        #admin-layer { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            background: rgba(30, 30, 30, 0.95); padding: 35px; border-radius: 20px; 
+            border: 2px solid #00ffcc; text-align: center; z-index: 100;
+        }
+        .admin-btn { 
+            cursor: pointer; padding: 15px 40px; background: #00ffcc; border: none; 
+            font-weight: bold; border-radius: 8px; font-size: 1.1em; color: #000;
+        }
+        .admin-btn:hover { background: #00e6b8; }
+        header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 101;
+        }
+        .back-btn {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: rgba(2, 6, 23, 0.9);
+            color: #fff;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .btn-secondary {
+            padding: 12px 24px;
+            background: rgba(148, 163, 184, 0.2);
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            color: #fff;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+        .btn-secondary:hover {
+            background: rgba(148, 163, 184, 0.3);
+            border-color: rgba(148, 163, 184, 0.9);
+        }
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .popup-content {
+            background: #1a1a1a;
+            border-radius: 20px;
+            border: 2px solid #00ffcc;
+            padding: 30px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+            position: relative;
+        }
+        .popup-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            line-height: 1;
+        }
+        .popup-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        #visualization-canvas {
+            display: block;
+            margin: 20px auto;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="vision_hub.html" class="back-btn">← 허브로</a>
+    </header>
+
+    <div id="admin-layer">
+        <h2 class="accent-title">실전 압축 시야 측정 (32회)</h2>
+        <p class="test-description">
+            - 빨간 점 응시, 흰 점 보이면 <b>[스페이스바]</b><br>
+            - 중앙은 8방향, 외곽은 핵심 3방향씩만 측정합니다.<br>
+            - 관찰자가 마우스로 클릭하면 시작합니다.
+        </p>
+        <button class="admin-btn" onclick="startTest()">측정 시작</button>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="popup-overlay" id="popup-overlay">
+        <div class="popup-content">
+            <button class="popup-close" onclick="closePopup()">×</button>
+            <h2 class="accent-title">시야각 시각화</h2>
+            <p class="text-sm text-muted mb-md">
+                각 포인트에서 측정된 시야 한계를 시각화한 결과입니다. 색상이 진할수록 시야가 더 넓습니다.
+            </p>
+            <canvas id="visualization-canvas"></canvas>
+        </div>
+    </div>
+
+    <script src="ga-storage.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const adminLayer = document.getElementById('admin-layer');
+        
+        let width, height, testActive = false;
+        let currentPIdx = 0, currentAngleIdx = 0, results = {};
+
+        // 0:우, 45:우상, 90:상, 135:좌상, 180:좌, 225:좌하, 270:하, 315:우하
+        const focusPoints = [
+            {id: "P1", x: 5, y: 5,   angles: [0, 315, 270]},      // 우, 우하, 하
+            {id: "P2", x: 50, y: 5,  angles: [180, 270, 0]},      // 좌, 하, 우
+            {id: "P3", x: 95, y: 5,  angles: [180, 225, 270]},    // 좌, 좌하, 하
+            {id: "P4", x: 5, y: 50,  angles: [90, 0, 270]},       // 상, 우, 하
+            {id: "P5", x: 50, y: 50, angles: [0, 45, 90, 135, 180, 225, 270, 315]}, // 정밀
+            {id: "P6", x: 95, y: 50, angles: [90, 180, 270]},     // 상, 좌, 하
+            {id: "P7", x: 5, y: 95,  angles: [0, 45, 90]},        // 우, 우상, 상
+            {id: "P8", x: 50, y: 95, angles: [180, 90, 0]},       // 좌, 상, 우
+            {id: "P9", x: 95, y: 95, angles: [180, 135, 90]}      // 좌, 좌상, 상
+        ];
+
+        let stimulus = { x: 0, y: 0, dist: 0, active: false };
+        let moveTimer;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            draw();
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function draw() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, width, height);
+            if (!testActive) return;
+
+            const cp = focusPoints[currentPIdx];
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(width * cp.x/100, height * cp.y/100, 8, 0, Math.PI*2);
+            ctx.fill();
+
+            if (stimulus.active) {
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(stimulus.x, stimulus.y, 6, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+
+        function startTest() {
+            adminLayer.style.display = 'none';
+            results = {}; currentPIdx = 0; currentAngleIdx = 0;
+            testActive = true;
+            nextStep();
+        }
+
+        function nextStep() {
+            if (currentPIdx >= focusPoints.length) {
+                finishTest(); return;
+            }
+            const cp = focusPoints[currentPIdx];
+            if (currentAngleIdx >= cp.angles.length) {
+                currentAngleIdx = 0; currentPIdx++;
+                setTimeout(nextStep, 1500); return;
+            }
+
+            draw();
+            setTimeout(() => {
+                stimulus.dist = Math.max(width, height) * 0.8;
+                stimulus.active = true;
+                if (moveTimer) clearInterval(moveTimer);
+                moveTimer = setInterval(() => {
+                    stimulus.dist -= 25; 
+                    const angleRad = cp.angles[currentAngleIdx] * (Math.PI / 180);
+                    stimulus.x = (width * cp.x/100) + Math.cos(angleRad) * stimulus.dist;
+                    stimulus.y = (height * cp.y/100) - Math.sin(angleRad) * stimulus.dist;
+                    draw();
+                    if (stimulus.dist <= 0) recordPoint(true);
+                }, 70); 
+            }, 1200); 
+        }
+
+        function recordPoint(failed = false) {
+            clearInterval(moveTimer);
+            const cp = focusPoints[currentPIdx];
+            if (!results[cp.id]) results[cp.id] = {};
+            results[cp.id][cp.angles[currentAngleIdx]] = failed ? "Blind" : stimulus.dist.toFixed(0);
+            stimulus.active = false;
+            currentAngleIdx++;
+            draw();
+            setTimeout(nextStep, 500);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && stimulus.active) {
+                e.preventDefault(); recordPoint(false);
+            }
+        });
+
+        function finishTest() {
+            testActive = false;
+            adminLayer.style.display = 'block';
+            adminLayer.innerHTML = `
+                <h2 class="accent-title">측정 완료</h2>
+                <p style="font-size:0.9em; margin-bottom:20px;">측정이 완료되었습니다. 결과를 확인한 후 저장해주세요.</p>
+                <div class="btn-group">
+                    <button class="admin-btn" onclick="showVisualization()">시야각 시각화 보기</button>
+                    <button class="admin-btn" onclick="saveResults()">결과 저장 & 허브로 이동</button>
+                </div>
+            `;
+        }
+
+        function showVisualization() {
+            const visCanvas = document.getElementById('visualization-canvas');
+            const visCtx = visCanvas.getContext('2d');
+            const size = Math.min(800, window.innerWidth - 100);
+            visCanvas.width = size;
+            visCanvas.height = size;
+            
+            visCtx.fillStyle = '#000';
+            visCtx.fillRect(0, 0, size, size);
+            
+            // 그리드 그리기
+            visCtx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+            visCtx.lineWidth = 1;
+            for (let i = 0; i <= 2; i++) {
+                const pos = (size / 3) * i;
+                visCtx.beginPath();
+                visCtx.moveTo(pos, 0);
+                visCtx.lineTo(pos, size);
+                visCtx.stroke();
+                visCtx.beginPath();
+                visCtx.moveTo(0, pos);
+                visCtx.lineTo(size, pos);
+                visCtx.stroke();
+            }
+            
+            // 각 포인트별 시야각 시각화
+            focusPoints.forEach(function(point) {
+                const centerX = (size / 100) * point.x;
+                const centerY = (size / 100) * point.y;
+                const pointData = results[point.id];
+                
+                if (!pointData) return;
+                
+                // 각 방향별 시야 한계 그리기
+                point.angles.forEach(function(angle) {
+                    const value = pointData[angle];
+                    if (!value || value === "Blind") return;
+                    
+                    const dist = parseFloat(value);
+                    const maxDist = Math.max(window.innerWidth, window.innerHeight) * 0.8;
+                    const normalizedDist = Math.min(dist / maxDist, 1);
+                    const radius = (size / 3) * 0.4 * normalizedDist;
+                    
+                    // 각도에 따라 부채꼴 그리기
+                    const angleRad = (angle * Math.PI) / 180;
+                    const angleRange = (45 * Math.PI) / 180; // 45도 범위
+                    
+                    visCtx.beginPath();
+                    visCtx.moveTo(centerX, centerY);
+                    visCtx.arc(centerX, centerY, radius, angleRad - angleRange/2, angleRad + angleRange/2);
+                    visCtx.closePath();
+                    
+                    // 색상: 거리가 멀수록 밝게
+                    const alpha = 0.3 + normalizedDist * 0.5;
+                    visCtx.fillStyle = `rgba(0, 255, 204, ${alpha})`;
+                    visCtx.fill();
+                    
+                    // 테두리
+                    visCtx.strokeStyle = `rgba(0, 255, 204, ${0.5 + normalizedDist * 0.5})`;
+                    visCtx.lineWidth = 2;
+                    visCtx.stroke();
+                });
+                
+                // 포인트 중심 표시
+                visCtx.fillStyle = '#ff0000';
+                visCtx.beginPath();
+                visCtx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+                visCtx.fill();
+                
+                // 포인트 라벨
+                visCtx.fillStyle = '#fff';
+                visCtx.font = '12px sans-serif';
+                visCtx.textAlign = 'center';
+                visCtx.fillText(point.id, centerX, centerY - 12);
+            });
+            
+            // 범례
+            visCtx.fillStyle = '#fff';
+            visCtx.font = '14px sans-serif';
+            visCtx.textAlign = 'left';
+            visCtx.fillText('범례:', 20, size - 60);
+            visCtx.fillText('• 빨간 점: 측정 포인트', 20, size - 40);
+            visCtx.fillText('• 청록색 영역: 시야 범위 (밝을수록 넓음)', 20, size - 20);
+            
+            document.getElementById('popup-overlay').style.display = 'flex';
+        }
+
+        function closePopup() {
+            document.getElementById('popup-overlay').style.display = 'none';
+        }
+
+        function saveResults() {
+            const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+            if (!session.user_data) session.user_data = {};
+            const vision = session.user_data.vision_results || {};
+            vision.fovResults = results;
+            vision.fovRecordedAt = new Date().toISOString();
+            if (typeof GAStorage !== "undefined") {
+                GAStorage.writeSession({ vision: vision });
+            }
+            window.location.href = "vision_hub.html";
+        }
+
+        // ESC 키로 팝업 닫기
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePopup();
+            }
+        });
+    </script>
+</body>
+</html>

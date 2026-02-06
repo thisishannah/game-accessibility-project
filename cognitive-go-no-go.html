@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css">
+    <title>Go/No-Go Test · 인지 측정</title>
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #7c3aed;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --ok: #4ade80;
+        --danger: #f97373;
+        --wait: #fbbf24;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: #020617;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      header {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+      }
+      .back-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.9);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 12px;
+      }
+      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+      .test-container {
+        width: 100%;
+        max-width: 600px;
+        margin-top: 60px;
+      }
+      .instruction {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        color: var(--text-main);
+      }
+      .circle-container {
+        width: 100%;
+        height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      .circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 4px solid transparent;
+      }
+      .circle.green {
+        background: var(--ok);
+        box-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+      }
+      .circle.red {
+        background: var(--danger);
+        box-shadow: 0 0 30px rgba(249, 115, 115, 0.5);
+      }
+      .circle.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .info-panel {
+        text-align: center;
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 20px;
+        min-height: 30px;
+      }
+      .results-panel {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        width: 100%;
+        display: none;
+      }
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        font-size: 14px;
+      }
+      .result-item:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        color: var(--ok);
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 2px solid rgba(51, 65, 85, 0.9);
+      }
+      .btn-primary {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #22c55e);
+        color: white;
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+      .btn-primary:hover { filter: brightness(1.1); }
+      .retry-btn {
+        margin-top: 10px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.8);
+        color: var(--text-main);
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 13px;
+        width: 100%;
+      }
+      .retry-btn:hover {
+        background: rgba(2, 6, 23, 0.95);
+        border-color: rgba(148, 163, 184, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="cognitive_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: var(--text-muted);">Go/No-Go Test</div>
+    </header>
+
+    <div class="test-container">
+      <div class="instruction" id="instruction">초록색 원이 나오면 클릭하세요. 빨간색 원이 나오면 클릭하지 마세요.</div>
+      
+      <div class="circle-container">
+        <div class="circle hidden" id="circle"></div>
+      </div>
+
+      <div class="info-panel" id="info-panel"></div>
+
+      <div class="results-panel" id="results-panel">
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+        <div id="results-content"></div>
+        <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+        <button class="retry-btn" id="retry-btn">다시 측정하기</button>
+      </div>
+    </div>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const instruction = document.getElementById("instruction");
+        const circle = document.getElementById("circle");
+        const infoPanel = document.getElementById("info-panel");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsContent = document.getElementById("results-content");
+        const saveBtn = document.getElementById("save-btn");
+        const retryBtn = document.getElementById("retry-btn");
+
+        const TOTAL_TRIALS = 30;
+        const GO_PROBABILITY = 0.7; // 70% 초록색, 30% 빨간색
+
+        let currentTrial = 0;
+        let trials = [];
+        let testActive = false;
+        let currentStimulus = null;
+        let stimulusStartTime = 0;
+        let timeoutId = null;
+
+        function getRandomDelay() {
+          return 1000 + Math.random() * 2000; // 1-3초
+        }
+
+        function showStimulus() {
+          if (currentTrial >= TOTAL_TRIALS) {
+            endTest();
+            return;
+          }
+
+          const isGo = Math.random() < GO_PROBABILITY;
+          currentStimulus = isGo ? "go" : "no-go";
+          
+          circle.className = "circle " + (isGo ? "green" : "red");
+          circle.classList.remove("hidden");
+          stimulusStartTime = Date.now();
+          
+          timeoutId = setTimeout(function() {
+            if (currentStimulus === "no-go") {
+              recordTrial(true, null);
+            } else {
+              recordTrial(false, null);
+            }
+            hideStimulus();
+          }, 1500);
+        }
+
+        function hideStimulus() {
+          circle.classList.add("hidden");
+          currentTrial++;
+          if (currentTrial < TOTAL_TRIALS) {
+            setTimeout(showStimulus, getRandomDelay());
+          } else {
+            endTest();
+          }
+        }
+
+        function recordTrial(success, reactionTime) {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+          
+          const trial = {
+            trial: currentTrial + 1,
+            stimulus: currentStimulus,
+            success: success,
+            reactionTime: reactionTime || null,
+            timestamp: Date.now()
+          };
+          trials.push(trial);
+          
+          if (success) {
+            infoPanel.textContent = "정답!";
+            infoPanel.style.color = "var(--ok)";
+          } else {
+            infoPanel.textContent = currentStimulus === "go" ? "놓쳤습니다" : "잘못 클릭했습니다";
+            infoPanel.style.color = "var(--danger)";
+          }
+        }
+
+        circle.addEventListener("click", function() {
+          if (!testActive || circle.classList.contains("hidden")) return;
+          
+          const reactionTime = Date.now() - stimulusStartTime;
+          
+          if (currentStimulus === "go") {
+            recordTrial(true, reactionTime);
+          } else {
+            recordTrial(false, reactionTime);
+          }
+          
+          hideStimulus();
+        });
+
+        function startTest() {
+          testActive = true;
+          currentTrial = 0;
+          trials = [];
+          instruction.textContent = "초록색 원이 나오면 클릭하세요. 빨간색 원이 나오면 클릭하지 마세요.";
+          infoPanel.textContent = "";
+          setTimeout(showStimulus, 1000);
+        }
+
+        function endTest() {
+          testActive = false;
+          circle.classList.add("hidden");
+          instruction.style.display = "none";
+          infoPanel.style.display = "none";
+          resultsPanel.style.display = "block";
+          
+          const successfulTrials = trials.filter(function(t) { return t.success; });
+          const goTrials = trials.filter(function(t) { return t.stimulus === "go"; });
+          const noGoTrials = trials.filter(function(t) { return t.stimulus === "no-go"; });
+          
+          const goSuccesses = goTrials.filter(function(t) { return t.success; }).length;
+          const noGoSuccesses = noGoTrials.filter(function(t) { return t.success; }).length;
+          
+          const successRate = (successfulTrials.length / TOTAL_TRIALS) * 100;
+          const reactionTimes = successfulTrials.filter(function(t) { return t.reactionTime !== null; }).map(function(t) { return t.reactionTime; });
+          const avgReactionTime = reactionTimes.length > 0
+            ? reactionTimes.reduce(function(sum, rt) { return sum + rt; }, 0) / reactionTimes.length
+            : 0;
+          
+          showResults(successRate, avgReactionTime, goSuccesses, goTrials.length, noGoSuccesses, noGoTrials.length);
+        }
+
+        function showResults(successRate, avgReactionTime, goSuccesses, goTotal, noGoSuccesses, noGoTotal) {
+          let html = '<div class="result-item"><span>총 시도</span><span>' + TOTAL_TRIALS + ' 회</span></div>';
+          html += '<div class="result-item"><span>성공 횟수</span><span>' + (goSuccesses + noGoSuccesses) + ' 회</span></div>';
+          html += '<div class="result-item"><span>성공률</span><span>' + successRate.toFixed(1) + '%</span></div>';
+          html += '<div class="result-item"><span>Go 성공률</span><span>' + (goTotal > 0 ? (goSuccesses / goTotal * 100).toFixed(1) : 0) + '%</span></div>';
+          html += '<div class="result-item"><span>No-Go 성공률</span><span>' + (noGoTotal > 0 ? (noGoSuccesses / noGoTotal * 100).toFixed(1) : 0) + '%</span></div>';
+          html += '<div class="result-item"><span>평균 반응 시간</span><span>' + Math.round(avgReactionTime) + ' ms</span></div>';
+          resultsContent.innerHTML = html;
+        }
+
+        function resetTest() {
+          testActive = false;
+          currentTrial = 0;
+          trials = [];
+          currentStimulus = null;
+          
+          instruction.style.display = "block";
+          instruction.textContent = "초록색 원이 나오면 클릭하세요. 빨간색 원이 나오면 클릭하지 마세요.";
+          infoPanel.style.display = "block";
+          infoPanel.textContent = "";
+          circle.classList.add("hidden");
+          resultsPanel.style.display = "none";
+          
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+        }
+
+        saveBtn.addEventListener("click", function () {
+          const successfulTrials = trials.filter(function(t) { return t.success; });
+          const reactionTimes = successfulTrials.filter(function(t) { return t.reactionTime !== null; }).map(function(t) { return t.reactionTime; });
+          const avgReactionTime = reactionTimes.length > 0
+            ? reactionTimes.reduce(function(sum, rt) { return sum + rt; }, 0) / reactionTimes.length
+            : 0;
+          const successRate = (successfulTrials.length / TOTAL_TRIALS) * 100;
+          
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          if (!session.user_data) session.user_data = {};
+          const cognitive = session.user_data.cognitive_results || {};
+          cognitive.goNoGo = {
+            totalTrials: TOTAL_TRIALS,
+            successes: successfulTrials.length,
+            failures: TOTAL_TRIALS - successfulTrials.length,
+            successRate: parseFloat(successRate.toFixed(2)),
+            averageReactionTime: Math.round(avgReactionTime),
+            goTrials: trials.filter(function(t) { return t.stimulus === "go"; }).length,
+            noGoTrials: trials.filter(function(t) { return t.stimulus === "no-go"; }).length,
+            goSuccesses: trials.filter(function(t) { return t.stimulus === "go" && t.success; }).length,
+            noGoSuccesses: trials.filter(function(t) { return t.stimulus === "no-go" && t.success; }).length,
+            trials: trials.map(function(t) {
+              return {
+                trial: t.trial,
+                stimulus: t.stimulus,
+                success: t.success,
+                reactionTime: t.reactionTime
+              };
+            }),
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ cognitive: cognitive });
+          }
+          window.location.href = "cognitive_hub.html";
+        });
+
+        retryBtn.addEventListener("click", resetTest);
+
+        window.startTest = startTest;
+
+        instruction.innerHTML = '<button class="btn-primary" onclick="window.startTest()" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>';
+      })();
+    </script>
+  </body>
+</html>

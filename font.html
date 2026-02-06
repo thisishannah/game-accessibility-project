@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>가독 폰트 크기 측정 · 시각 측정</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root { --panel-height: 220px; }
+        body { background-color: #121212; color: white; margin: 0; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* 상단 내비게이션 메뉴 */
+        nav { background: #333; padding: 10px; text-align: center; border-bottom: 2px solid #00ffcc; display: flex; justify-content: center; gap: 20px; }
+        nav a { color: white; text-decoration: none; font-weight: bold; padding: 8px 15px; border-radius: 5px; background: #444; }
+        nav a.active { background: #00ffcc; color: #000; }
+        nav a:hover { background: #555; }
+
+        /* 상단: 3분할 뷰 영역 */
+        #view-wrapper { flex: 1; display: flex; overflow: hidden; }
+        .view-column {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-right: 1px solid #444; position: relative; padding: 20px;
+        }
+        .view-column:last-child { border-right: none; }
+        .theme-label { position: absolute; top: 15px; font-size: 0.9em; font-weight: bold; padding: 5px 12px; border-radius: 20px; z-index: 10; }
+
+        .sample-text { margin: 10px; line-height: 1.2; text-align: center; word-break: break-all; transition: font-size 0.1s; }
+
+        /* 하단 조작 패널 */
+        #control-panel {
+            height: var(--panel-height); background: #1a1a1a; border-top: 4px solid #00ffcc;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box;
+        }
+        .slider-wrap { width: 85%; text-align: center; }
+        input[type=range] { width: 100%; height: 35px; cursor: pointer; }
+        .val-display { font-size: 2.2em; color: #00ffcc; font-weight: bold; }
+
+        #data-summary { background: #000; color: #00ffcc; padding: 10px; font-family: monospace; border-radius: 8px; width: 90%; text-align: center; margin-top: 10px; font-size: 0.9em; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button { padding: 10px 20px; background: #00ffcc; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; color: #000; }
+        button:hover { background: #00e6b8; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="vision_hub.html">← 허브로</a>
+    <a href="#" class="active">가독성 측정</a>
+</nav>
+
+<div id="view-wrapper">
+    <div class="view-column" id="col-default" style="background: #1a1a1a;">
+        <span class="theme-label" style="background: #333; color: #fff;">일반 모드</span>
+        <p class="sample-text" style="color: #fff;">가나다라 ABC 123</p>
+    </div>
+    <div class="view-column" id="col-inverse" style="background: #f4f4f4;">
+        <span class="theme-label" style="background: #ddd; color: #000;">반전 모드</span>
+        <p class="sample-text" style="color: #000;">가나다라 ABC 123</p>
+    </div>
+    <div class="view-column" id="col-high" style="background: #000;">
+        <span class="theme-label" style="background: #ffeb3b; color: #000;">고대비 모드</span>
+        <p class="sample-text" style="color: #ffeb3b;">가나다라 ABC 123</p>
+    </div>
+</div>
+
+<div id="control-panel">
+    <div class="slider-wrap">
+        <label>글자 크기 조절 (Max 64px): <span class="val-display" id="size-val">20</span> px</label>
+        <input type="range" id="font-slider" min="12" max="64" value="20">
+    </div>
+    
+    <div id="data-summary">현재 크기: 20px | 각 테마별 가독성을 비교해 보세요.</div>
+    
+    <div class="btn-group">
+        <button onclick="saveResult()">결과 저장 & 허브로 이동</button>
+    </div>
+</div>
+
+<script src="ga-storage.js"></script>
+<script>
+    const slider = document.getElementById('font-slider');
+    const texts = document.querySelectorAll('.sample-text');
+    const sizeVal = document.getElementById('size-val');
+    const summary = document.getElementById('data-summary');
+
+    slider.addEventListener('input', function() {
+        const val = this.value;
+        texts.forEach(t => t.style.fontSize = val + 'px');
+        sizeVal.innerText = val;
+        updateSummary();
+    });
+
+    function updateSummary() {
+        summary.innerText = `현재 해상도: ${window.screen.width}px | 설정 크기: ${slider.value}px | 64px 도달 시 "식별 불가" 판단`;
+    }
+
+    function saveResult() {
+        const resolution = window.screen.width + "x" + window.screen.height;
+        const minFontSize = parseInt(slider.value, 10);
+        let advice = "";
+        
+        if (minFontSize <= 24) advice = "정상 가독 범위 (추가 옵션 불필요)";
+        else if (minFontSize <= 48) advice = "약도 저시력 (글자 크기 조절 옵션 권장)";
+        else if (minFontSize <= 64) advice = "중증 저시력 (고대비 모드 및 전용 UI 필수)";
+        else advice = "중증 시각장애 (보이스 오버 시스템 필수)";
+
+        const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+        if (!session.user_data) session.user_data = {};
+        const vision = session.user_data.vision_results || {};
+        vision.fontReadability = {
+            resolution: resolution,
+            minFontSize: minFontSize,
+            unit: "px",
+            advice: advice,
+            recordedAt: new Date().toISOString()
+        };
+        if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ vision: vision });
+        }
+        window.location.href = "vision_hub.html";
+    }
+
+    window.onload = updateSummary;
+</script>
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css">
+    <title>동시 입력 테스트 · 운동 측정</title>
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #7c3aed;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --ok: #4ade80;
+        --danger: #f97373;
+        --wait: #fbbf24;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: #020617;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      header {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+      }
+      .back-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.9);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 12px;
+      }
+      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+      .test-container {
+        width: 100%;
+        max-width: 700px;
+        margin-top: 60px;
+      }
+      .instruction {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        color: var(--text-main);
+      }
+      .key-combination {
+        text-align: center;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 16px;
+        border: 2px solid rgba(148, 163, 184, 0.6);
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .key-combination.success {
+        border-color: var(--ok);
+        background: rgba(74, 222, 128, 0.1);
+      }
+      .key-combination.failed {
+        border-color: var(--danger);
+        background: rgba(249, 115, 115, 0.1);
+      }
+      .key-display {
+        display: inline-block;
+        padding: 12px 20px;
+        background: rgba(148, 163, 184, 0.2);
+        border: 2px solid rgba(148, 163, 184, 0.6);
+        border-radius: 8px;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 5px;
+      }
+      .key-display.pressed {
+        background: var(--ok);
+        border-color: var(--ok);
+        color: #000;
+      }
+      .key-display.required {
+        border-color: var(--wait);
+        background: rgba(251, 191, 36, 0.2);
+      }
+      .key-display.required.pressed {
+        background: var(--ok);
+        border-color: var(--ok);
+      }
+      .plus-sign {
+        font-size: 24px;
+        color: var(--text-muted);
+        margin: 0 5px;
+      }
+      .keyboard-area {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 30px;
+      }
+      .key-button {
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.8);
+        border: 2px solid rgba(148, 163, 184, 0.6);
+        border-radius: 12px;
+        color: var(--text-main);
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        user-select: none;
+      }
+      .key-button:hover {
+        background: rgba(2, 6, 23, 0.95);
+        border-color: rgba(148, 163, 184, 0.9);
+      }
+      .key-button.pressed {
+        background: var(--ok);
+        border-color: var(--ok);
+        color: #000;
+        transform: scale(0.95);
+      }
+      .status-message {
+        text-align: center;
+        font-size: 16px;
+        margin-top: 20px;
+        min-height: 24px;
+      }
+      .status-message.success {
+        color: var(--ok);
+        font-weight: 600;
+      }
+      .status-message.failed {
+        color: var(--danger);
+      }
+      .results-panel {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        width: 100%;
+        display: none;
+      }
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        font-size: 14px;
+      }
+      .result-item:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        color: var(--ok);
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 2px solid rgba(51, 65, 85, 0.9);
+      }
+      .btn-primary {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #22c55e);
+        color: white;
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+      .btn-primary:hover { filter: brightness(1.1); }
+      .btn-primary:disabled { opacity: 0.5; cursor: default; }
+      .retry-btn {
+        margin-top: 15px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.8);
+        color: var(--text-main);
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 13px;
+        width: 100%;
+      }
+      .retry-btn:hover {
+        background: rgba(2, 6, 23, 0.95);
+        border-color: rgba(148, 163, 184, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="motor_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: var(--text-muted);">동시 입력 테스트</div>
+    </header>
+
+    <div class="test-container">
+      <div class="instruction" id="instruction">지시된 키 조합을 동시에 누르세요</div>
+      
+      <div class="key-combination" id="key-combination">
+        <span class="key-display" id="key-display-1">-</span>
+      </div>
+
+      <div class="keyboard-area" id="keyboard-area">
+        <!-- 키 버튼들이 동적으로 생성됩니다 -->
+      </div>
+
+      <div class="status-message" id="status-message"></div>
+
+      <div class="results-panel" id="results-panel">
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+        <div id="results-content"></div>
+        <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+        <button class="retry-btn" id="retry-btn">다시 측정하기</button>
+      </div>
+    </div>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const instruction = document.getElementById("instruction");
+        const keyCombination = document.getElementById("key-combination");
+        const keyboardArea = document.getElementById("keyboard-area");
+        const statusMessage = document.getElementById("status-message");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsContent = document.getElementById("results-content");
+        const saveBtn = document.getElementById("save-btn");
+        const retryBtn = document.getElementById("retry-btn");
+
+        const KEYS = ["Q", "W", "E", "R", "A", "S", "D", "F", "Z", "X", "C", "V"];
+        const TEST_SEQUENCE = [
+          { keys: 2, combinations: [["Q", "W"], ["A", "S"], ["Z", "X"]] },
+          { keys: 3, combinations: [["Q", "W", "E"], ["A", "S", "D"], ["Z", "X", "C"]] },
+          { keys: 4, combinations: [["Q", "W", "E", "R"], ["A", "S", "D", "F"], ["Z", "X", "C", "V"]] }
+        ];
+
+        let currentTestIndex = 0;
+        let currentCombinationIndex = 0;
+        let pressedKeys = new Set();
+        let successfulCombinations = [];
+        let failedCombinations = [];
+        let allAttempts = [];
+        let maxKeys = 0;
+        let testCompleted = false;
+
+        function createKeyboard() {
+          keyboardArea.innerHTML = "";
+          KEYS.forEach(function(key) {
+            const btn = document.createElement("button");
+            btn.className = "key-button";
+            btn.textContent = key;
+            btn.dataset.key = key;
+            btn.addEventListener("mousedown", function() { handleKeyPress(key, true); });
+            btn.addEventListener("mouseup", function() { handleKeyRelease(key); });
+            btn.addEventListener("mouseleave", function() { handleKeyRelease(key); });
+            btn.addEventListener("touchstart", function(e) { e.preventDefault(); handleKeyPress(key, true); });
+            btn.addEventListener("touchend", function(e) { e.preventDefault(); handleKeyRelease(key); });
+            keyboardArea.appendChild(btn);
+          });
+        }
+
+        function updateKeyDisplay() {
+          const currentTest = TEST_SEQUENCE[currentTestIndex];
+          const currentCombo = currentTest.combinations[currentCombinationIndex];
+          keyCombination.innerHTML = "";
+          keyCombination.className = "key-combination";
+          
+          currentCombo.forEach(function(key, index) {
+            const keyDisplay = document.createElement("span");
+            keyDisplay.className = "key-display required";
+            keyDisplay.id = "key-display-" + (index + 1);
+            keyDisplay.textContent = key;
+            if (pressedKeys.has(key)) {
+              keyDisplay.classList.add("pressed");
+            }
+            keyCombination.appendChild(keyDisplay);
+            if (index < currentCombo.length - 1) {
+              const plus = document.createElement("span");
+              plus.className = "plus-sign";
+              plus.textContent = "+";
+              keyCombination.appendChild(plus);
+            }
+          });
+        }
+
+        function handleKeyPress(key, isMouse) {
+          if (testCompleted) return;
+          pressedKeys.add(key);
+          const btn = document.querySelector('[data-key="' + key + '"]');
+          if (btn) btn.classList.add("pressed");
+          updateKeyDisplay();
+          checkCombination();
+        }
+
+        function handleKeyRelease(key) {
+          pressedKeys.delete(key);
+          const btn = document.querySelector('[data-key="' + key + '"]');
+          if (btn) btn.classList.remove("pressed");
+          updateKeyDisplay();
+        }
+
+        function checkCombination() {
+          const currentTest = TEST_SEQUENCE[currentTestIndex];
+          const currentCombo = currentTest.combinations[currentCombinationIndex];
+          const requiredKeys = new Set(currentCombo);
+          const allPressed = currentCombo.every(function(key) { return pressedKeys.has(key); });
+          const extraKeys = Array.from(pressedKeys).filter(function(key) { return !requiredKeys.has(key); });
+          const pressedKeysArray = Array.from(pressedKeys).sort();
+
+          const attempt = {
+            requiredKeys: currentCombo.slice(),
+            pressedKeys: pressedKeysArray,
+            extraKeys: extraKeys,
+            timestamp: new Date().toISOString()
+          };
+          allAttempts.push(attempt);
+
+          if (allPressed && extraKeys.length === 0) {
+            keyCombination.classList.add("success");
+            statusMessage.textContent = "성공!";
+            statusMessage.className = "status-message success";
+            
+            successfulCombinations.push({
+              keys: currentCombo.length,
+              requiredCombination: currentCombo.slice(),
+              actualPressedKeys: pressedKeysArray,
+              timestamp: new Date().toISOString()
+            });
+            
+            if (currentCombo.length > maxKeys) {
+              maxKeys = currentCombo.length;
+            }
+
+            setTimeout(function() {
+              nextCombination();
+            }, 1000);
+          } else if (allPressed && extraKeys.length > 0) {
+            keyCombination.classList.add("failed");
+            statusMessage.textContent = "다른 키를 누르지 마세요";
+            statusMessage.className = "status-message failed";
+            
+            failedCombinations.push({
+              requiredKeys: currentCombo.slice(),
+              actualPressedKeys: pressedKeysArray,
+              extraKeys: extraKeys,
+              timestamp: new Date().toISOString()
+            });
+            
+            setTimeout(function() {
+              resetCurrentCombination();
+            }, 1500);
+          } else if (!allPressed) {
+            const missingKeys = currentCombo.filter(function(key) { return !pressedKeys.has(key); });
+            keyCombination.classList.add("failed");
+            statusMessage.textContent = "모든 키를 동시에 누르세요";
+            statusMessage.className = "status-message failed";
+            
+            failedCombinations.push({
+              requiredKeys: currentCombo.slice(),
+              actualPressedKeys: pressedKeysArray,
+              missingKeys: missingKeys,
+              extraKeys: extraKeys,
+              timestamp: new Date().toISOString()
+            });
+            
+            setTimeout(function() {
+              resetCurrentCombination();
+            }, 1500);
+          }
+        }
+
+        function resetCurrentCombination() {
+          pressedKeys.clear();
+          document.querySelectorAll(".key-button").forEach(function(btn) {
+            btn.classList.remove("pressed");
+          });
+          updateKeyDisplay();
+          keyCombination.classList.remove("success", "failed");
+          statusMessage.textContent = "";
+          statusMessage.className = "status-message";
+        }
+
+        function nextCombination() {
+          const currentTest = TEST_SEQUENCE[currentTestIndex];
+          currentCombinationIndex++;
+          
+          if (currentCombinationIndex >= currentTest.combinations.length) {
+            currentTestIndex++;
+            currentCombinationIndex = 0;
+            
+            if (currentTestIndex >= TEST_SEQUENCE.length) {
+              completeTest();
+              return;
+            }
+          }
+          
+          resetCurrentCombination();
+          instruction.textContent = TEST_SEQUENCE[currentTestIndex].keys + "개 키를 동시에 누르세요";
+        }
+
+        function completeTest() {
+          testCompleted = true;
+          instruction.style.display = "none";
+          keyCombination.style.display = "none";
+          keyboardArea.style.display = "none";
+          statusMessage.style.display = "none";
+          resultsPanel.style.display = "block";
+          
+          let html = '<div class="result-item"><span>성공한 최대 동시 입력 개수</span><span>' + maxKeys + ' 개</span></div>';
+          html += '<div class="result-item"><span>성공한 조합 수</span><span>' + successfulCombinations.length + ' 개</span></div>';
+          html += '<div class="result-item"><span>실패한 조합 수</span><span>' + failedCombinations.length + ' 개</span></div>';
+          html += '<div class="result-item"><span>총 시도 횟수</span><span>' + allAttempts.length + ' 회</span></div>';
+          html += '<div class="result-item" style="margin-top: 12px;"><strong>성공한 조합 목록:</strong></div>';
+          successfulCombinations.forEach(function(combo, index) {
+            html += '<div class="result-item" style="font-size: 12px;"><span>' + (index + 1) + '. 요구: ' + combo.requiredCombination.join(" + ") + ' | 실제: ' + combo.actualPressedKeys.join(" + ") + '</span><span>' + combo.keys + '개</span></div>';
+          });
+          if (failedCombinations.length > 0) {
+            html += '<div class="result-item" style="margin-top: 12px;"><strong>실패한 조합 목록:</strong></div>';
+            failedCombinations.slice(0, 5).forEach(function(combo, index) {
+              let desc = '요구: ' + combo.requiredKeys.join(" + ");
+              if (combo.missingKeys && combo.missingKeys.length > 0) {
+                desc += ' | 누락: ' + combo.missingKeys.join(", ");
+              }
+              if (combo.extraKeys && combo.extraKeys.length > 0) {
+                desc += ' | 오입력: ' + combo.extraKeys.join(", ");
+              }
+              html += '<div class="result-item" style="font-size: 11px; color: #9ca3af;"><span>' + (index + 1) + '. ' + desc + '</span></div>';
+            });
+            if (failedCombinations.length > 5) {
+              html += '<div class="result-item" style="font-size: 11px; color: #9ca3af;"><span>... 외 ' + (failedCombinations.length - 5) + '개 더</span></div>';
+            }
+          }
+          resultsContent.innerHTML = html;
+        }
+
+        function resetTest() {
+          currentTestIndex = 0;
+          currentCombinationIndex = 0;
+          pressedKeys.clear();
+          successfulCombinations = [];
+          failedCombinations = [];
+          allAttempts = [];
+          maxKeys = 0;
+          testCompleted = false;
+          
+          instruction.style.display = "block";
+          instruction.textContent = "지시된 키 조합을 동시에 누르세요";
+          keyCombination.style.display = "flex";
+          keyboardArea.style.display = "grid";
+          statusMessage.style.display = "block";
+          resultsPanel.style.display = "none";
+          
+          resetCurrentCombination();
+          updateKeyDisplay();
+        }
+
+        document.addEventListener("keydown", function(e) {
+          const key = e.key.toUpperCase();
+          if (KEYS.includes(key) && !pressedKeys.has(key)) {
+            e.preventDefault();
+            handleKeyPress(key, false);
+          }
+        });
+
+        document.addEventListener("keyup", function(e) {
+          const key = e.key.toUpperCase();
+          if (KEYS.includes(key)) {
+            e.preventDefault();
+            handleKeyRelease(key);
+          }
+        });
+
+        saveBtn.addEventListener("click", function () {
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          if (!session.user_data) session.user_data = {};
+          const motor = session.user_data.motor_results || {};
+          motor.simultaneousInput = {
+            maxKeys: maxKeys,
+            successfulCombinations: successfulCombinations,
+            failedCombinations: failedCombinations,
+            allAttempts: allAttempts,
+            totalSuccessful: successfulCombinations.length,
+            totalFailed: failedCombinations.length,
+            totalAttempts: allAttempts.length,
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ motor: motor });
+          }
+          window.location.href = "motor_hub.html";
+        });
+
+        retryBtn.addEventListener("click", resetTest);
+
+        createKeyboard();
+        updateKeyDisplay();
+        instruction.textContent = TEST_SEQUENCE[0].keys + "개 키를 동시에 누르세요";
+      })();
+    </script>
+  </body>
+</html>

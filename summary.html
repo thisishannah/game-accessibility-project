@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>접근성 분석 리포트 · 게임 접근성</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      body.summary-report { padding-bottom: 120px; }
+    </style>
+  </head>
+  <body class="summary-report">
+    <main class="shell" aria-labelledby="summary-title">
+      <div class="shell-inner">
+        <header class="header">
+          <div class="brand" aria-label="접근성 분석 리포트">
+            <div class="brand-logo" aria-hidden="true">
+              <div class="brand-logo-inner">GA</div>
+            </div>
+            <div class="brand-text-main">
+              <span>게임 접근성 측정</span>
+              <span id="summary-title">접근성 분석 리포트</span>
+            </div>
+          </div>
+          <div class="header-meta" id="user-summary">세션 정보 로딩 중...</div>
+        </header>
+
+        <!-- 1. 상단: User Profile & System Spec -->
+        <section class="panel" aria-label="사용자 프로필 및 시스템 스펙">
+          <div class="section-title" style="margin-bottom: 16px; color: var(--neon-blue);">
+            User Profile & System Spec
+          </div>
+          <div class="profile-card" id="profile-card"></div>
+        </section>
+
+        <!-- 2. 중단: Diagnostic Data 2x2 그리드 -->
+        <section class="panel" aria-label="진단 데이터">
+          <div class="section-title" style="margin-bottom: 16px; color: var(--neon-blue);">
+            Diagnostic Data
+          </div>
+          <div class="diagnostic-grid">
+            <div class="diag-card" id="diag-vision">
+              <div class="diag-card-header">
+                <span class="diag-card-title">시각</span>
+                <span class="badge" id="vision-badge">—</span>
+              </div>
+              <div class="diag-card-body">
+                <div class="fov-canvas-wrap" id="fov-canvas-wrap">
+                  <canvas id="fov-canvas" style="max-width:100%; max-height:100%;"></canvas>
+                  <div id="fov-placeholder" class="ai-insight-placeholder" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; margin:0;">
+                    FOV 데이터 없음
+                  </div>
+                </div>
+                <div id="vision-stats" style="margin-top: 12px;"></div>
+              </div>
+            </div>
+
+            <div class="diag-card" id="diag-motor">
+              <div class="diag-card-header">
+                <span class="diag-card-title">운동</span>
+                <span class="badge" id="motor-badge">—</span>
+              </div>
+              <div class="diag-card-body">
+                <div class="gauge-wrap" id="motor-gauge-wrap">
+                  <div class="gauge-ring" id="motor-gauge-ring" style="--gauge-percent: 0;">
+                    <div class="gauge-inner" id="motor-gauge-value">—</div>
+                  </div>
+                  <span style="font-size: 11px; color: var(--text-muted);">반응속도 대비 에임 효율</span>
+                </div>
+                <div id="motor-stats" style="margin-top: 12px;"></div>
+              </div>
+            </div>
+
+            <div class="diag-card" id="diag-cognitive">
+              <div class="diag-card-header">
+                <span class="diag-card-title">인지</span>
+                <span class="badge" id="cognitive-badge">—</span>
+              </div>
+              <div class="diag-card-body" id="cognitive-body">
+                <div id="cognitive-stats"></div>
+              </div>
+            </div>
+
+            <div class="diag-card" id="diag-hearing">
+              <div class="diag-card-header">
+                <span class="diag-card-title">청각언어</span>
+                <span class="badge" id="hearing-badge">—</span>
+              </div>
+              <div class="diag-card-body" id="hearing-body">
+                <div id="hearing-stats"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. 하단: Observer & AI Insight -->
+        <section class="panel" aria-label="관찰자 및 AI 인사이트">
+          <div class="section-title" style="margin-bottom: 16px; color: var(--neon-blue);">
+            Observer & AI Insight
+          </div>
+          
+          <div id="observer-report-section">
+            <div id="expert-opinions"></div>
+          </div>
+
+          <div class="ai-insight-placeholder" id="ai-insight-placeholder" style="margin-top: 24px;">
+            AI 분석 결과가 여기에 표시됩니다.
+          </div>
+        </section>
+
+        <!-- JSON 미리보기 -->
+        <details class="mt-lg" style="margin-top: 24px;">
+          <summary class="cursor-pointer text-sm text-muted">
+            전체 JSON 데이터 보기 (복사·저장용)
+          </summary>
+          <pre id="json-preview" class="summary-json" style="max-height: 200px; margin-top: 8px;"></pre>
+        </details>
+
+        <!-- 구글 시트 전송 -->
+        <div class="panel mt-md">
+          <div class="section-title mb-sm">구글 시트 전송</div>
+          <p class="text-xs text-muted mb-sm">
+            Google Apps Script Web App URL을 입력한 뒤 전송하면 해당 시트에 데이터가 추가됩니다.
+          </p>
+          <div class="flex gap-md flex-wrap items-center">
+            <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec" class="sheets-input" />
+            <button type="button" class="btn-primary sheets-button" id="send-to-sheets">구글 시트로 전송</button>
+          </div>
+          <p id="sheets-status" class="sheets-status"></p>
+        </div>
+
+        <div class="btn-row" style="margin-top: 24px;">
+          <button type="button" class="btn-secondary" id="back-to-observer">
+            <span class="btn-icon" aria-hidden="true">◀</span>
+            <span>관찰자 리포트로 돌아가기</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Sticky Footer: 최종 전송 버튼 -->
+    <div class="sticky-footer" id="sticky-footer">
+      <p id="validation-msg" class="validation-error" style="display:none;"></p>
+      <button type="button" class="btn-primary" id="final-submit">
+        <span class="btn-icon" aria-hidden="true">✓</span>
+        <span>최종 전송 (JSON 다운로드)</span>
+      </button>
+    </div>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const FOCUS_POINTS = [
+          {id: "P1", x: 5, y: 5, angles: [0, 315, 270]},
+          {id: "P2", x: 50, y: 5, angles: [180, 270, 0]},
+          {id: "P3", x: 95, y: 5, angles: [180, 225, 270]},
+          {id: "P4", x: 5, y: 50, angles: [90, 0, 270]},
+          {id: "P5", x: 50, y: 50, angles: [0, 45, 90, 135, 180, 225, 270, 315]},
+          {id: "P6", x: 95, y: 50, angles: [90, 180, 270]},
+          {id: "P7", x: 5, y: 95, angles: [0, 45, 90]},
+          {id: "P8", x: 50, y: 95, angles: [180, 90, 0]},
+          {id: "P9", x: 95, y: 95, angles: [180, 135, 90]}
+        ];
+
+        const AVG_REACTION_MS = 280;
+        const AVG_AIM_INTERVAL_MS = 450;
+
+        function readSession() {
+          return (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+        }
+
+        function escapeHtml(str) {
+          return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function renderProfileCard(session) {
+          const keys = ["userId", "gender", "ageRange", "disabilityType", "platform", "inputDevice", "pcResolution", "windowsDpi", "cpuSpec", "gpuSpec", "gameTitle", "skillTier"];
+          const labels = {
+            userId: "세션 ID", gender: "성별", ageRange: "연령대", disabilityType: "장애 유형",
+            platform: "플랫폼", inputDevice: "입력장치", pcResolution: "해상도", windowsDpi: "DPI",
+            cpuSpec: "CPU", gpuSpec: "GPU", gameTitle: "게임명", skillTier: "숙련도"
+          };
+          const el = document.getElementById("profile-card");
+          el.innerHTML = keys.filter(k => session[k]).map(k =>
+            `<div class="profile-item"><span class="profile-label">${escapeHtml(labels[k])}</span><span class="profile-value">${escapeHtml(String(session[k]))}</span></div>`
+          ).join("");
+        }
+
+        function drawFovCanvas(fovResults) {
+          const canvas = document.getElementById("fov-canvas");
+          const placeholder = document.getElementById("fov-placeholder");
+          if (!canvas || !fovResults || !Array.isArray(fovResults) || fovResults.length === 0) {
+            if (placeholder) placeholder.style.display = "flex";
+            return;
+          }
+          if (placeholder) placeholder.style.display = "none";
+
+          const size = Math.min(280, canvas.parentElement.clientWidth || 280);
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext("2d");
+
+          const lastRound = fovResults[fovResults.length - 1];
+          ctx.fillStyle = "#000";
+          ctx.fillRect(0, 0, size, size);
+
+          ctx.strokeStyle = "rgba(34, 211, 238, 0.3)";
+          ctx.lineWidth = 1;
+          for (let i = 0; i <= 2; i++) {
+            const pos = (size / 3) * i;
+            ctx.beginPath();
+            ctx.moveTo(pos, 0); ctx.lineTo(pos, size);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, pos); ctx.lineTo(size, pos);
+            ctx.stroke();
+          }
+
+          FOCUS_POINTS.forEach(point => {
+            const centerX = (size / 100) * point.x;
+            const centerY = (size / 100) * point.y;
+            const pointData = lastRound[point.id];
+            if (!pointData) return;
+
+            point.angles.forEach(angle => {
+              const value = pointData[angle];
+              if (!value || value === "Blind") return;
+              const dist = parseFloat(value);
+              const normalizedDist = Math.min(dist / 800, 1);
+              const radius = (size / 3) * 0.4 * normalizedDist;
+              const angleRad = (angle * Math.PI) / 180;
+              const angleRange = (45 * Math.PI) / 180;
+              ctx.beginPath();
+              ctx.moveTo(centerX, centerY);
+              ctx.arc(centerX, centerY, radius, angleRad - angleRange/2, angleRad + angleRange/2);
+              ctx.closePath();
+              const alpha = 0.3 + normalizedDist * 0.5;
+              ctx.fillStyle = `rgba(34, 211, 238, ${alpha})`;
+              ctx.fill();
+              ctx.strokeStyle = `rgba(34, 211, 238, ${0.5 + normalizedDist * 0.5})`;
+              ctx.lineWidth = 2;
+              ctx.stroke();
+            });
+            ctx.fillStyle = "#ff4444";
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        }
+
+        function statRow(label, value, delayPercent) {
+          const cls = delayPercent != null ? (delayPercent > 10 ? "delay" : "good") : "";
+          const badge = delayPercent != null ? `<span class="stat-badge ${cls}">${delayPercent > 0 ? '+' : ''}${delayPercent}%</span>` : "";
+          return `<div class="stat-row"><span>${escapeHtml(label)}</span><span>${escapeHtml(String(value))} ${badge}</span></div>`;
+        }
+
+        function renderVisionCard(vision) {
+          document.getElementById("vision-badge").textContent = vision ? "데이터 있음" : "—";
+          document.getElementById("vision-badge").className = vision ? "badge success" : "badge";
+
+          if (vision && vision.fovResults) drawFovCanvas(vision.fovResults);
+
+          const stats = document.getElementById("vision-stats");
+          if (!vision) {
+            stats.innerHTML = "<div class=\"text-muted text-sm\">데이터 없음</div>";
+            return;
+          }
+
+          let html = "";
+          if (vision.reactionTime) {
+            const avg = vision.reactionTime.average;
+            const delay = avg ? Math.round(((avg - AVG_REACTION_MS) / AVG_REACTION_MS) * 100) : null;
+            html += statRow("반응속도 평균", avg + " ms", delay);
+          }
+          if (vision.fontReadability) {
+            html += statRow("최소 가독 폰트", vision.fontReadability.minFontSize + " px", null);
+          }
+          if (vision.aimTrainer) {
+            const ai = vision.aimTrainer.averageInterval;
+            const delay = ai ? Math.round(((ai - AVG_AIM_INTERVAL_MS) / AVG_AIM_INTERVAL_MS) * 100) : null;
+            html += statRow("에임 간격 평균", ai + " ms", delay);
+          }
+          stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
+        }
+
+        function renderMotorCard(motor) {
+          document.getElementById("motor-badge").textContent = motor ? "데이터 있음" : "—";
+          document.getElementById("motor-badge").className = motor ? "badge success" : "badge";
+
+          const rt = motor && motor.reactionTime ? motor.reactionTime.average : null;
+          const aim = motor && motor.aimTrainer ? motor.aimTrainer.averageInterval : null;
+          let ratioPercent = 0;
+          if (rt && aim && rt > 0) {
+            ratioPercent = Math.min(100, Math.round((rt / aim) * 100));
+          }
+          const ring = document.getElementById("motor-gauge-ring");
+          const val = document.getElementById("motor-gauge-value");
+          if (ring) ring.style.setProperty("--gauge-percent", ratioPercent);
+          if (val) val.textContent = aim ? ratioPercent + "%" : "—";
+
+          const stats = document.getElementById("motor-stats");
+          if (!motor) {
+            stats.innerHTML = "<div class=\"text-muted text-sm\">데이터 없음</div>";
+            return;
+          }
+          let html = "";
+          if (motor.reactionTime) {
+            const avg = motor.reactionTime.average;
+            const delay = avg ? Math.round(((avg - AVG_REACTION_MS) / AVG_REACTION_MS) * 100) : null;
+            html += statRow("반응속도", avg + " ms", delay);
+          }
+          if (motor.aimTrainer) {
+            const ai = motor.aimTrainer.averageInterval;
+            const delay = ai ? Math.round(((ai - AVG_AIM_INTERVAL_MS) / AVG_AIM_INTERVAL_MS) * 100) : null;
+            html += statRow("에임 간격", ai + " ms", delay);
+          }
+          if (motor.precision) html += statRow("정밀도 오차", motor.precision.averageError + " px", null);
+          if (motor.fatigue) html += statRow("피로도 지수", motor.fatigue.fatigueIndex + "%", null);
+          stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
+        }
+
+        function renderCognitiveCard(cognitive) {
+          document.getElementById("cognitive-badge").textContent = cognitive ? "데이터 있음" : "—";
+          document.getElementById("cognitive-badge").className = cognitive ? "badge success" : "badge";
+
+          const stats = document.getElementById("cognitive-stats");
+          if (!cognitive) {
+            stats.innerHTML = "<div class=\"text-muted text-sm\">데이터 없음</div>";
+            return;
+          }
+          let html = "";
+          if (cognitive.sequenceMemory) html += statRow("Sequence Memory", cognitive.sequenceMemory.maxLevel + " 레벨", null);
+          if (cognitive.goNoGo) html += statRow("Go/No-Go 성공률", (cognitive.goNoGo.successRate * 100).toFixed(1) + "%", null);
+          if (cognitive.dividedAttention) html += statRow("Divided Attention", cognitive.dividedAttention.starSuccessRate * 100 + "%", null);
+          if (cognitive.readingSpeed) html += statRow("Reading Speed", cognitive.readingSpeed.successRate * 100 + "%", null);
+          stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
+        }
+
+        function renderHearingCard(hearing) {
+          document.getElementById("hearing-badge").textContent = hearing ? "데이터 있음" : "—";
+          document.getElementById("hearing-badge").className = hearing ? "badge success" : "badge";
+
+          const stats = document.getElementById("hearing-stats");
+          if (!hearing) {
+            stats.innerHTML = "<div class=\"text-muted text-sm\">데이터 없음</div>";
+            return;
+          }
+          let html = "";
+          if (hearing.overallDb) html += statRow("전체 청력(dB)", hearing.overallDb, null);
+          if (hearing.speechClarityPercent != null) html += statRow("수음 명료도", hearing.speechClarityPercent.toFixed(0) + "%", null);
+          if (hearing.speechClarityRating) html += statRow("발화 명료도", hearing.speechClarityRating + "/5", null);
+          stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
+        }
+
+        function renderExpertOpinions(observer) {
+          const el = document.getElementById("expert-opinions");
+          if (!observer) {
+            el.innerHTML = "<div class=\"expert-opinion\"><div class=\"expert-opinion-label\">Expert Opinion</div><div class=\"expert-opinion-text\">관찰자 리포트가 없습니다.</div></div>";
+            return;
+          }
+          const items = [
+            { label: "이탈/포기 사유", text: observer.quitReason },
+            { label: "대체 행동 패턴", text: observer.altBehavior },
+            { label: "핵심 분석 요약", text: observer.analysisSummary }
+          ].filter(i => i.text);
+          el.innerHTML = items.map(i =>
+            `<div class="expert-opinion"><div class="expert-opinion-label">${escapeHtml(i.label)}</div><div class="expert-opinion-text">"${escapeHtml(i.text)}"</div></div>`
+          ).join("") || "<div class=\"expert-opinion\"><div class=\"expert-opinion-text\">관찰자 리포트가 비어 있습니다.</div></div>";
+        }
+
+        function validateSession(session) {
+          const errs = [];
+          if (!session.userId && !session.id) errs.push("세션 ID가 없습니다.");
+          if (!session.disabilityType) errs.push("장애 유형이 선택되지 않았습니다.");
+          if (!session.user_data) errs.push("측정 데이터(user_data)가 없습니다.");
+          try {
+            JSON.stringify(session);
+          } catch (e) {
+            errs.push("JSON 직렬화 오류: " + (e.message || "알 수 없음"));
+          }
+          return errs;
+        }
+
+        function render(session) {
+          renderProfileCard(session);
+          renderVisionCard(session.user_data && session.user_data.vision_results);
+          renderMotorCard(session.user_data && session.user_data.motor_results);
+          renderCognitiveCard(session.user_data && session.user_data.cognitive_results);
+          renderHearingCard(session.user_data && session.user_data.hearing_results);
+          renderExpertOpinions(session.observer_report);
+          document.getElementById("json-preview").textContent = JSON.stringify(session, null, 2);
+
+          const id = session.userId || session.id || "-";
+          const disability = session.disabilityType || "-";
+          document.getElementById("user-summary").innerHTML =
+            "세션 <strong>" + escapeHtml(id) + "</strong> · 장애 <strong>" + escapeHtml(disability) + "</strong>";
+        }
+
+        document.getElementById("final-submit").addEventListener("click", () => {
+          const session = readSession();
+          const errs = validateSession(session);
+          const msgEl = document.getElementById("validation-msg");
+
+          if (errs.length > 0) {
+            msgEl.textContent = "유효성 검사 실패: " + errs.join(" ");
+            msgEl.style.display = "block";
+            msgEl.classList.add("validation-error");
+            return;
+          }
+
+          msgEl.style.display = "none";
+          try {
+            const blob = new Blob([JSON.stringify(session, null, 2)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "ga_report_" + (session.userId || session.id || "export") + "_" + new Date().toISOString().slice(0, 10) + ".json";
+            a.click();
+            URL.revokeObjectURL(a.href);
+          } catch (e) {
+            msgEl.textContent = "다운로드 오류: " + (e.message || "알 수 없음");
+            msgEl.style.display = "block";
+          }
+        });
+
+        const sheetsUrlEl = document.getElementById("sheets-url");
+        const sendToSheetsBtn = document.getElementById("send-to-sheets");
+        const sheetsStatusEl = document.getElementById("sheets-status");
+        try {
+          const savedUrl = localStorage.getItem("ga_sheets_url");
+          if (savedUrl) sheetsUrlEl.value = savedUrl;
+        } catch (e) {}
+        sendToSheetsBtn.addEventListener("click", function () {
+          const url = (sheetsUrlEl && sheetsUrlEl.value.trim()) || "";
+          if (!url) {
+            sheetsStatusEl.textContent = "구글 시트 Web App URL을 입력해 주세요.";
+            sheetsStatusEl.style.color = "#f97373";
+            return;
+          }
+          const session = readSession();
+          const errs = validateSession(session);
+          if (errs.length > 0) {
+            sheetsStatusEl.textContent = "유효성 검사 실패: " + errs.join(" ");
+            sheetsStatusEl.style.color = "#f97373";
+            return;
+          }
+          try { localStorage.setItem("ga_sheets_url", url); } catch (e) {}
+          sheetsStatusEl.textContent = "전송 중...";
+          sheetsStatusEl.style.color = "inherit";
+          fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(session),
+          }).then(function (r) {
+            if (r.ok) {
+              sheetsStatusEl.textContent = "구글 시트로 전송되었습니다.";
+              sheetsStatusEl.style.color = "#4ade80";
+            } else {
+              sheetsStatusEl.textContent = "전송 실패 (HTTP " + r.status + "). CORS 설정을 확인해 주세요.";
+              sheetsStatusEl.style.color = "#f97373";
+            }
+          }).catch(function (err) {
+            sheetsStatusEl.textContent = "전송 실패: " + (err.message || "네트워크 오류");
+            sheetsStatusEl.style.color = "#f97373";
+          });
+        });
+
+        document.getElementById("back-to-observer").addEventListener("click", () => {
+          window.location.href = "observer_report.html";
+        });
+
+        function init() {
+          const session = readSession();
+          render(session);
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+  </body>
+</html>

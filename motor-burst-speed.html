@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css">
+    <title>Burst Speed 테스트 · 운동 측정</title>
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #7c3aed;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --ok: #4ade80;
+        --danger: #f97373;
+        --wait: #fbbf24;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: #020617;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      header {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+      }
+      .back-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.9);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 12px;
+      }
+      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+      .test-container {
+        width: 100%;
+        max-width: 600px;
+        margin-top: 60px;
+      }
+      .instruction {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        color: var(--text-main);
+      }
+      .countdown-display {
+        text-align: center;
+        font-size: 72px;
+        font-weight: 700;
+        color: var(--wait);
+        margin-bottom: 20px;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .countdown-display.active {
+        color: var(--ok);
+      }
+      .key-button {
+        width: 100%;
+        height: 200px;
+        border-radius: 20px;
+        border: 4px solid rgba(148, 163, 184, 0.6);
+        background: #1a1a1a;
+        color: var(--text-main);
+        font-size: 32px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.1s;
+        position: relative;
+        overflow: hidden;
+        user-select: none;
+      }
+      .key-button:active {
+        background: var(--ok);
+        border-color: var(--ok);
+        transform: scale(0.98);
+      }
+      .key-button.active {
+        background: var(--ok);
+        border-color: var(--ok);
+      }
+      .key-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .stats-panel {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        text-align: center;
+      }
+      .stat-item {
+        margin-bottom: 15px;
+      }
+      .stat-label {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 5px;
+      }
+      .stat-value {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--ok);
+      }
+      .results-panel {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        width: 100%;
+        display: none;
+      }
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        font-size: 14px;
+      }
+      .result-item:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        color: var(--ok);
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 2px solid rgba(51, 65, 85, 0.9);
+      }
+      .btn-primary {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #22c55e);
+        color: white;
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+      .btn-primary:hover { filter: brightness(1.1); }
+      .btn-primary:disabled { opacity: 0.5; cursor: default; }
+      .retry-btn {
+        margin-top: 10px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.8);
+        color: var(--text-main);
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 13px;
+        width: 100%;
+      }
+      .retry-btn:hover {
+        background: rgba(2, 6, 23, 0.95);
+        border-color: rgba(148, 163, 184, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="motor_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: var(--text-muted);">Burst Speed 테스트</div>
+    </header>
+
+    <div class="test-container">
+      <div class="instruction" id="instruction">준비되면 버튼을 눌러 시작하세요</div>
+      
+      <div class="countdown-display" id="countdown-display">준비</div>
+
+      <button class="key-button" id="key-button" disabled>
+        <div id="key-display">SPACE</div>
+      </button>
+
+      <div class="stats-panel" id="stats-panel" style="display: none;">
+        <div class="stat-item">
+          <div class="stat-label">현재 초당 입력수</div>
+          <div class="stat-value" id="current-rate">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">최고 초당 입력수</div>
+          <div class="stat-value" id="max-rate">0</div>
+        </div>
+      </div>
+
+      <div class="results-panel" id="results-panel">
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+        <div id="results-content"></div>
+        <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+        <button class="retry-btn" id="retry-btn">다시 측정하기</button>
+      </div>
+    </div>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const instruction = document.getElementById("instruction");
+        const countdownDisplay = document.getElementById("countdown-display");
+        const keyButton = document.getElementById("key-button");
+        const keyDisplay = document.getElementById("key-display");
+        const statsPanel = document.getElementById("stats-panel");
+        const currentRateEl = document.getElementById("current-rate");
+        const maxRateEl = document.getElementById("max-rate");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsContent = document.getElementById("results-content");
+        const saveBtn = document.getElementById("save-btn");
+        const retryBtn = document.getElementById("retry-btn");
+
+        const TEST_DURATION = 5; // 5초
+        const TARGET_KEY = "SPACE";
+
+        let testActive = false;
+        let startTime = 0;
+        let inputCount = 0;
+        let inputs = [];
+        let maxInputsPerSecond = 0;
+        let countdownInterval = null;
+        let testInterval = null;
+        let rateUpdateInterval = null;
+
+        function startCountdown() {
+          let countdown = 3;
+          countdownDisplay.textContent = countdown;
+          countdownDisplay.classList.remove("active");
+          
+          countdownInterval = setInterval(function() {
+            countdown--;
+            if (countdown > 0) {
+              countdownDisplay.textContent = countdown;
+            } else if (countdown === 0) {
+              countdownDisplay.textContent = "시작!";
+              countdownDisplay.classList.add("active");
+              clearInterval(countdownInterval);
+              setTimeout(function() {
+                startTest();
+              }, 500);
+            }
+          }, 1000);
+        }
+
+        function startTest() {
+          testActive = true;
+          startTime = Date.now();
+          inputCount = 0;
+          inputs = [];
+          maxInputsPerSecond = 0;
+          keyButton.disabled = false;
+          keyButton.classList.add("active");
+          instruction.textContent = "최대한 빠르게 " + TARGET_KEY + " 키를 연타하세요!";
+          countdownDisplay.textContent = TEST_DURATION;
+          statsPanel.style.display = "block";
+          
+          let elapsed = 0;
+          testInterval = setInterval(function() {
+            elapsed = (Date.now() - startTime) / 1000;
+            const remaining = Math.max(0, TEST_DURATION - elapsed);
+            countdownDisplay.textContent = remaining.toFixed(1);
+            
+            if (remaining <= 0) {
+              endTest();
+            }
+          }, 100);
+          
+          rateUpdateInterval = setInterval(function() {
+            const elapsed = (Date.now() - startTime) / 1000;
+            if (elapsed > 0) {
+              const currentRate = inputCount / elapsed;
+              currentRateEl.textContent = Math.round(currentRate);
+              if (currentRate > maxInputsPerSecond) {
+                maxInputsPerSecond = currentRate;
+                maxRateEl.textContent = Math.round(maxInputsPerSecond);
+              }
+            }
+          }, 100);
+        }
+
+        function handleInput() {
+          if (!testActive) return;
+          inputCount++;
+          const elapsed = (Date.now() - startTime) / 1000;
+          inputs.push({
+            timestamp: Date.now(),
+            elapsed: elapsed,
+            inputNumber: inputCount
+          });
+          
+          const currentRate = inputCount / elapsed;
+          currentRateEl.textContent = Math.round(currentRate);
+          if (currentRate > maxInputsPerSecond) {
+            maxInputsPerSecond = currentRate;
+            maxRateEl.textContent = Math.round(maxInputsPerSecond);
+          }
+        }
+
+        function endTest() {
+          testActive = false;
+          keyButton.disabled = true;
+          keyButton.classList.remove("active");
+          
+          if (countdownInterval) clearInterval(countdownInterval);
+          if (testInterval) clearInterval(testInterval);
+          if (rateUpdateInterval) clearInterval(rateUpdateInterval);
+          
+          const totalTime = (Date.now() - startTime) / 1000;
+          const finalRate = inputCount / totalTime;
+          
+          if (finalRate > maxInputsPerSecond) {
+            maxInputsPerSecond = finalRate;
+          }
+          
+          instruction.style.display = "none";
+          countdownDisplay.style.display = "none";
+          keyButton.style.display = "none";
+          statsPanel.style.display = "none";
+          resultsPanel.style.display = "block";
+          
+          showResults(totalTime, finalRate);
+        }
+
+        function showResults(totalTime, finalRate) {
+          let html = '<div class="result-item"><span>총 입력 수</span><span>' + inputCount + ' 회</span></div>';
+          html += '<div class="result-item"><span>측정 시간</span><span>' + totalTime.toFixed(2) + ' 초</span></div>';
+          html += '<div class="result-item"><span>평균 초당 입력수</span><span>' + Math.round(finalRate) + ' 입력/초</span></div>';
+          html += '<div class="result-item"><span>최고 초당 입력수</span><span>' + Math.round(maxInputsPerSecond) + ' 입력/초</span></div>';
+          resultsContent.innerHTML = html;
+        }
+
+        function resetTest() {
+          testActive = false;
+          startTime = 0;
+          inputCount = 0;
+          inputs = [];
+          maxInputsPerSecond = 0;
+          
+          instruction.style.display = "block";
+          instruction.textContent = "준비되면 버튼을 눌러 시작하세요";
+          countdownDisplay.style.display = "flex";
+          countdownDisplay.textContent = "준비";
+          countdownDisplay.classList.remove("active");
+          keyButton.style.display = "block";
+          keyButton.disabled = false;
+          keyButton.classList.remove("active");
+          statsPanel.style.display = "none";
+          resultsPanel.style.display = "none";
+          
+          if (countdownInterval) clearInterval(countdownInterval);
+          if (testInterval) clearInterval(testInterval);
+          if (rateUpdateInterval) clearInterval(rateUpdateInterval);
+        }
+
+        keyButton.addEventListener("click", function() {
+          if (!testActive && startTime === 0) {
+            startCountdown();
+          } else if (testActive) {
+            handleInput();
+          }
+        });
+
+        document.addEventListener("keydown", function(e) {
+          if (e.code === "Space" && testActive) {
+            e.preventDefault();
+            handleInput();
+          }
+        });
+
+        saveBtn.addEventListener("click", function () {
+          const totalTime = inputs.length > 0 ? (inputs[inputs.length - 1].elapsed) : 0;
+          const finalRate = totalTime > 0 ? inputCount / totalTime : 0;
+          const maxRate = Math.max(maxInputsPerSecond, finalRate);
+          
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          if (!session.user_data) session.user_data = {};
+          const motor = session.user_data.motor_results || {};
+          motor.burstSpeed = {
+            totalInputs: inputCount,
+            duration: parseFloat(totalTime.toFixed(2)),
+            averageInputsPerSecond: Math.round(finalRate),
+            maxInputsPerSecond: Math.round(maxRate),
+            inputs: inputs.map(function(input) {
+              return {
+                inputNumber: input.inputNumber,
+                elapsed: parseFloat(input.elapsed.toFixed(3)),
+                timestamp: input.timestamp
+              };
+            }),
+            unit: "inputs/second",
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ motor: motor });
+          }
+          window.location.href = "motor_hub.html";
+        });
+
+        retryBtn.addEventListener("click", resetTest);
+      })();
+    </script>
+  </body>
+</html>

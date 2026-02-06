@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>관찰자 리포트 · 게임 접근성</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #7c3aed;
+        --accent-soft: rgba(124, 58, 237, 0.18);
+        --border-subtle: rgba(148, 163, 184, 0.5);
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --danger: #f97373;
+        --ok: #4ade80;
+        --radius-lg: 20px;
+        --radius-md: 12px;
+        --radius-pill: 999px;
+        --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.95);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: radial-gradient(circle at top, #111827 0, #020617 52%);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 32px 16px;
+      }
+      .shell {
+        width: 100%;
+        max-width: 960px;
+        background: radial-gradient(circle at top left, #020617 0, #020617 45%),
+          radial-gradient(circle at bottom right, #020617 0, #020617 60%);
+        border-radius: 26px;
+        border: 1px solid rgba(148, 163, 184, 0.9);
+        box-shadow: var(--shadow-soft);
+        padding: 20px 22px 22px;
+        position: relative;
+        overflow: hidden;
+      }
+      .shell::before {
+        content: "";
+        position: absolute;
+        inset: -35%;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.24) 0, transparent 55%),
+          radial-gradient(circle at 100% 0%, rgba(129, 140, 248, 0.26) 0, transparent 55%),
+          radial-gradient(circle at 50% 120%, rgba(244, 114, 182, 0.18) 0, transparent 58%);
+        opacity: 0.9;
+        mix-blend-mode: soft-light;
+        pointer-events: none;
+      }
+      .shell-inner { position: relative; z-index: 1; }
+      header.header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .brand { display: flex; align-items: center; gap: 10px; }
+      .brand-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 18px;
+        background: conic-gradient(from 210deg, #7c3aed, #22d3ee, #f97316, #7c3aed);
+        padding: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9), 0 10px 24px rgba(15, 23, 42, 0.9);
+      }
+      .brand-logo-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 14px;
+        background: radial-gradient(circle at 30% 15%, #e5e7eb, #e5e7eb 5%, #020617 70%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #020617;
+        font-size: 15px;
+        font-weight: 800;
+      }
+      .brand-text-main { display: flex; flex-direction: column; gap: 2px; }
+      .brand-text-main span:first-child { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+      .brand-text-main span:last-child { font-size: 16px; font-weight: 650; }
+      .header-meta { text-align: right; font-size: 11px; color: var(--text-muted); }
+      .header-meta strong { color: #e5e7eb; font-weight: 600; }
+      @media (max-width: 640px) {
+        header.header { flex-direction: column; align-items: flex-start; }
+        .header-meta { text-align: left; }
+      }
+      .panel {
+        background: radial-gradient(circle at top left, #020617 0, #020617 55%),
+          radial-gradient(circle at bottom right, #020617 0, #020617 60%);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        padding: 16px 18px 18px;
+        margin-bottom: 14px;
+      }
+      .section-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .section-title-pill {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-muted);
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        padding: 2px 9px;
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.92), #020617);
+      }
+      .section-subtitle {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+      }
+      .field-group { margin-bottom: 14px; }
+      .field-label-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      label { font-size: 13px; font-weight: 550; color: #e5e7eb; }
+      .label-required { color: #fbbf24; font-size: 11px; font-weight: 650; }
+      .label-helper { font-size: 11px; color: var(--text-muted); }
+      textarea {
+        width: 100%;
+        min-height: 100px;
+        resize: vertical;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-subtle);
+        background: radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%);
+        color: var(--text-main);
+        padding: 10px 12px;
+        font-size: 13px;
+        outline: none;
+        line-height: 1.5;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      textarea::placeholder { color: rgba(148, 163, 184, 0.7); }
+      textarea:focus-visible {
+        border-color: rgba(129, 140, 248, 0.95);
+        box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.7), 0 0 0 4px rgba(129, 140, 248, 0.35);
+      }
+      .error-text { font-size: 11px; color: var(--danger); margin-top: 3px; min-height: 14px; }
+      .btn-row {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn-primary {
+        border-radius: var(--radius-pill);
+        padding: 8px 16px 8px;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 550;
+        color: white;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #22c55e);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 1);
+        transition: transform 0.08s, box-shadow 0.1s, filter 0.1s;
+      }
+      .btn-primary:not([disabled]):hover {
+        transform: translateY(-1px);
+        filter: brightness(1.06);
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 1);
+      }
+      .btn-secondary {
+        border-radius: var(--radius-pill);
+        padding: 7px 13px 7px;
+        border: 1px solid rgba(148, 163, 184, 0.8);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(209, 213, 219, 0.95);
+        background: radial-gradient(circle at top, #020617, #020617 65%);
+        transition: transform 0.08s, box-shadow 0.1s;
+      }
+      .btn-secondary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.95);
+      }
+      .btn-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 25% 0%, #e5e7eb, #020617 65%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+      }
+      .hint { font-size: 11px; color: var(--text-muted); }
+      .hint strong { color: #e5e7eb; font-weight: 600; }
+      .status-text { font-size: 11px; margin-top: 6px; }
+      .status-text--error { color: var(--danger); }
+      .status-text--ok { color: var(--ok); }
+    </style>
+  </head>
+  <body>
+    <main class="shell" aria-labelledby="observer-title">
+      <div class="shell-inner">
+        <header class="header">
+          <div class="brand" aria-label="관찰자 리포트">
+            <div class="brand-logo" aria-hidden="true">
+              <div class="brand-logo-inner">GA</div>
+            </div>
+            <div class="brand-text-main">
+              <span>게임 접근성 측정</span>
+              <span id="observer-title">관찰자 리포트</span>
+            </div>
+          </div>
+          <div class="header-meta" id="user-summary">세션 정보 로딩 중...</div>
+        </header>
+
+        <div class="panel">
+          <div class="section-title">
+            <span>플레이 영상 및 측정 결과 기반 관찰 입력</span>
+            <span class="section-title-pill">Observer Report</span>
+          </div>
+          <p class="section-subtitle">
+            유저의 플레이 영상과 각 측정 결과를 함께 검토한 뒤, 관찰 내용을 아래 항목에 입력해 주세요.
+            저장 후 최종 요약(summary) 페이지로 이동하여 전송을 완료할 수 있습니다.
+          </p>
+
+          <form id="observer-form" novalidate>
+            <div class="field-group">
+              <div class="field-label-row">
+                <label for="quit-reason">
+                  이탈/포기 사유
+                  <span class="label-required">필수</span>
+                </label>
+                <span class="label-helper">플레이 포기·좌절 구간의 구체적 이유</span>
+              </div>
+              <textarea
+                id="quit-reason"
+                name="quitReason"
+                placeholder="예: 하단 UI 인지 불가로 인한 반복 사망, 특정 색 구분 불가로 퍼즐 진행 불가, 자막 미제공으로 스토리 이해 불가 등"
+                rows="4"
+                aria-describedby="quit-reason-error"
+              ></textarea>
+              <p id="quit-reason-error" class="error-text" aria-live="polite"></p>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label-row">
+                <label for="alt-behavior">
+                  대체 행동 패턴
+                  <span class="label-required">필수</span>
+                </label>
+                <span class="label-helper">불리함을 극복하기 위해 반복한 행동</span>
+              </div>
+              <textarea
+                id="alt-behavior"
+                name="altBehavior"
+                placeholder="예: 소리를 듣기 위해 화면을 계속 회전시킴, 특정 키를 누르기 위해 자세를 비틀음, UI 가독을 위해 화면에 얼굴을 가까이 대는 등"
+                rows="4"
+                aria-describedby="alt-behavior-error"
+              ></textarea>
+              <p id="alt-behavior-error" class="error-text" aria-live="polite"></p>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label-row">
+                <label for="analysis-summary">
+                  핵심 분석 요약
+                  <span class="label-required">필수</span>
+                </label>
+                <span class="label-helper">영상 분석 에이전트 결과 + 관찰을 종합한 최종 의견</span>
+              </div>
+              <textarea
+                id="analysis-summary"
+                name="analysisSummary"
+                placeholder="예: 시각 측정 결과(저시력, FOV 제한)와 플레이 영상에서의 UI 인지 실패 구간이 일치함. 게임 내 폰트 최소 14px, 색상 의존도 감소 옵션 필요."
+                rows="5"
+                aria-describedby="analysis-summary-error"
+              ></textarea>
+              <p id="analysis-summary-error" class="error-text" aria-live="polite"></p>
+            </div>
+
+            <div class="btn-row">
+              <button type="button" class="btn-secondary" id="back-to-hub">
+                <span class="btn-icon" aria-hidden="true">◀</span>
+                <span>허브로 돌아가기</span>
+              </button>
+              <p class="hint">
+                <strong>저장</strong>을 누르면 기존 세션 데이터에 합쳐진 뒤 summary.html로 이동합니다.
+              </p>
+              <button type="submit" class="btn-primary" id="save-observer">
+                <span class="btn-icon" aria-hidden="true">✔</span>
+                <span>저장 & 최종 요약으로 이동</span>
+              </button>
+            </div>
+            <p id="status-text" class="status-text" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const userSummaryEl = document.getElementById("user-summary");
+        const form = document.getElementById("observer-form");
+        const statusText = document.getElementById("status-text");
+        const backToHubBtn = document.getElementById("back-to-hub");
+
+        function readSession() {
+          return (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+        }
+
+        function writeSession(merge) {
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession(merge);
+          }
+        }
+
+        function escapeHtml(str) {
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+
+        function updateUserSummary() {
+          const session = readSession();
+          const id = session.userId || session.id || "-";
+          const disability = session.disabilityType || "-";
+          if (!session.disabilityType) {
+            userSummaryEl.innerHTML = "세션 정보가 없습니다. 메인 페이지에서 세션을 먼저 생성해 주세요.";
+          } else {
+            userSummaryEl.innerHTML =
+              "세션 <strong>" + escapeHtml(id || "unnamed") + "</strong> · 장애 유형 <strong>" + escapeHtml(disability) + "</strong>";
+          }
+        }
+
+        function showStatus(msg, isError) {
+          statusText.textContent = msg;
+          statusText.className = "status-text " + (isError ? "status-text--error" : "status-text--ok");
+        }
+
+        function validate() {
+          const quit = document.getElementById("quit-reason");
+          const alt = document.getElementById("alt-behavior");
+          const summary = document.getElementById("analysis-summary");
+          document.getElementById("quit-reason-error").textContent = "";
+          document.getElementById("alt-behavior-error").textContent = "";
+          document.getElementById("analysis-summary-error").textContent = "";
+          let valid = true;
+          if (!quit.value.trim()) {
+            document.getElementById("quit-reason-error").textContent = "이탈/포기 사유를 입력해 주세요.";
+            valid = false;
+          }
+          if (!alt.value.trim()) {
+            document.getElementById("alt-behavior-error").textContent = "대체 행동 패턴을 입력해 주세요.";
+            valid = false;
+          }
+          if (!summary.value.trim()) {
+            document.getElementById("analysis-summary-error").textContent = "핵심 분석 요약을 입력해 주세요.";
+            valid = false;
+          }
+          return valid;
+        }
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          if (!validate()) {
+            showStatus("필수 항목을 모두 입력해 주세요.", true);
+            return;
+          }
+          const observerReport = {
+            quitReason: document.getElementById("quit-reason").value.trim(),
+            altBehavior: document.getElementById("alt-behavior").value.trim(),
+            analysisSummary: document.getElementById("analysis-summary").value.trim(),
+            recordedAt: new Date().toISOString(),
+          };
+          writeSession({ observer_report: observerReport });
+          showStatus("관찰자 리포트가 저장되었습니다. 최종 요약 페이지로 이동합니다...", false);
+          setTimeout(() => {
+            window.location.href = "summary.html";
+          }, 500);
+        });
+
+        backToHubBtn.addEventListener("click", () => {
+          window.location.href = "hub.html";
+        });
+
+        updateUserSummary();
+      })();
+    </script>
+  </body>
+</html>

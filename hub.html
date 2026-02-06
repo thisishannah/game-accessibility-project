@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>측정 항목 허브 · 게임 접근성</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      :root {
+        --bg: #050816;
+        --accent: #7c3aed;
+        --accent-soft: rgba(124, 58, 237, 0.15);
+        --accent-strong: rgba(124, 58, 237, 0.35);
+        --border-subtle: rgba(148, 163, 184, 0.4);
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --danger: #f97373;
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --radius-pill: 999px;
+        --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.9);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        color: var(--text-main);
+        background: radial-gradient(circle at top, #111827 0, #020617 50%);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 32px 16px;
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 1120px;
+        background: radial-gradient(circle at top left, #020617 0, #020617 35%),
+          radial-gradient(circle at top right, #111827 0, #020617 55%);
+        border-radius: 26px;
+        border: 1px solid rgba(148, 163, 184, 0.85);
+        box-shadow: var(--shadow-soft);
+        padding: 22px 24px 24px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.9fr);
+        gap: 24px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          padding: 16px 10px;
+        }
+        .shell {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 18px 16px 20px;
+          border-radius: 20px;
+        }
+      }
+
+      .shell::before {
+        content: "";
+        position: absolute;
+        inset: -35%;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.24) 0, transparent 55%),
+          radial-gradient(circle at 100% 0%, rgba(129, 140, 248, 0.26) 0, transparent 55%),
+          radial-gradient(circle at 50% 120%, rgba(244, 114, 182, 0.18) 0, transparent 58%);
+        opacity: 0.9;
+        mix-blend-mode: soft-light;
+        pointer-events: none;
+      }
+
+      .shell-inner {
+        position: relative;
+        z-index: 1;
+        display: contents;
+      }
+
+      .header {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand-logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 18px;
+        background:
+          conic-gradient(from 200deg, #7c3aed, #22d3ee, #f97316, #7c3aed);
+        padding: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9),
+          0 12px 26px rgba(15, 23, 42, 0.9);
+      }
+
+      .brand-logo-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 14px;
+        background: radial-gradient(circle at 30% 15%, #e5e7eb, #e5e7eb 4%, #020617 68%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #020617;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .brand-text-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .brand-text-main span:first-child {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .brand-text-main span:last-child {
+        font-size: 17px;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+      }
+
+      .header-meta {
+        text-align: right;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .header-meta strong {
+        color: #e5e7eb;
+        font-weight: 600;
+      }
+
+      @media (max-width: 900px) {
+        .header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .header-meta {
+          text-align: left;
+        }
+      }
+
+      .section-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-title-pill {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-muted);
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        padding: 2px 9px;
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.92), #020617);
+      }
+
+      .section-subtitle {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+      }
+
+      .hub-left {
+        background: radial-gradient(circle at top left, #020617 0, #020617 55%),
+          radial-gradient(circle at bottom right, #020617 0, #020617 60%);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        padding: 16px 16px 18px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hub-left::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top, rgba(148, 163, 184, 0.22), transparent 55%);
+        opacity: 0.25;
+        pointer-events: none;
+      }
+
+      .hub-left-inner {
+        position: relative;
+        z-index: 1;
+      }
+
+      .measure-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      @media (max-width: 640px) {
+        .measure-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .measure-card {
+        position: relative;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--glass-border);
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        padding: var(--spacing-md);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        opacity: 0.6;
+        min-height: 48px;
+      }
+
+      .measure-card[data-primary="true"] {
+        opacity: 1;
+        border-color: rgba(129, 140, 248, 1);
+        background: radial-gradient(circle at top, var(--accent-soft), #020617 62%);
+        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.55),
+          0 16px 36px rgba(15, 23, 42, 1);
+      }
+
+      .measure-card[data-primary="true"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle at top, var(--accent-strong), transparent 66%);
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
+      .measure-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--border-medium);
+        box-shadow: var(--shadow-lg);
+        opacity: 0.9;
+      }
+
+      .measure-card:focus-visible {
+        outline: 2px solid var(--accent-primary);
+        outline-offset: 2px;
+        box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.3);
+      }
+
+      .measure-card[data-primary="true"]:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent-primary);
+        box-shadow: var(--shadow-lg), var(--shadow-glow);
+      }
+
+      .measure-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+      }
+
+      .measure-main {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .measure-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 25% 0%, #e5e7eb, #020617 70%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.85);
+      }
+
+      .measure-text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+
+      .measure-title {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .measure-sub {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .measure-skip-tag {
+        font-size: 10px;
+        border-radius: var(--radius-pill);
+        padding: 2px 7px;
+        border: 1px dashed rgba(148, 163, 184, 0.7);
+        color: rgba(148, 163, 184, 0.95);
+        background: radial-gradient(circle at top, #020617, #020617 70%);
+      }
+
+      .measure-card[data-primary="true"] .measure-skip-tag {
+        display: none;
+      }
+
+      .measure-progress {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 6px;
+        font-size: 11px;
+        margin-top: 2px;
+      }
+
+      .measure-progress-label {
+        color: var(--text-muted);
+      }
+
+      .measure-progress-value {
+        font-variant-numeric: tabular-nums;
+        font-weight: 550;
+      }
+
+      .measure-progress-bar {
+        position: relative;
+        width: 100%;
+        height: 8px;
+        border-radius: var(--radius-pill);
+        background: rgba(148, 163, 184, 0.2);
+        overflow: hidden;
+        margin-top: 8px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      .measure-progress-fill {
+        position: absolute;
+        inset: 0;
+        transform-origin: left center;
+        transform: scaleX(0);
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+      }
+
+      .measure-card[data-complete="true"] .measure-progress-fill {
+        background: linear-gradient(90deg, var(--success), #22c55e);
+        box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+      }
+
+      .hub-right {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .right-panel {
+        background: radial-gradient(circle at top left, #020617 0, #020617 55%),
+          radial-gradient(circle at bottom right, #020617 0, #020617 60%);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        padding: 15px 15px 16px;
+      }
+
+      .right-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+
+      .right-title {
+        font-size: 14px;
+        font-weight: 550;
+      }
+
+      .right-badge {
+        font-size: 11px;
+        color: rgba(209, 213, 219, 0.95);
+        border-radius: var(--radius-pill);
+        padding: 3px 9px;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        background: radial-gradient(circle at top, #020617, #020617 65%);
+      }
+
+      .right-body {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      .right-body ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+
+      .right-body li {
+        margin-bottom: 4px;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .pill {
+        font-size: 10px;
+        border-radius: var(--radius-pill);
+        padding: 3px 8px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        color: rgba(209, 213, 219, 0.95);
+        background: radial-gradient(circle at top, #020617, #020617 65%);
+      }
+
+      .pill-accent {
+        border-color: rgba(129, 140, 248, 0.95);
+      }
+
+      .summary-card {
+        margin-top: 4px;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .summary-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(148, 163, 184, 0.8);
+        padding: 3px 8px;
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), #020617);
+        font-size: 11px;
+        margin-top: 4px;
+      }
+
+      .footer {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .footer-hint {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .footer-hint strong {
+        color: #e5e7eb;
+        font-weight: 600;
+      }
+
+      .btn-primary,
+      button      .btn-primary {
+        border-radius: var(--radius-pill);
+        padding: 12px 24px;
+        min-height: 48px;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #f97316);
+        background-size: 200% 100%;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 1);
+        transition: all var(--transition-base);
+      }
+
+      .btn-primary:focus-visible {
+        outline: 2px solid var(--accent-primary);
+        outline-offset: 2px;
+        box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.3), 0 14px 30px rgba(15, 23, 42, 1);
+      }
+
+      .btn-primary[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .btn-primary:not([disabled]):hover {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+        background-position: 100% 0;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 1), 0 0 20px rgba(124, 58, 237, 0.4);
+      }
+
+      .btn-primary:not([disabled]):active {
+        transform: translateY(0);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.95);
+      }
+
+      .btn-primary-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 25% 0%, #e5e7eb, #020617 65%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+      }
+
+      .btn-primary-sub {
+        font-size: 11px;
+        opacity: 0.9;
+        font-weight: 500;
+      }
+
+      .status-text {
+        font-size: 11px;
+        margin-top: 4px;
+      }
+
+      .status-text--error {
+        color: var(--danger);
+      }
+
+      .status-text--ok {
+        color: #4ade80;
+      }
+
+      .screen-reader-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell" aria-labelledby="hub-title">
+      <div class="shell-inner">
+        <header class="header">
+          <div class="brand" aria-label="게임 접근성 측정 허브">
+            <div class="brand-logo" aria-hidden="true">
+              <div class="brand-logo-inner">GA</div>
+            </div>
+            <div class="brand-text-main">
+              <span>게임 접근성 측정</span>
+              <span id="hub-title">측정 항목 허브</span>
+            </div>
+          </div>
+          <div class="header-meta" id="user-summary">
+            세션 정보 로딩 중...
+          </div>
+        </header>
+
+        <section class="hub-left" aria-label="측정 항목 선택">
+          <div class="hub-left-inner">
+            <div class="section-title">
+              <span>장애 유형별 측정 허브</span>
+              <span class="section-title-pill">Step · Measures Hub</span>
+            </div>
+            <p class="section-subtitle" id="hub-subtitle">
+              세션에서 선택한 장애 유형에 따라 권장 측정 항목이 강조됩니다. 다른 장애
+              영역은 필요 시 참고용으로만 진행해도 됩니다.
+            </p>
+
+            <div class="measure-grid" id="measure-grid">
+              <!-- 시각 측정 -->
+              <article
+                class="measure-card"
+                data-measure="visual"
+                data-disability-type="시각"
+                tabindex="0"
+              >
+                <div class="measure-head">
+                  <div class="measure-main">
+                    <div class="measure-icon" aria-hidden="true">👁️</div>
+                    <div class="measure-text">
+                      <div class="measure-title">시각 측정</div>
+                      <div class="measure-sub">
+                        대비, 색 의존도, 텍스트/아이콘 가독성
+                      </div>
+                    </div>
+                  </div>
+                  <span class="measure-skip-tag">스킵 가능</span>
+                </div>
+                <div class="measure-progress">
+                  <span
+                    class="measure-progress-label"
+                    data-progress-label="visual"
+                  >
+                    UI & 텍스트 가시성
+                  </span>
+                  <span
+                    class="measure-progress-value"
+                    data-progress-value="visual"
+                  >
+                    0/4
+                  </span>
+                </div>
+                <div class="measure-progress-bar" aria-hidden="true">
+                  <div
+                    class="measure-progress-fill"
+                    data-progress-fill="visual"
+                    style="transform: scaleX(0)"
+                  ></div>
+                </div>
+              </article>
+
+              <!-- 운동 측정 -->
+              <article
+                class="measure-card"
+                data-measure="motor"
+                data-disability-type="운동"
+                tabindex="0"
+              >
+                <div class="measure-head">
+                  <div class="measure-main">
+                    <div class="measure-icon" aria-hidden="true">🎮</div>
+                    <div class="measure-text">
+                      <div class="measure-title">운동 측정</div>
+                      <div class="measure-sub">
+                        입력 난이도, 동시 입력, 반복 조작 피로도
+                      </div>
+                    </div>
+                  </div>
+                  <span class="measure-skip-tag">스킵 가능</span>
+                </div>
+                <div class="measure-progress">
+                  <span
+                    class="measure-progress-label"
+                    data-progress-label="motor"
+                  >
+                    FOV & 입력 동시성
+                  </span>
+                  <span
+                    class="measure-progress-value"
+                    data-progress-value="motor"
+                  >
+                    0/4
+                  </span>
+                </div>
+                <div class="measure-progress-bar" aria-hidden="true">
+                  <div
+                    class="measure-progress-fill"
+                    data-progress-fill="motor"
+                    style="transform: scaleX(0)"
+                  ></div>
+                </div>
+              </article>
+
+              <!-- 청각언어장애 측정 -->
+              <article
+                class="measure-card"
+                data-measure="audio"
+                data-disability-type="청각언어장애"
+                tabindex="0"
+              >
+                <div class="measure-head">
+                  <div class="measure-main">
+                    <div class="measure-icon" aria-hidden="true">🔊</div>
+                    <div class="measure-text">
+                      <div class="measure-title">청각언어장애 측정</div>
+                      <div class="measure-sub">
+                        자막·시각적 피드백, 소리 의존도, 믹싱
+                      </div>
+                    </div>
+                  </div>
+                  <span class="measure-skip-tag">스킵 가능</span>
+                </div>
+                <div class="measure-progress">
+                  <span
+                    class="measure-progress-label"
+                    data-progress-label="audio"
+                  >
+                    자막·알림 피드백
+                  </span>
+                  <span
+                    class="measure-progress-value"
+                    data-progress-value="audio"
+                  >
+                    0/3
+                  </span>
+                </div>
+                <div class="measure-progress-bar" aria-hidden="true">
+                  <div
+                    class="measure-progress-fill"
+                    data-progress-fill="audio"
+                    style="transform: scaleX(0)"
+                  ></div>
+                </div>
+              </article>
+
+              <!-- 인지 측정 -->
+              <article
+                class="measure-card"
+                data-measure="cognitive"
+                data-disability-type="인지"
+                tabindex="0"
+              >
+                <div class="measure-head">
+                  <div class="measure-main">
+                    <div class="measure-icon" aria-hidden="true">🧠</div>
+                    <div class="measure-text">
+                      <div class="measure-title">인지 측정</div>
+                      <div class="measure-sub">
+                        정보량, 튜토리얼, UI 복잡도, 타이밍 부담
+                      </div>
+                    </div>
+                  </div>
+                  <span class="measure-skip-tag">스킵 가능</span>
+                </div>
+                <div class="measure-progress">
+                  <span
+                    class="measure-progress-label"
+                    data-progress-label="cognitive"
+                  >
+                    정보 처리 난이도
+                  </span>
+                  <span
+                    class="measure-progress-value"
+                    data-progress-value="cognitive"
+                  >
+                    0/3
+                  </span>
+                </div>
+                <div class="measure-progress-bar" aria-hidden="true">
+                  <div
+                    class="measure-progress-fill"
+                    data-progress-fill="cognitive"
+                    style="transform: scaleX(0)"
+                  ></div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <aside class="hub-right" aria-label="세션 개요 및 진행 상황">
+          <section class="right-panel">
+            <div class="right-header">
+              <div class="right-title">세션 개요</div>
+              <span class="right-badge" id="primary-disability-badge">
+                장애 유형: -
+              </span>
+            </div>
+            <div class="right-body">
+              <p id="hub-helper-text">
+                세션에서 선택한 장애 유형에 해당하는 측정 영역이 자동으로 강조됩니다.
+                강조된 카드가 이 세션의 <strong>필수 측정 항목</strong>입니다.
+              </p>
+              <ul>
+                <li>
+                  강조 카드: 이 세션의 주요 분석 축으로, 최소 1회 이상 측정 필요
+                </li>
+                <li>
+                  반투명 카드: 다른 장애 유형 측정 – 필요 시만 선택적으로 진행
+                </li>
+                <li>
+                  각 카드의 진행률(예: FOV 측정 0/4)은 개별 측정 페이지를 다녀올 때마다
+                  자동으로 갱신됩니다.
+                </li>
+              </ul>
+
+              <div class="pill-row">
+                <span class="pill pill-accent">세션 기반 측정 허브</span>
+                <span class="pill">유형별 측정 모듈</span>
+                <span class="pill">진행률 추적</span>
+                <span class="pill">최종 리포트 연동</span>
+              </div>
+
+              <div class="summary-card">
+                <div>현재 세션</div>
+                <div id="session-summary-pill" class="summary-pill">
+                  <span>ID</span>
+                  <span id="session-id-text">-</span>
+                  <span style="opacity: 0.6; margin-left: 4px">·</span>
+                  <span>장애</span>
+                  <span id="session-disability-text">-</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="right-panel" aria-label="최종 결과 전송">
+            <div class="right-header">
+              <div class="right-title">최종 결과</div>
+              <span class="right-badge" id="completion-badge">Required: 0/1</span>
+            </div>
+            <div class="right-body">
+              <p>
+                필수 측정(세션에서 선택한 주요 장애 유형)이 완료되면 아래 버튼이
+                활성화됩니다. 이 버튼을 통해 측정 요약과 함께 최종 결과를 내보내거나
+                연구용 저장 프로세스로 넘길 수 있습니다.
+              </p>
+              <p class="status-text" id="completion-status-text">
+                필수 측정 진행률을 확인하는 중입니다.
+              </p>
+            </div>
+            <div class="footer">
+              <p class="footer-hint" id="footer-hint">
+                <strong>필수 측정</strong>을 최소 1회 이상 완료하면 최종 결과 버튼이
+                활성화됩니다.
+              </p>
+              <button
+                type="button"
+                class="btn-primary"
+                id="final-submit-button"
+                disabled
+              >
+                <span class="btn-primary-icon" aria-hidden="true">✔</span>
+                <span>최종 결과 확인 및 전송</span>
+                <span class="btn-primary-sub">Review & Export</span>
+              </button>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const userSummaryEl = document.getElementById("user-summary");
+        const sessionIdText = document.getElementById("session-id-text");
+        const sessionDisabilityText = document.getElementById(
+          "session-disability-text"
+        );
+        const primaryDisabilityBadge = document.getElementById(
+          "primary-disability-badge"
+        );
+        const hubSubtitle = document.getElementById("hub-subtitle");
+        const hubHelperText = document.getElementById("hub-helper-text");
+        const completionBadge = document.getElementById("completion-badge");
+        const completionStatusText = document.getElementById(
+          "completion-status-text"
+        );
+        const footerHint = document.getElementById("footer-hint");
+        const finalSubmitButton = document.getElementById(
+          "final-submit-button"
+        );
+
+        const measureGrid = document.getElementById("measure-grid");
+
+        const PROGRESS_DEFAULTS = {
+          visual: { label: "반응속도 + 폰트 + 에임 + FOV", current: 0, total: 4 },
+          motor: { label: "7개 테스트", current: 0, total: 7 },
+          audio: { label: "자막·알림 피드백", current: 0, total: 3 },
+          cognitive: { label: "4개 테스트", current: 0, total: 4 },
+        };
+
+        function readSession() {
+          return (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+        }
+
+        function readProgress(key) {
+          return (typeof GAStorage !== "undefined" && GAStorage.readProgress(key)) || null;
+        }
+
+        function escapeHtml(str) {
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+
+        function mapDisabilityToKey(type) {
+          switch (type) {
+            case "시각":
+              return "visual";
+            case "운동":
+              return "motor";
+            case "청각언어장애":
+              return "audio";
+            case "인지":
+              return "cognitive";
+            default:
+              return null;
+          }
+        }
+
+        function updateUserSummary(session) {
+          const id = session.userId || session.id || "-";
+          const disability = session.disabilityType || "-";
+
+          sessionIdText.textContent = id || "-";
+          sessionDisabilityText.textContent = disability || "-";
+
+          if (!session.disabilityType) {
+            userSummaryEl.innerHTML =
+              "세션 정보가 없습니다. 먼저 메인 페이지에서 세션을 생성한 뒤 다시 이 페이지를 여는 것을 권장합니다.";
+          } else {
+            userSummaryEl.innerHTML =
+              '세션 <strong>' +
+              escapeHtml(id || "unnamed") +
+              "</strong> · 장애 유형 <strong>" +
+              escapeHtml(disability) +
+              "</strong>";
+          }
+
+          const primaryKey = mapDisabilityToKey(session.disabilityType);
+          if (primaryKey) {
+            primaryDisabilityBadge.textContent =
+              "장애 유형: " + session.disabilityType;
+            hubSubtitle.textContent =
+              "세션에서 선택한 장애 유형( " +
+              session.disabilityType +
+              " )에 맞춰 가장 중요한 측정 항목을 강조합니다.";
+            hubHelperText.innerHTML =
+              "현재 세션의 주요 장애 유형은 <strong>" +
+              escapeHtml(session.disabilityType) +
+              "</strong>입니다. 이 유형에 해당하는 카드가 필수 측정으로 간주되며, 나머지 카드는 '스킵 가능'한 보조 측정입니다.";
+          } else {
+            primaryDisabilityBadge.textContent = "장애 유형: -";
+          }
+
+          // 카드 강조 상태 갱신
+          const cards = measureGrid.querySelectorAll(".measure-card");
+          cards.forEach((card) => {
+            const cardType = card.getAttribute("data-disability-type");
+            if (cardType && cardType === session.disabilityType) {
+              card.dataset.primary = "true";
+            } else {
+              card.dataset.primary = "false";
+            }
+          });
+
+          return primaryKey;
+        }
+
+        function updateProgressUI() {
+          const keys = Object.keys(PROGRESS_DEFAULTS);
+          const completion = {};
+
+          keys.forEach((key) => {
+            const domLabel = document.querySelector(
+              '[data-progress-label="' + key + '"]'
+            );
+            const domValue = document.querySelector(
+              '[data-progress-value="' + key + '"]'
+            );
+            const domFill = document.querySelector(
+              '[data-progress-fill="' + key + '"]'
+            );
+
+            if (!domLabel || !domValue || !domFill) return;
+
+            const stored = readProgress(key);
+            const base = PROGRESS_DEFAULTS[key];
+            const label = (stored && stored.label) || base.label;
+            const current =
+              typeof stored?.current === "number"
+                ? stored.current
+                : base.current;
+            const total =
+              typeof stored?.total === "number" ? stored.total : base.total;
+
+            domLabel.textContent = label;
+            domValue.textContent = current + "/" + total;
+
+            const ratio = total > 0 ? Math.max(0, Math.min(1, current / total)) : 0;
+            domFill.style.transform = "scaleX(" + ratio + ")";
+
+            completion[key] = {
+              current,
+              total,
+              complete: total > 0 && current >= total,
+            };
+
+            const card = document.querySelector(
+              '.measure-card[data-measure="' + key + '"]'
+            );
+            if (card) {
+              card.dataset.complete = completion[key].complete ? "true" : "false";
+            }
+          });
+
+          return completion;
+        }
+
+        function updateCompletion(primaryKey, completion) {
+          if (!primaryKey) {
+            completionBadge.textContent = "Required: 0/0";
+            completionStatusText.textContent =
+              "세션의 장애 유형 정보를 찾을 수 없습니다. 메인 대시보드에서 세션을 먼저 생성해 주세요.";
+            completionStatusText.className = "status-text status-text--error";
+            finalSubmitButton.disabled = true;
+            footerHint.textContent =
+              "세션 정보가 없거나 주요 장애 유형이 지정되지 않은 상태입니다.";
+            return;
+          }
+
+          const info = completion[primaryKey];
+          if (!info) {
+            completionBadge.textContent = "Required: 0/1";
+            completionStatusText.textContent =
+              "필수 측정 진행 정보를 찾지 못했습니다. 해당 측정 페이지를 한 번 이상 방문한 뒤 다시 확인해 주세요.";
+            completionStatusText.className = "status-text status-text--error";
+            finalSubmitButton.disabled = true;
+            footerHint.textContent =
+              "필수 측정 카드(" +
+              primaryKey +
+              ")를 최소 1회 이상 실행해야 합니다.";
+            return;
+          }
+
+          const isComplete = info.total > 0 && info.current >= info.total;
+          completionBadge.textContent = "Required: " + (isComplete ? "1/1" : "0/1");
+
+          if (isComplete) {
+            completionStatusText.textContent =
+              "필수 측정이 모두 완료되었습니다. 최종 결과 버튼을 눌러 리포트를 확인하고 전송할 수 있습니다.";
+            completionStatusText.className = "status-text status-text--ok";
+            finalSubmitButton.disabled = false;
+            footerHint.innerHTML =
+              "<strong>필수 측정</strong>이 완료되었습니다. 필요하다면 다른 장애 유형 측정을 추가로 진행한 뒤 결과를 전송할 수 있습니다.";
+          } else {
+            completionStatusText.textContent =
+              "필수 측정이 아직 완료되지 않았습니다. 강조된 카드의 진행률을 모두 채운 뒤 다시 시도하세요.";
+            completionStatusText.className = "status-text status-text--error";
+            finalSubmitButton.disabled = true;
+            footerHint.innerHTML =
+              "<strong>필수 측정</strong> 카드의 진행률을 모두 채워야 최종 결과 버튼이 활성화됩니다.";
+          }
+        }
+
+        function initNavigation(primaryKey) {
+          measureGrid.addEventListener("click", (event) => {
+            const card = event.target.closest(".measure-card");
+            if (!card) return;
+            const key = card.getAttribute("data-measure");
+            if (!key) return;
+
+            // 각 측정 페이지 URL 매핑
+            const urlByKey = {
+              visual: "vision_hub.html",
+              motor: "motor_hub.html",
+              audio: "hearing.html",
+              cognitive: "cognitive_hub.html",
+            };
+
+            const target = urlByKey[key];
+            if (target) {
+              window.location.href = target;
+            } else {
+              alert(
+                "[" +
+                  (card.querySelector(".measure-title")?.textContent || key) +
+                  "] 측정 페이지 URL이 아직 설정되지 않았습니다."
+              );
+            }
+          });
+
+          measureGrid.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              const card = event.target.closest(".measure-card");
+              if (!card) return;
+              event.preventDefault();
+              card.click();
+            }
+          });
+
+          finalSubmitButton.addEventListener("click", () => {
+            window.location.href = "observer_report.html";
+          });
+        }
+
+        const session = readSession();
+        const primaryKey = updateUserSummary(session);
+        const completion = updateProgressUI();
+        updateCompletion(primaryKey, completion);
+        initNavigation(primaryKey);
+      })();
+    </script>
+  </body>
+</html>
+

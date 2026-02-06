@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css">
+    <title>반응속도 테스트 · 운동 측정</title>
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #7c3aed;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --ok: #4ade80;
+        --danger: #f97373;
+        --wait: #fbbf24;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: #020617;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      header {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+      }
+      .back-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.9);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+      .test-area {
+        width: 100%;
+        max-width: 600px;
+        height: 400px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        position: relative;
+        margin-top: 60px;
+      }
+      .test-area.waiting { background: #1a1a1a; cursor: wait; }
+      .test-area.ready { background: var(--wait); cursor: pointer; }
+      .test-area.click { background: var(--ok); cursor: pointer; }
+      .test-area.too-early { background: var(--danger); cursor: not-allowed; }
+      .test-message {
+        font-size: 24px;
+        font-weight: 600;
+        text-align: center;
+        color: var(--text-main);
+      }
+      .results-panel {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        width: 100%;
+        max-width: 600px;
+      }
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        font-size: 14px;
+      }
+      .result-item:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        color: var(--ok);
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 2px solid rgba(51, 65, 85, 0.9);
+      }
+      .btn-primary {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #22c55e);
+        color: white;
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .btn-primary:hover { filter: brightness(1.1); }
+      .btn-primary:disabled { opacity: 0.5; cursor: default; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="motor_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: var(--text-muted);">반응속도 테스트</div>
+    </header>
+
+    <div class="test-area waiting" id="test-area">
+      <div class="test-message" id="test-message">대기 중... 클릭하면 시작합니다</div>
+    </div>
+
+    <div class="results-panel" id="results-panel" style="display: none;">
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+      <div id="results-list"></div>
+      <button class="btn-primary" id="save-btn" style="width: 100%;">결과 저장 & 허브로 이동</button>
+    </div>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const testArea = document.getElementById("test-area");
+        const testMessage = document.getElementById("test-message");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsList = document.getElementById("results-list");
+        const saveBtn = document.getElementById("save-btn");
+
+        let state = "waiting"; // waiting, ready, click, too-early
+        let trials = [];
+        let currentTrial = 0;
+        let startTime = 0;
+        let waitTimeout = null;
+        const TOTAL_TRIALS = 4;
+
+        function getRandomDelay() {
+          return 2000 + Math.random() * 3000; // 2-5초
+        }
+
+        function startTrial() {
+          if (currentTrial >= TOTAL_TRIALS) {
+            showResults();
+            return;
+          }
+          state = "waiting";
+          testArea.className = "test-area waiting";
+          testMessage.textContent = "대기 중... 클릭하면 시작합니다";
+          testArea.onclick = function () {
+            state = "ready";
+            testArea.className = "test-area ready";
+            testMessage.textContent = "초록색이 되면 클릭하세요";
+            startTime = Date.now();
+            waitTimeout = setTimeout(function () {
+              if (state === "ready") {
+                state = "click";
+                testArea.className = "test-area click";
+                testMessage.textContent = "지금 클릭하세요!";
+                startTime = Date.now();
+              }
+            }, getRandomDelay());
+          };
+        }
+
+        testArea.addEventListener("click", function () {
+          if (state === "click") {
+            const reactionTime = Date.now() - startTime;
+            trials.push(reactionTime);
+            currentTrial++;
+            testMessage.textContent = reactionTime + " ms";
+            setTimeout(function () {
+              if (currentTrial < TOTAL_TRIALS) {
+                startTrial();
+              } else {
+                showResults();
+              }
+            }, 1000);
+          } else if (state === "ready") {
+            clearTimeout(waitTimeout);
+            state = "too-early";
+            testArea.className = "test-area too-early";
+            testMessage.textContent = "너무 빨랐습니다. 다시 시작합니다.";
+            setTimeout(function () {
+              startTrial();
+            }, 1500);
+          }
+        });
+
+        function showResults() {
+          testArea.style.display = "none";
+          resultsPanel.style.display = "block";
+          const avg = trials.reduce((a, b) => a + b, 0) / trials.length;
+          let html = "";
+          trials.forEach(function (t, i) {
+            html += '<div class="result-item"><span>' + (i + 1) + "회차</span><span>" + t + " ms</span></div>";
+          });
+          html += '<div class="result-item"><span>평균</span><span>' + Math.round(avg) + " ms</span></div>";
+          resultsList.innerHTML = html;
+        }
+
+        saveBtn.addEventListener("click", function () {
+          if (trials.length < TOTAL_TRIALS) return;
+          const avg = trials.reduce((a, b) => a + b, 0) / trials.length;
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          if (!session.user_data) session.user_data = {};
+          const motor = session.user_data.motor_results || {};
+          motor.reactionTime = {
+            trials: trials,
+            average: Math.round(avg),
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ motor: motor });
+          }
+          window.location.href = "motor_hub.html";
+        });
+
+        startTrial();
+      })();
+    </script>
+  </body>
+</html>

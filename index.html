@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>게임 접근성 평가 대시보드</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      :root {
+        --bg: #050816;
+        --bg-elevated: #0b1020;
+        --accent: #7c3aed;
+        --accent-soft: rgba(124, 58, 237, 0.12);
+        --accent-strong: rgba(124, 58, 237, 0.3);
+        --border-subtle: rgba(148, 163, 184, 0.4);
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --danger: #f97373;
+        --focus-ring: 0 0 0 2px rgba(59, 130, 246, 0.8);
+        --radius-lg: 16px;
+        --radius-md: 10px;
+        --radius-pill: 999px;
+        --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.9);
+        --shadow-focus: 0 0 0 1px rgba(148, 163, 184, 0.7),
+          0 0 0 5px rgba(129, 140, 248, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        color: var(--text-main);
+        background: radial-gradient(circle at top, #111827 0, #020617 50%);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 32px 16px;
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 1120px;
+        background: radial-gradient(circle at top left, #020617 0, #020617 35%),
+          radial-gradient(circle at top right, #111827 0, #020617 55%);
+        border-radius: 28px;
+        border: 1px solid rgba(148, 163, 184, 0.8);
+        box-shadow: var(--shadow-soft);
+        padding: 24px 26px 26px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        gap: 28px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          padding: 16px 12px;
+        }
+
+        .shell {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 18px 18px 20px;
+          border-radius: 22px;
+        }
+      }
+
+      .shell::before {
+        content: "";
+        position: absolute;
+        inset: -40%;
+        background:
+          radial-gradient(circle at 5% 0%, rgba(56, 189, 248, 0.22) 0, transparent 55%),
+          radial-gradient(circle at 95% 0%, rgba(129, 140, 248, 0.24) 0, transparent 55%),
+          radial-gradient(circle at 50% 120%, rgba(244, 114, 182, 0.15) 0, transparent 55%);
+        opacity: 0.9;
+        mix-blend-mode: soft-light;
+        pointer-events: none;
+      }
+
+      .shell-inner {
+        position: relative;
+        z-index: 1;
+        display: contents;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand-logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
+        background:
+          conic-gradient(from 210deg, #7c3aed, #22d3ee, #f97316, #7c3aed);
+        padding: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9),
+          0 12px 30px rgba(15, 23, 42, 0.9);
+      }
+
+      .brand-logo-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 14px;
+        background: radial-gradient(circle at 30% 15%, #e5e7eb, #e5e7eb 5%, #020617 65%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #020617;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+
+      .brand-text-main {
+        font-size: 18px;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .brand-text-main span:first-child {
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .header-tagline {
+        font-size: 13px;
+        color: var(--text-muted);
+        text-align: right;
+      }
+
+      .header-tagline strong {
+        color: #e5e7eb;
+        font-weight: 600;
+      }
+
+      @media (max-width: 900px) {
+        .header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .header-tagline {
+          text-align: left;
+        }
+      }
+
+      .panel {
+        background: radial-gradient(circle at top left, #020617 0, #020617 50%),
+          radial-gradient(circle at bottom right, #020617 0, #020617 60%);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        padding: 18px 18px 18px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top, rgba(148, 163, 184, 0.25), transparent 55%);
+        opacity: 0.25;
+        pointer-events: none;
+      }
+
+      .panel-inner {
+        position: relative;
+        z-index: 1;
+      }
+
+      .section-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 4px;
+      }
+
+      .section-title {
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .section-title-pill {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-muted);
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.55);
+        padding: 2px 9px;
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), #020617);
+      }
+
+      .section-subtitle {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+      }
+
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .field-label-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+
+      label {
+        font-size: 13px;
+        font-weight: 550;
+        color: #e5e7eb;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .label-required {
+        color: #fbbf24;
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .label-helper {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .input-shell {
+        position: relative;
+      }
+
+      .input-shell::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        border-radius: var(--radius-md);
+        background: radial-gradient(circle at top, rgba(148, 163, 184, 0.5), transparent 68%);
+        opacity: 0.12;
+        pointer-events: none;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-subtle);
+        background: radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%);
+        color: var(--text-main);
+        padding: 10px 12px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease,
+          background 0.15s ease, transform 0.08s ease;
+      }
+
+      input[type="text"]::placeholder {
+        color: rgba(148, 163, 184, 0.7);
+      }
+
+      input[type="text"]:hover {
+        border-color: rgba(148, 163, 184, 0.95);
+        transform: translateY(-0.5px);
+      }
+
+      input[type="text"]:focus-visible {
+        border-color: rgba(129, 140, 248, 0.95);
+        box-shadow: var(--shadow-focus);
+        background: radial-gradient(circle at top, #020617 0, #020617 35%, #020617 100%);
+      }
+
+      .error-text {
+        font-size: 11px;
+        color: var(--danger);
+        margin-top: 4px;
+        min-height: 14px;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 80px;
+        resize: vertical;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-subtle);
+        background: radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%);
+        color: var(--text-main);
+        padding: 10px 12px;
+        font-size: 13px;
+        outline: none;
+        line-height: 1.5;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease,
+          background 0.15s ease, transform 0.08s ease;
+      }
+
+      textarea::placeholder {
+        color: rgba(148, 163, 184, 0.7);
+      }
+
+      textarea:hover {
+        border-color: rgba(148, 163, 184, 0.95);
+        transform: translateY(-0.5px);
+      }
+
+      textarea:focus-visible {
+        border-color: rgba(129, 140, 248, 0.95);
+        box-shadow: var(--shadow-focus);
+        background: radial-gradient(circle at top, #020617 0, #020617 35%, #020617 100%);
+      }
+
+      .disability-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      @media (max-width: 600px) {
+        .disability-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .chip {
+        position: relative;
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: radial-gradient(circle at top, #020617 0, #020617 55%);
+        padding: 10px 10px 9px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        cursor: pointer;
+        transition: transform 0.08s ease, border-color 0.14s ease,
+          box-shadow 0.16s ease, background 0.16s ease;
+      }
+
+      .chip:hover {
+        transform: translateY(-1px);
+        border-color: rgba(148, 163, 184, 0.95);
+        box-shadow: 0 14px 25px rgba(15, 23, 42, 0.9);
+      }
+
+      .chip[data-selected="true"] {
+        border-color: rgba(129, 140, 248, 1);
+        background: radial-gradient(circle at top, var(--accent-soft), #020617 65%);
+        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.5),
+          0 16px 40px rgba(15, 23, 42, 1);
+      }
+
+      .chip[data-selected="true"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle at top, var(--accent-strong), transparent 65%);
+        opacity: 0.32;
+        pointer-events: none;
+      }
+
+      .chip-input {
+        display: none;
+      }
+
+      .chip-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 25% 0%, #e5e7eb 0, #020617 70%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.85);
+      }
+
+      .chip-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        align-items: flex-start;
+      }
+
+      .chip-title {
+        font-size: 13px;
+        font-weight: 550;
+      }
+
+      .chip-caption {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .chip-tag {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        padding: 1px 7px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        color: rgba(209, 213, 219, 0.95);
+        background: radial-gradient(circle at top, #020617, #020617 65%);
+        margin-top: 2px;
+      }
+
+      .summary-bar {
+        margin-top: 8px;
+        padding-top: 10px;
+        border-top: 1px dashed rgba(51, 65, 85, 0.9);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 12px;
+        align-items: center;
+        font-size: 11px;
+      }
+
+      .summary-label {
+        color: var(--text-muted);
+      }
+
+      .summary-pill {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.8);
+        padding: 3px 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), #020617);
+      }
+
+      .summary-pill span {
+        font-size: 11px;
+      }
+
+      .summary-pill-disability {
+        border-color: rgba(129, 140, 248, 0.95);
+      }
+
+      .summary-empty {
+        font-size: 11px;
+        color: rgba(148, 163, 184, 0.8);
+      }
+
+      .stepper {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .stepper-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        background: radial-gradient(circle at top, #020617, #020617 70%);
+      }
+
+      .stepper-dot[data-active="true"] {
+        border-color: rgba(129, 140, 248, 1);
+        background: radial-gradient(circle at 30% 0%, #818cf8, #4f46e5 70%);
+        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.5);
+      }
+
+      .stepper-label {
+        font-size: 11px;
+        color: rgba(209, 213, 219, 0.9);
+      }
+
+      .stepper-count {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .cta-row {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .hint {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .hint strong {
+        color: #e5e7eb;
+        font-weight: 600;
+      }
+
+      .btn-primary {
+        border-radius: var(--radius-pill);
+        padding: 9px 18px 9px;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 550;
+        color: white;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #f97316);
+        background-size: 200% 100%;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 1);
+        transition: transform 0.08s ease, box-shadow 0.1s ease, filter 0.1s ease,
+          background-position 0.15s ease;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.06);
+        background-position: 100% 0;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 1);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.95);
+      }
+
+      .btn-primary:focus-visible {
+        outline: none;
+        box-shadow: var(--shadow-focus), 0 16px 36px rgba(15, 23, 42, 1);
+      }
+
+      .btn-primary-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 25% 0%, #e5e7eb, #020617 65%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+      }
+
+      .btn-primary-sub {
+        font-size: 11px;
+        opacity: 0.9;
+        font-weight: 500;
+      }
+
+      .btn-secondary {
+        border-radius: var(--radius-pill);
+        padding: 8px 14px 8px;
+        border: 1px solid rgba(148, 163, 184, 0.8);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(209, 213, 219, 0.95);
+        background: radial-gradient(circle at top, #020617, #020617 65%);
+        transition: transform 0.08s ease, box-shadow 0.1s ease, filter 0.1s ease;
+      }
+
+      .btn-secondary:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.05);
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.95);
+      }
+
+      .btn-secondary:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.9);
+      }
+
+      .btn-secondary:focus-visible {
+        outline: none;
+        box-shadow: var(--shadow-focus), 0 10px 20px rgba(15, 23, 42, 0.95);
+      }
+
+      .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .right-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .right-title {
+        font-size: 14px;
+        font-weight: 550;
+      }
+
+      .right-badge {
+        font-size: 11px;
+        color: rgba(209, 213, 219, 0.95);
+        border-radius: 999px;
+        padding: 3px 9px;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        background: radial-gradient(circle at top, #020617, #020617 65%);
+      }
+
+      .right-body {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      .right-body ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+
+      .right-body li {
+        margin-bottom: 4px;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .pill {
+        font-size: 10px;
+        border-radius: 999px;
+        padding: 3px 8px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        color: rgba(209, 213, 219, 0.95);
+        background: radial-gradient(circle at top, #020617, #020617 65%);
+      }
+
+      .pill-accent {
+        border-color: rgba(129, 140, 248, 0.95);
+      }
+
+      .overview {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      @media (max-width: 600px) {
+        .overview {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .stat {
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        padding: 8px 10px;
+        background: radial-gradient(circle at top, #020617, #020617 58%);
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-bottom: 3px;
+      }
+
+      .stat-value {
+        font-size: 15px;
+        font-weight: 650;
+      }
+
+      .stat-caption {
+        font-size: 11px;
+        color: rgba(148, 163, 184, 0.85);
+        margin-top: 1px;
+      }
+
+      .stat-dot-row {
+        margin-top: 5px;
+        display: flex;
+        gap: 3px;
+      }
+
+      .stat-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.65);
+      }
+
+      .stat-dot-accent {
+        background: #7c3aed;
+      }
+
+      .screen-reader-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell" aria-labelledby="app-title">
+      <div class="shell-inner">
+        <section style="grid-column: 1 / -1">
+          <header class="header">
+            <div class="brand" aria-label="게임 접근성 측정 도구">
+              <div class="brand-logo" aria-hidden="true">
+                <div class="brand-logo-inner">GA</div>
+              </div>
+              <div class="brand-text-main">
+                <span>게임 접근성 측정</span>
+                <span id="app-title">Inclusive Play Dashboard</span>
+              </div>
+            </div>
+            <p class="header-tagline">
+              <strong>장애 유형별 경험</strong>을 기반으로<br />
+              게임 접근성을 정량·정성적으로 기록하는 도구입니다.
+            </p>
+          </header>
+        </section>
+
+        <section aria-label="다단계 접근성 세션 입력 폼">
+          <div class="panel">
+            <div class="panel-inner">
+              <div class="section-title-row">
+                <div class="section-title">세션 정보 입력</div>
+                <div class="stepper" aria-hidden="true">
+                  <span class="stepper-dot" data-step-dot="1" data-active="true"></span>
+                  <span class="stepper-dot" data-step-dot="2"></span>
+                  <span class="stepper-dot" data-step-dot="3"></span>
+                  <span class="stepper-dot" data-step-dot="4"></span>
+                  <span class="stepper-dot" data-step-dot="5"></span>
+                  <span class="stepper-label">
+                    <span class="stepper-count" id="current-step-label">1</span>/5
+                  </span>
+                </div>
+              </div>
+              <p class="section-subtitle" id="step-description">
+                1단계에서는 기본 인구통계 정보와 자료 신뢰도를 입력합니다.
+              </p>
+
+              <form id="accessibility-form" novalidate>
+                <!-- STEP 1: 기본정보 -->
+                <div
+                  class="field-group"
+                  data-step="1"
+                  aria-labelledby="step1-title"
+                >
+                  <div class="field-label-row">
+                    <label id="step1-title">
+                      기본정보
+                      <span class="label-required">필수</span>
+                    </label>
+                    <span class="label-helper">세션 ID · 성별 · 연령대 · 정보 신뢰도</span>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="user-id">
+                        세션/참가자 ID
+                        <span class="label-required">필수</span>
+                      </label>
+                      <button type="button" class="btn-secondary" id="restore-session" style="padding: 4px 10px; font-size: 11px;">
+                        기존 작업 불러오기
+                      </button>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="user-id"
+                        name="userId"
+                        required
+                        autocomplete="off"
+                        placeholder="예: P001, session-20250205 (동일 ID로 복구 가능)"
+                        aria-describedby="user-id-error"
+                      />
+                    </div>
+                    <p id="user-id-error" class="error-text" aria-live="polite"></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="gender">
+                        성별
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">필요 시 커스텀 기입 가능</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="gender"
+                        name="gender"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 남성, 여성, 논바이너리 등"
+                        aria-describedby="gender-error"
+                      />
+                    </div>
+                    <p id="gender-error" class="error-text" aria-live="polite"></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="age-range">
+                        연령대
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">10대, 20대, 30대, 40대 이상 등</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="age-range"
+                        name="ageRange"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 20대 후반, 30대 초반"
+                        aria-describedby="age-error"
+                      />
+                    </div>
+                    <p id="age-error" class="error-text" aria-live="polite"></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="reliability">
+                        정보 신뢰도
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">상 / 중 / 하 중 선택</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="reliability"
+                        name="reliability"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 상, 중, 하"
+                        aria-describedby="reliability-error"
+                      />
+                    </div>
+                    <p
+                      id="reliability-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+                </div>
+
+                <!-- STEP 2: 장애상세 -->
+                <div
+                  class="field-group"
+                  data-step="2"
+                  aria-labelledby="step2-title"
+                  style="display: none"
+                >
+                  <div class="field-label-row">
+                    <label id="step2-title">
+                      장애 상세
+                      <span class="label-required">필수</span>
+                    </label>
+                    <span class="label-helper">
+                      주요 장애 유형 선택 후, 세부 양상을 간단히 기술해주세요.
+                    </span>
+                  </div>
+
+                  <fieldset>
+                    <legend class="screen-reader-only">주요 장애 유형 선택</legend>
+                    <div class="disability-grid" id="disability-options">
+                      <label class="chip" data-disability="시각" tabindex="0">
+                        <input
+                          class="chip-input"
+                          type="radio"
+                          name="disabilityType"
+                          value="시각"
+                          aria-label="시각 장애"
+                        />
+                        <div class="chip-icon" aria-hidden="true">👁️</div>
+                        <div class="chip-content">
+                          <span class="chip-title">시각</span>
+                          <span class="chip-caption">시야·시력, 대비, 색 인지 등</span>
+                          <span class="chip-tag">Screen / Contrast</span>
+                        </div>
+                      </label>
+
+                      <label class="chip" data-disability="운동" tabindex="0">
+                        <input
+                          class="chip-input"
+                          type="radio"
+                          name="disabilityType"
+                          value="운동"
+                          aria-label="운동 장애"
+                        />
+                        <div class="chip-icon" aria-hidden="true">🎮</div>
+                        <div class="chip-content">
+                          <span class="chip-title">운동</span>
+                          <span class="chip-caption">가동 범위, 손·팔 떨림, 입력 속도</span>
+                          <span class="chip-tag">Input / Motor</span>
+                        </div>
+                      </label>
+
+                      <label class="chip" data-disability="청각언어장애" tabindex="0">
+                        <input
+                          class="chip-input"
+                          type="radio"
+                          name="disabilityType"
+                          value="청각언어장애"
+                          aria-label="청각언어장애"
+                        />
+                        <div class="chip-icon" aria-hidden="true">🔊</div>
+                        <div class="chip-content">
+                          <span class="chip-title">청각언어장애</span>
+                          <span class="chip-caption">고·저음 인지, 한쪽/양쪽 청력 차이, 언어 명료도</span>
+                          <span class="chip-tag">Audio / Language</span>
+                        </div>
+                      </label>
+
+                      <label class="chip" data-disability="인지" tabindex="0">
+                        <input
+                          class="chip-input"
+                          type="radio"
+                          name="disabilityType"
+                          value="인지"
+                          aria-label="인지 장애"
+                        />
+                        <div class="chip-icon" aria-hidden="true">🧠</div>
+                        <div class="chip-content">
+                          <span class="chip-title">인지</span>
+                          <span class="chip-caption">주의집중, 기억, 처리 속도 등</span>
+                          <span class="chip-tag">Cognitive Load</span>
+                        </div>
+                      </label>
+                    </div>
+                    <p id="disability-error" class="error-text" aria-live="polite"></p>
+                  </fieldset>
+
+                  <div id="disability-detail-container">
+                    <div class="field-label-row">
+                      <label for="disability-detail">
+                        장애 상세 설명
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper" id="disability-detail-hint">
+                        선택한 장애 유형에 맞춰 주요 특징을 기입해주세요.
+                      </span>
+                    </div>
+                    <div class="input-shell">
+                      <textarea
+                        id="disability-detail"
+                        name="disabilityDetail"
+                        placeholder="예: (운동) 오른손 가동 범위 제한, 장시간 버튼 연타 어려움 등"
+                        aria-describedby="disability-detail-error disability-detail-hint"
+                      ></textarea>
+                    </div>
+                    <p
+                      id="disability-detail-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+                </div>
+
+                <!-- STEP 3: 게임환경 -->
+                <div
+                  class="field-group"
+                  data-step="3"
+                  aria-labelledby="step3-title"
+                  style="display: none"
+                >
+                  <div class="field-label-row">
+                    <label id="step3-title">
+                      게임 환경
+                      <span class="label-required">필수</span>
+                    </label>
+                    <span class="label-helper">
+                      플레이 플랫폼, 입력장치, 사용 중인 보조기기를 기록합니다.
+                    </span>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="platform">
+                        플레이 플랫폼
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">PC, 콘솔, 모바일 등</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="platform"
+                        name="platform"
+                        required
+                        autocomplete="off"
+                        placeholder="예: PC(스팀), PS5, 모바일(Android)"
+                        aria-describedby="platform-error"
+                      />
+                    </div>
+                    <p
+                      id="platform-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="input-device">
+                        입력장치
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">마우스+키보드, 패드, 터치 등</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="input-device"
+                        name="inputDevice"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 엑스박스 패드, 키보드+마우스, 터치 조작"
+                        aria-describedby="input-device-error"
+                      />
+                    </div>
+                    <p
+                      id="input-device-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="assistive-device">
+                        보조기기 모델명
+                      </label>
+                      <span class="label-helper">사용 중인 보조입력 장치/소프트웨어 등</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="assistive-device"
+                        name="assistiveDevice"
+                        autocomplete="off"
+                        placeholder="예: Xbox Adaptive Controller, 스크린리더(JAWS) 등"
+                        aria-describedby="assistive-device-error"
+                      />
+                    </div>
+                    <p
+                      id="assistive-device-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+                </div>
+
+                <!-- STEP 4: PC 환경 -->
+                <div
+                  class="field-group"
+                  data-step="4"
+                  aria-labelledby="step4-title"
+                  style="display: none"
+                >
+                  <div class="field-label-row">
+                    <label id="step4-title">
+                      PC 환경
+                      <span class="label-required">필수</span>
+                    </label>
+                    <span class="label-helper">
+                      모니터 해상도, 윈도우 배율(DPI), CPU/GPU 스펙, FOV 설정 여부를 기록합니다.
+                    </span>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="pc-resolution">
+                        모니터 해상도
+                        <span class="label-required">필수</span>
+                      </label>
+                      <button
+                        type="button"
+                        class="btn-secondary"
+                        id="detect-resolution"
+                        style="padding: 4px 10px; font-size: 11px"
+                      >
+                        현재 해상도 자동 감지
+                      </button>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="pc-resolution"
+                        name="pcResolution"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 1920x1080, 2560x1440, 3840x2160 등"
+                        aria-describedby="pc-resolution-error"
+                      />
+                    </div>
+                    <p
+                      id="pc-resolution-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="windows-dpi">
+                        윈도우 배율(DPI)
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">
+                        OS 디스플레이 설정의 배율 값(예: 100%, 125%, 150%)을 직접 확인해 입력해주세요.
+                      </span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="windows-dpi"
+                        name="windowsDpi"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 100%, 125%, 150% (멀티 모니터면 주요 모니터 기준)"
+                        aria-describedby="windows-dpi-error"
+                      />
+                    </div>
+                    <p
+                      id="windows-dpi-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="cpu-spec">
+                        CPU 스펙
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">모델명과 대략적인 세대/코어 수 등</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="cpu-spec"
+                        name="cpuSpec"
+                        required
+                        autocomplete="off"
+                        placeholder="예: Ryzen 5 5600X, i5-12400F 등"
+                        aria-describedby="cpu-spec-error"
+                      />
+                    </div>
+                    <p
+                      id="cpu-spec-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="gpu-spec">
+                        GPU 스펙
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">모델명과 VRAM 용량 등</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="gpu-spec"
+                        name="gpuSpec"
+                        required
+                        autocomplete="off"
+                        placeholder="예: RTX 3060 12GB, RX 6600 8GB 등"
+                        aria-describedby="gpu-spec-error"
+                      />
+                    </div>
+                    <p
+                      id="gpu-spec-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="game-fov">
+                        게임 내 FOV 설정
+                      </label>
+                      <span class="label-helper">
+                        게임 옵션에서 별도 시야각(FOV) 설정이 있는지 확인 후, 현재 값을 메모해주세요.
+                      </span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="game-fov"
+                        name="gameFov"
+                        autocomplete="off"
+                        placeholder="예: FOV 90, 기본값(설정 없음) 등"
+                        aria-describedby="game-fov-error"
+                      />
+                    </div>
+                    <p
+                      id="game-fov-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+                </div>
+
+                <!-- STEP 5: 플레이 이력 -->
+                <div
+                  class="field-group"
+                  data-step="5"
+                  aria-labelledby="step5-title"
+                  style="display: none"
+                >
+                  <div class="field-label-row">
+                    <label id="step5-title">
+                      플레이 이력
+                      <span class="label-required">필수</span>
+                    </label>
+                    <span class="label-helper">
+                      장르, 주로 플레이하는 게임, 숙련도, 누적 시간, 과금 규모를 기록합니다.
+                    </span>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="genre">
+                        주 플레이 장르
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">FPS, MOBA, RPG, 인디, 캐주얼 등</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="genre"
+                        name="genre"
+                        required
+                        autocomplete="off"
+                        placeholder="예: FPS, 액션 RPG, 퍼즐 인디"
+                        aria-describedby="genre-error"
+                      />
+                    </div>
+                    <p id="genre-error" class="error-text" aria-live="polite"></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="game-title">
+                        주요 게임명
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">평가 대상 혹은 대표 타이틀</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="game-title"
+                        name="gameTitle"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 리그 오브 레전드, 젤다의 전설, 스타듀밸리"
+                        aria-describedby="game-title-error"
+                      />
+                    </div>
+                    <p
+                      id="game-title-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="skill-tier">
+                        숙련도(티어)
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">랭크/티어 또는 주관적 수준</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="skill-tier"
+                        name="skillTier"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 플래티넘, 상/중/하, 캐주얼 수준"
+                        aria-describedby="skill-tier-error"
+                      />
+                    </div>
+                    <p
+                      id="skill-tier-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="playtime">
+                        누적 플레이 시간
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">대략적인 총 시간(시간/년 단위 등)</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="playtime"
+                        name="playtime"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 해당 게임 300시간, 연간 약 500시간"
+                        aria-describedby="playtime-error"
+                      />
+                    </div>
+                    <p
+                      id="playtime-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="spending">
+                        과금 규모
+                        <span class="label-required">필수</span>
+                      </label>
+                      <span class="label-helper">무과금 / 소액 / 중과금 / 고과금 등</span>
+                    </div>
+                    <div class="input-shell">
+                      <input
+                        type="text"
+                        id="spending"
+                        name="spending"
+                        required
+                        autocomplete="off"
+                        placeholder="예: 무과금, 월 1~3만 원, 누적 100만 원 이상 등"
+                        aria-describedby="spending-error"
+                      />
+                    </div>
+                    <p
+                      id="spending-error"
+                      class="error-text"
+                      aria-live="polite"
+                    ></p>
+                  </div>
+                </div>
+
+                <div class="summary-bar" aria-live="polite">
+                  <span class="summary-label">요약:</span>
+                  <span id="summary-user" class="summary-empty">
+                    각 단계를 채우면 이 영역에 핵심 정보가 요약됩니다.
+                  </span>
+                </div>
+
+                <div class="cta-row">
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    id="prev-step"
+                    aria-label="이전 단계로 이동"
+                    disabled
+                  >
+                    ◀ 이전
+                  </button>
+                  <p class="hint" id="step-hint">
+                    <strong>다음</strong> 버튼 또는 Enter로 단계별로 이동하세요.
+                  </p>
+                  <button
+                    type="button"
+                    class="btn-primary"
+                    id="next-step"
+                    aria-label="다음 단계로 이동"
+                  >
+                    <span class="btn-primary-icon" aria-hidden="true">▶</span>
+                    <span id="next-step-label">다음 단계</span>
+                    <span class="btn-primary-sub" id="next-step-sub">
+                      Move to step 2
+                    </span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <aside class="right-panel" aria-label="도움말 및 진행 상황 개요">
+          <div class="right-header">
+            <div class="right-title">세션 개요 & 가이드</div>
+            <span class="right-badge" id="step-indicator">Step 1 / 5</span>
+          </div>
+
+          <div class="panel" aria-hidden="false">
+            <div class="panel-inner">
+              <div class="right-body">
+                이 도구는 각 장애 유형별로 게임 플레이 경험을 세밀하게 기록하기 위한
+                내부용 대시보드입니다. 아래 항목 순서에 따라 정보를 수집합니다.
+
+                <ul>
+                  <li><strong>기본정보</strong>: 성별, 연령대, 정보 신뢰도</li>
+                  <li><strong>장애상세</strong>: 주요 장애 유형 및 세부 양상</li>
+                  <li><strong>게임환경</strong>: 플랫폼, 입력장치, 보조기기</li>
+                  <li><strong>PC 환경</strong>: 해상도, 배율(DPI), CPU/GPU</li>
+                  <li><strong>플레이이력</strong>: 장르, 대표 게임, 숙련도, 시간, 과금</li>
+                </ul>
+
+                <div class="pill-row">
+                  <span class="pill pill-accent">단계별 저부하 입력</span>
+                  <span class="pill">세션 간 비교 용이</span>
+                  <span class="pill">정성·정량 데이터 융합</span>
+                  <span class="pill">빌드별 회귀 테스트 대응</span>
+                </div>
+
+                <div class="overview" aria-hidden="true">
+                  <div class="stat">
+                    <div class="stat-label">폼 단계</div>
+                    <div class="stat-value" id="stat-step">1 / 5</div>
+                    <div class="stat-caption">기본정보 입력 중</div>
+                    <div class="stat-dot-row">
+                      <span class="stat-dot stat-dot-accent"></span>
+                      <span class="stat-dot"></span>
+                      <span class="stat-dot"></span>
+                    </div>
+                  </div>
+                  <div class="stat">
+                    <div class="stat-label">필수 블록</div>
+                    <div class="stat-value">5</div>
+                    <div class="stat-caption">모두 입력 시 세션 생성</div>
+                    <div class="stat-dot-row">
+                      <span class="stat-dot stat-dot-accent"></span>
+                      <span class="stat-dot stat-dot-accent"></span>
+                      <span class="stat-dot stat-dot-accent"></span>
+                    </div>
+                  </div>
+                  <div class="stat">
+                    <div class="stat-label">세션 상태</div>
+                    <div class="stat-value" id="stat-session">Draft</div>
+                    <div class="stat-caption">완료 시 sessionStorage 저장</div>
+                    <div class="stat-dot-row">
+                      <span class="stat-dot"></span>
+                      <span class="stat-dot"></span>
+                      <span class="stat-dot stat-dot-accent"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const form = document.getElementById("accessibility-form");
+        const summaryUser = document.getElementById("summary-user");
+        const stepIndicator = document.getElementById("step-indicator");
+        const statStep = document.getElementById("stat-step");
+        const statSession = document.getElementById("stat-session");
+        const currentStepLabel = document.getElementById("current-step-label");
+        const stepDescription = document.getElementById("step-description");
+        const stepHint = document.getElementById("step-hint");
+        const nextStepButton = document.getElementById("next-step");
+        const prevStepButton = document.getElementById("prev-step");
+        const nextStepLabel = document.getElementById("next-step-label");
+        const nextStepSub = document.getElementById("next-step-sub");
+
+        const disabilityContainer = document.getElementById("disability-options");
+        const disabilityDetail = document.getElementById("disability-detail");
+        const disabilityDetailHint = document.getElementById(
+          "disability-detail-hint"
+        );
+        const disabilityError = document.getElementById("disability-error");
+        const disabilityDetailError = document.getElementById(
+          "disability-detail-error"
+        );
+
+        const TOTAL_STEPS = 5;
+        let currentStep = 1;
+
+        const stepDescriptions = {
+          1: "1단계에서는 기본 인구통계 정보와 자료 신뢰도를 입력합니다.",
+          2: "2단계에서는 주요 장애 유형과 그 양상을 간단히 서술합니다.",
+          3: "3단계에서는 실제 플레이 환경(플랫폼, 입력장치, 보조기기)을 기록합니다.",
+          4: "4단계에서는 PC 환경(해상도, 배율, CPU/GPU)을 기록합니다.",
+          5: "5단계에서는 플레이 이력과 숙련도, 과금 규모를 정리합니다.",
+        };
+
+        const disabilityHints = {
+          시각: "예: 저시력, 색각 이상, 중심시야/주변시야 제한, 한쪽 시야 상실 등",
+          운동:
+            "예: 손가락/손목 가동 범위 제한, 한 손 플레이, 버튼 연타 곤란, 미세 조작 어려움 등",
+          "청각언어장애": "예: 한쪽 귀 난청, 고음/저음 인지 어려움, 배경 소음 속 대사 인지 곤란, 언어 명료도 저하 등",
+          인지: "예: 복잡한 UI 이해 어려움, 짧은 주의 집중 시간, 실시간 판단 부담 등",
+        };
+
+        function setStep(step) {
+          if (step < 1 || step > TOTAL_STEPS) return;
+          currentStep = step;
+
+          const groups = form.querySelectorAll(".field-group[data-step]");
+          groups.forEach((group) => {
+            const gStep = Number(group.getAttribute("data-step"));
+            group.style.display = gStep === step ? "" : "none";
+          });
+
+          stepIndicator.textContent = `Step ${step} / ${TOTAL_STEPS}`;
+          statStep.textContent = `${step} / ${TOTAL_STEPS}`;
+          currentStepLabel.textContent = String(step);
+          stepDescription.textContent = stepDescriptions[step];
+
+          prevStepButton.disabled = step === 1;
+          const isLast = step === TOTAL_STEPS;
+          nextStepLabel.textContent = isLast ? "세션 저장" : "다음 단계";
+          nextStepSub.textContent = isLast ? "Save session" : `Move to step ${step + 1}`;
+          stepHint.textContent = isLast
+            ? "입력 내용을 확인한 뒤 세션 저장 버튼을 눌러주세요."
+            : "다음 버튼 또는 Enter로 단계별로 이동하세요.";
+
+          const dots = document.querySelectorAll(".stepper-dot");
+          dots.forEach((dot) => {
+            const dotStep = Number(dot.getAttribute("data-step-dot"));
+            dot.dataset.active = dotStep === step ? "true" : "false";
+          });
+
+          updateSummary();
+        }
+
+        function getFormValues() {
+          const data = new FormData(form);
+          const obj = {};
+          data.forEach((value, key) => {
+            obj[key] = String(value).trim();
+          });
+          const disabilityType = getSelectedDisability();
+          if (disabilityType) {
+            obj.disabilityType = disabilityType;
+          }
+          return obj;
+        }
+
+        function getSelectedDisability() {
+          const checked = form.querySelector(
+            'input[name="disabilityType"]:checked'
+          );
+          return checked ? checked.value : "";
+        }
+
+        function updateSummary() {
+          const values = getFormValues();
+
+          const hasAnyValue = Object.values(values).some(
+            (val) => val && String(val).trim().length > 0
+          );
+
+          if (!hasAnyValue) {
+            summaryUser.textContent =
+              "각 단계를 채우면 이 영역에 핵심 정보가 요약됩니다.";
+            summaryUser.classList.add("summary-empty");
+            return;
+          }
+
+          summaryUser.classList.remove("summary-empty");
+
+          const pills = [];
+          if (values.userId) {
+            pills.push(pillHtml("ID", values.userId));
+          }
+          if (values.gender) {
+            pills.push(pillHtml("성별", values.gender));
+          }
+          if (values.ageRange) {
+            pills.push(pillHtml("연령대", values.ageRange));
+          }
+          if (values.reliability) {
+            pills.push(pillHtml("신뢰도", values.reliability));
+          }
+          if (values.disabilityType) {
+            pills.push(
+              pillHtml(
+                "장애",
+                values.disabilityType,
+                true
+              )
+            );
+          }
+          if (values.platform) {
+            pills.push(pillHtml("플랫폼", values.platform));
+          }
+          if (values.inputDevice) {
+            pills.push(pillHtml("입력장치", values.inputDevice));
+          }
+          if (values.pcResolution) {
+            pills.push(pillHtml("해상도", values.pcResolution));
+          }
+          if (values.windowsDpi) {
+            pills.push(pillHtml("배율", values.windowsDpi));
+          }
+          if (values.cpuSpec) {
+            pills.push(pillHtml("CPU", values.cpuSpec));
+          }
+          if (values.gpuSpec) {
+            pills.push(pillHtml("GPU", values.gpuSpec));
+          }
+          if (values.genre) {
+            pills.push(pillHtml("장르", values.genre));
+          }
+          if (values.gameTitle) {
+            pills.push(pillHtml("게임", values.gameTitle));
+          }
+          if (values.skillTier) {
+            pills.push(pillHtml("숙련도", values.skillTier));
+          }
+
+          summaryUser.innerHTML = pills.join(" ");
+        }
+
+        function pillHtml(label, value, emphasize) {
+          const safeLabel = escapeHtml(label);
+          const safeValue = escapeHtml(value);
+          const extraClass = emphasize ? " summary-pill-disability" : "";
+          return (
+            '<span class="summary-pill' +
+            extraClass +
+            '"><span>' +
+            safeLabel +
+            "</span><span>" +
+            safeValue +
+            "</span></span>"
+          );
+        }
+
+        function escapeHtml(str) {
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+
+        function clearStepErrors(step) {
+          const group = form.querySelector(`.field-group[data-step="${step}"]`);
+          if (!group) return;
+          const errors = group.querySelectorAll(".error-text");
+          errors.forEach((el) => {
+            el.textContent = "";
+          });
+        }
+
+        function validateStep(step) {
+          clearStepErrors(step);
+          let valid = true;
+
+          if (step === 1) {
+            const userId = document.getElementById("user-id");
+            const gender = document.getElementById("gender");
+            const ageRange = document.getElementById("age-range");
+            const reliability = document.getElementById("reliability");
+
+            if (!userId || !userId.value.trim()) {
+              (document.getElementById("user-id-error") || {}).textContent =
+                "세션/참가자 ID를 입력해주세요.";
+              valid = false;
+            }
+            if (!gender.value.trim()) {
+              document.getElementById("gender-error").textContent =
+                "성별을 입력해주세요.";
+              valid = false;
+            }
+            if (!ageRange.value.trim()) {
+              document.getElementById("age-error").textContent =
+                "연령대를 입력해주세요.";
+              valid = false;
+            }
+            if (!reliability.value.trim()) {
+              document.getElementById("reliability-error").textContent =
+                "정보 신뢰도를 상/중/하 등으로 입력해주세요.";
+              valid = false;
+            }
+          } else if (step === 2) {
+            const disabilityType = getSelectedDisability();
+            if (!disabilityType) {
+              disabilityError.textContent = "주요 장애 유형을 선택해주세요.";
+              valid = false;
+            }
+            if (!disabilityDetail.value.trim()) {
+              disabilityDetailError.textContent =
+                "선택한 장애 유형의 가동 범위, 양상 등을 간단히 작성해주세요.";
+              valid = false;
+            }
+          } else if (step === 3) {
+            const platform = document.getElementById("platform");
+            const inputDevice = document.getElementById("input-device");
+
+            if (!platform.value.trim()) {
+              document.getElementById("platform-error").textContent =
+                "플레이 플랫폼을 입력해주세요.";
+              valid = false;
+            }
+            if (!inputDevice.value.trim()) {
+              document.getElementById("input-device-error").textContent =
+                "입력장치를 입력해주세요.";
+              valid = false;
+            }
+          } else if (step === 4) {
+            const pcResolution = document.getElementById("pc-resolution");
+            const windowsDpi = document.getElementById("windows-dpi");
+            const cpuSpec = document.getElementById("cpu-spec");
+            const gpuSpec = document.getElementById("gpu-spec");
+
+            if (!pcResolution.value.trim()) {
+              document.getElementById("pc-resolution-error").textContent =
+                "모니터 해상도를 입력하거나 자동 감지 버튼을 눌러주세요.";
+              valid = false;
+            }
+            if (!windowsDpi.value.trim()) {
+              document.getElementById("windows-dpi-error").textContent =
+                "윈도우(또는 OS) 디스플레이 배율(DPI)을 입력해주세요.";
+              valid = false;
+            }
+            if (!cpuSpec.value.trim()) {
+              document.getElementById("cpu-spec-error").textContent =
+                "CPU 모델명을 간단히 입력해주세요.";
+              valid = false;
+            }
+            if (!gpuSpec.value.trim()) {
+              document.getElementById("gpu-spec-error").textContent =
+                "GPU 모델명을 간단히 입력해주세요.";
+              valid = false;
+            }
+          } else if (step === 5) {
+            const requiredIds = [
+              "genre",
+              "game-title",
+              "skill-tier",
+              "playtime",
+              "spending",
+            ];
+            const messages = {
+              genre: "주 플레이 장르를 입력해주세요.",
+              "game-title": "주요 게임명을 입력해주세요.",
+              "skill-tier": "숙련도(티어)를 입력해주세요.",
+              playtime: "누적 플레이 시간을 입력해주세요.",
+              spending: "과금 규모를 입력해주세요.",
+            };
+
+            requiredIds.forEach((id) => {
+              const input = document.getElementById(id);
+              if (!input.value.trim()) {
+                const errorEl = document.getElementById(id + "-error");
+                if (errorEl) {
+                  errorEl.textContent = messages[id];
+                }
+                valid = false;
+              }
+            });
+          }
+
+          return valid;
+        }
+
+        function handleDisabilitySelectionChange(value) {
+          const chips = disabilityContainer.querySelectorAll(".chip");
+          chips.forEach((chip) => {
+            const v = chip.getAttribute("data-disability");
+            chip.dataset.selected = v === value ? "true" : "false";
+          });
+
+          if (!value) {
+            disabilityDetailHint.textContent =
+              "선택한 장애 유형에 맞춰 주요 특징을 기입해주세요.";
+            return;
+          }
+
+          const hint = disabilityHints[value] || "";
+          disabilityDetailHint.textContent =
+            hint || "선택한 장애 유형에 맞춰 주요 특징을 기입해주세요.";
+
+          if (!disabilityDetail.value.trim()) {
+            if (value === "운동") {
+              disabilityDetail.placeholder =
+                "예: 오른손 가동 범위 제한, 손떨림으로 인해 조준 정확도 저하, 장시간 버튼 연타 어려움 등";
+            } else if (value === "시각") {
+              disabilityDetail.placeholder =
+                "예: 저시력으로 작은 UI 요소 인지 어려움, 특정 색상 구분 곤란 등";
+            } else if (value === "청각언어장애") {
+              disabilityDetail.placeholder =
+                "예: 음성 대사 인지 어려움, 배경음-효과음 분리 곤란, 언어 명료도 저하 등";
+            } else if (value === "인지") {
+              disabilityDetail.placeholder =
+                "예: 복잡한 UI 구조 이해에 시간 소요, 실시간 정보량이 많을 때 피로감 등";
+            }
+          }
+        }
+
+        disabilityContainer.addEventListener("click", (event) => {
+          const chip = event.target.closest(".chip");
+          if (!chip) return;
+          const input = chip.querySelector(".chip-input");
+          if (!input) return;
+
+          input.checked = true;
+          disabilityError.textContent = "";
+          handleDisabilitySelectionChange(input.value);
+          updateSummary();
+        });
+
+        disabilityContainer.addEventListener("keydown", (event) => {
+          if (event.key === " " || event.key === "Enter") {
+            const chip = event.target.closest(".chip");
+            if (!chip) return;
+            event.preventDefault();
+            const input = chip.querySelector(".chip-input");
+            if (!input) return;
+            input.checked = true;
+            disabilityError.textContent = "";
+            handleDisabilitySelectionChange(input.value);
+            updateSummary();
+          }
+        });
+
+        form.addEventListener("input", () => {
+          updateSummary();
+        });
+
+        const detectResolutionButton =
+          document.getElementById("detect-resolution");
+        if (detectResolutionButton) {
+          detectResolutionButton.addEventListener("click", () => {
+            const input = document.getElementById("pc-resolution");
+            if (!input) return;
+
+            try {
+              const w = window.screen && window.screen.width;
+              const h = window.screen && window.screen.height;
+              if (w && h) {
+                input.value = `${w}x${h}`;
+              } else {
+                const iw = window.innerWidth;
+                const ih = window.innerHeight;
+                if (iw && ih) {
+                  input.value = `${iw}x${ih} (창 기준)`;
+                }
+              }
+              updateSummary();
+            } catch (e) {
+              // 감지 실패 시 아무것도 하지 않음
+            }
+          });
+        }
+
+        function persistSession(status) {
+          const values = getFormValues();
+          const session = {
+            ...values,
+            status: status || "Draft",
+            updatedAt: new Date().toISOString(),
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession(session);
+          } else {
+            try {
+              sessionStorage.setItem("ga_current_session", JSON.stringify(session));
+              localStorage.setItem("ga_current_session", JSON.stringify(session));
+            } catch (e) {}
+          }
+          if (status === "Saved") {
+            statSession.textContent = "Saved";
+          } else {
+            statSession.textContent = "Draft";
+          }
+        }
+
+        const restoreBtn = document.getElementById("restore-session");
+        if (restoreBtn) {
+          restoreBtn.addEventListener("click", function () {
+            const uidInput = document.getElementById("user-id");
+            const id = (uidInput && uidInput.value.trim()) || "";
+            if (!id) {
+              (document.getElementById("user-id-error") || {}).textContent = "복구할 세션 ID를 먼저 입력해주세요.";
+              return;
+            }
+            if (typeof GAStorage !== "undefined" && GAStorage.restoreSessionById(id)) {
+              const s = GAStorage.readSession();
+              ["user-id", "gender", "age-range", "reliability", "platform", "input-device", "assistive-device",
+               "pc-resolution", "windows-dpi", "cpu-spec", "gpu-spec", "game-fov", "genre", "game-title",
+               "skill-tier", "playtime", "spending"].forEach(function (fid) {
+                var el = document.getElementById(fid);
+                var key = fid.replace(/-([a-z])/g, function (_, c) { return c.toUpperCase(); }).replace("User-id", "userId");
+                if (el && s[key] != null) el.value = s[key];
+              });
+              if (s.disabilityType) {
+                var r = form.querySelector('input[name="disabilityType"][value="' + s.disabilityType + '"]');
+                if (r) r.checked = true;
+              }
+              if (s.disabilityDetail) {
+                var ta = document.getElementById("disability-detail");
+                if (ta) ta.value = s.disabilityDetail;
+              }
+              (document.getElementById("user-id-error") || {}).textContent = "";
+              updateSummary();
+              statSession.textContent = "복구됨";
+            } else {
+              (document.getElementById("user-id-error") || {}).textContent = "해당 ID의 저장된 작업이 없습니다.";
+            }
+          });
+        }
+
+        nextStepButton.addEventListener("click", () => {
+          if (!validateStep(currentStep)) {
+            return;
+          }
+
+          if (currentStep < TOTAL_STEPS) {
+            // 현재 단계까지의 정보를 Draft로 누적 저장
+            persistSession("Draft");
+            setStep(currentStep + 1);
+          } else {
+            // 마지막 단계: 최종 저장
+            persistSession("Saved");
+            updateSummary();
+
+            alert(
+              "세션이 저장되었습니다. 이후 단계에서 이 정보를 기반으로 지표를 설정할 수 있습니다."
+            );
+          }
+        });
+
+        prevStepButton.addEventListener("click", () => {
+          if (currentStep > 1) {
+            setStep(currentStep - 1);
+          }
+        });
+
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+        });
+
+        setStep(1);
+      })();
+    </script>
+  </body>
+</html>
