@@ -278,7 +278,7 @@
               <span class="section-title-pill">Motor Tests</span>
             </div>
             <p class="section-subtitle">
-              아래 7개의 테스트를 모두 완료해야 운동 측정이 완료됩니다. 각 테스트는 이후 분석을 위한
+              아래 9개의 테스트를 모두 완료해야 운동 측정이 완료됩니다. 각 테스트는 이후 분석을 위한
               기준 데이터로 활용됩니다.
             </p>
 
@@ -348,7 +348,7 @@
                 </div>
               </article>
 
-              <!-- 지구력(피로도) - 마지막 -->
+              <!-- 지구력(피로도) -->
               <article class="test-card" data-test="fatigue" tabindex="0">
                 <div class="test-card-head">
                   <div class="test-card-title">피로도 테스트</div>
@@ -356,6 +356,28 @@
                 </div>
                 <div class="test-card-desc">
                   60초 동안 지속적으로 클릭/키 입력을 유지하며, 10초 단위로 섹션별 평균 입력 속도를 기록합니다.
+                </div>
+              </article>
+
+              <!-- 조작 자원 제약: 디바이스 전환 -->
+              <article class="test-card" data-test="switch-test" tabindex="0">
+                <div class="test-card-head">
+                  <div class="test-card-title">디바이스 전환 속도</div>
+                  <span class="test-card-badge" data-progress="switch-test" data-done="false">0/1</span>
+                </div>
+                <div class="test-card-desc">
+                  마우스 클릭 직후 키보드 키를 누르는 속도(Device Switching Latency) 측정. 한 손·손가락 결손 유저 지원.
+                </div>
+              </article>
+
+              <!-- 조작 자원 제약: 도달 범위 -->
+              <article class="test-card" data-test="reach-test" tabindex="0">
+                <div class="test-card-head">
+                  <div class="test-card-title">키보드 도달 범위</div>
+                  <span class="test-card-badge" data-progress="reach-test" data-done="false">0/1</span>
+                </div>
+                <div class="test-card-desc">
+                  고정된 손 위치에서 가장 멀리 있는 키를 얼마나 정확히 누르는지 측정하는 도달 범위 테스트.
                 </div>
               </article>
             </div>
@@ -379,7 +401,7 @@
               <span class="section-title-pill">Progress</span>
             </div>
             <div class="right-body">
-              <p>운동 측정은 다음 7개 테스트로 구성됩니다. (권장 순서대로 배치됨)</p>
+              <p>운동 측정은 다음 9개 테스트로 구성됩니다. (권장 순서대로 배치됨)</p>
               <ul>
                 <li><strong>순발력: 반응속도</strong> - 기본 반응속도 측정 (4회 평균)</li>
                 <li><strong>정밀도: 정밀도 & 에임</strong> - 클릭 정확도 및 편향 측정, 타겟 클릭 속도</li>
@@ -418,9 +440,17 @@
                 <span class="progress-label">피로도</span>
                 <span class="progress-value" id="progress-fatigue">0/1</span>
               </div>
+              <div class="progress-row">
+                <span class="progress-label">디바이스 전환</span>
+                <span class="progress-value" id="progress-switch">0/1</span>
+              </div>
+              <div class="progress-row">
+                <span class="progress-label">도달 범위</span>
+                <span class="progress-value" id="progress-reach">0/1</span>
+              </div>
               <div class="progress-row divider-solid">
                 <span class="progress-label">전체</span>
-                <span class="progress-value" id="progress-total">0/7</span>
+                <span class="progress-value" id="progress-total">0/9</span>
               </div>
             </div>
             <div class="mt-md text-xs">
@@ -455,7 +485,9 @@
           "simultaneous-input": { url: "motor-simultaneous-input.html", label: "동시 입력", total: 1 },
           "precision": { url: "motor-precision.html", label: "정밀도", total: 1 },
           "burst-speed": { url: "motor-burst-speed.html", label: "Burst Speed", total: 1 },
-          "fatigue": { url: "motor-fatigue.html", label: "피로도", total: 1 }
+          "fatigue": { url: "motor-fatigue.html", label: "피로도", total: 1 },
+          "switch-test": { url: "switch_test.html", label: "디바이스 전환", total: 1 },
+          "reach-test": { url: "reach_test.html", label: "도달 범위", total: 1 }
         };
 
         function readSession() {
@@ -501,6 +533,10 @@
             return motor.burstSpeed && motor.burstSpeed.maxInputsPerSecond !== undefined;
           } else if (testKey === "fatigue") {
             return motor.fatigue && motor.fatigue.fatigueIndex !== undefined;
+          } else if (testKey === "switch-test") {
+            return motor.switching_latency && motor.switching_latency.average !== undefined;
+          } else if (testKey === "reach-test") {
+            return motor.key_map_range && motor.key_map_range.accuracy !== undefined;
           }
           return false;
         }
@@ -531,15 +567,17 @@
           document.getElementById("progress-precision").textContent = (checkTestCompletion("precision") ? 1 : 0) + "/1";
           document.getElementById("progress-burst").textContent = (checkTestCompletion("burst-speed") ? 1 : 0) + "/1";
           document.getElementById("progress-fatigue").textContent = (checkTestCompletion("fatigue") ? 1 : 0) + "/1";
-          document.getElementById("progress-total").textContent = totalComplete + "/7";
+          document.getElementById("progress-switch").textContent = (checkTestCompletion("switch-test") ? 1 : 0) + "/1";
+          document.getElementById("progress-reach").textContent = (checkTestCompletion("reach-test") ? 1 : 0) + "/1";
+          document.getElementById("progress-total").textContent = totalComplete + "/9";
 
-          if (totalComplete >= 7) {
+          if (totalComplete >= 9) {
             finalHint.innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong> 허브로 돌아가면 운동 측정이 완료로 표시됩니다.";
             if (typeof GAStorage !== "undefined") {
               GAStorage.writeProgress("motor", {
-                label: "반응속도 + 에임 + 홀드 + 동시입력 + 정밀도 + Burst Speed + 피로도",
-                current: 7,
-                total: 7,
+                label: "반응속도 + 에임 + 홀드 + 동시입력 + 정밀도 + Burst Speed + 피로도 + 디바이스전환 + 도달범위",
+                current: 9,
+                total: 9,
                 completedAt: new Date().toISOString()
               });
             }

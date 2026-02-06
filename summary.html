@@ -320,7 +320,24 @@
           }
           if (motor.precision) html += statRow("정밀도 오차", motor.precision.averageError + " px", null);
           if (motor.fatigue) html += statRow("피로도 지수", motor.fatigue.fatigueIndex + "%", null);
+          if (motor.switching_latency) html += statRow("디바이스 전환 지연", motor.switching_latency.average + " ms", null);
+          if (motor.key_map_range) html += statRow("도달 범위 정확도", (motor.key_map_range.accuracy * 100).toFixed(0) + "%", null);
+          var oneHandScore = calcOneHandEfficiency(motor);
+          if (oneHandScore != null) {
+            html += statRow("한 손 조작 효율성", oneHandScore + " / 100", null);
+          }
           stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
+        }
+
+        /** switching_latency + key_map_range 기반 한 손 조작 효율성 점수 (0~100). 둘 다 있어야 계산. */
+        function calcOneHandEfficiency(motor) {
+          if (!motor) return null;
+          var sw = motor.switching_latency && motor.switching_latency.average != null ? motor.switching_latency.average : null;
+          var acc = motor.key_map_range && motor.key_map_range.accuracy != null ? motor.key_map_range.accuracy : null;
+          if (sw == null || acc == null) return null;
+          var switchScore = 40 * (1 - Math.min(1, sw / 600));
+          var reachScore = 60 * acc;
+          return Math.round(switchScore + reachScore);
         }
 
         function renderCognitiveCard(cognitive) {
@@ -413,11 +430,43 @@
         }
 
         /**
+         * monitor_inch, resolution으로 mm/px 변환 계수 계산.
+         * @returns {number|null} mm per pixel (대각선 기준), 변환 불가 시 null
+         */
+        function calcMmPerPx(monitorInch, resolution) {
+          if (!monitorInch || !resolution) return null;
+          const inch = parseFloat(String(monitorInch).replace(/[^\d.]/g, ""));
+          if (isNaN(inch) || inch <= 0) return null;
+          const m = String(resolution).match(/(\d+)\s*[x×]\s*(\d+)/i);
+          if (!m) return null;
+          const w = parseInt(m[1], 10);
+          const h = parseInt(m[2], 10);
+          if (!w || !h) return null;
+          const diagonalPx = Math.sqrt(w * w + h * h);
+          const diagonalMm = inch * 25.4;
+          return diagonalMm / diagonalPx;
+        }
+
+        /**
+         * 픽셀 값을 실제 모니터 물리 크기(mm)로 변환.
+         * @param {number} px - 픽셀 값
+         * @param {string|number} monitorInch - 모니터 대각선(인치)
+         * @param {string} resolution - 해상도 (예: "1920x1080")
+         * @returns {number|null} mm 단위 물리 크기, 변환 불가 시 null
+         */
+        function pxToMm(px, monitorInch, resolution) {
+          if (px == null || isNaN(Number(px))) return null;
+          const factor = calcMmPerPx(monitorInch, resolution);
+          return factor != null ? Math.round(Number(px) * factor * 100) / 100 : null;
+        }
+
+        /**
          * 구글 시트 헤더 순서에 맞춘 전송용 객체 생성. (순서가 틀리면 시트 열이 밀리므로 유지)
          * 키 순서: timestamp, user_id, age, gender, monitor_inch, resolution, viewing_distance, disability_type,
-         * vision_rt_avg, vision_aim_avg, fov_blind_rate, readable_font_size, motor_rt_avg, motor_aim_avg,
-         * burst_speed_peak, fatigue_index, seq_memory_score, go_nogo_accuracy, hearing_intelligibility,
-         * raw_vision_data, raw_motor_data, raw_cognitive_data, observer_report
+         * vision_rt_avg, vision_aim_avg, fov_blind_rate, readable_font_size, readable_font_size_mm, motor_rt_avg, motor_aim_avg,
+         * motor_switch_latency, key_reach_score, burst_speed_peak, fatigue_index, motor_precision_error_mm,
+         * seq_memory_score, go_nogo_accuracy, hearing_intelligibility, input_device, assistive_device,
+         * calibration_mm_per_px, raw_vision_data, raw_motor_data, raw_cognitive_data, observer_report
          */
         function buildSheetsRowPayload(session) {
           const ud = session.user_data || {};
@@ -438,6 +487,14 @@
             ? vision.fontReadability.minFontSize
             : null;
 
+          const mmPerPx = calcMmPerPx(session.monitorSizeInch, session.pcResolution);
+          const readable_font_size_mm = readable_font_size != null && mmPerPx != null
+            ? Math.round(readable_font_size * mmPerPx * 100) / 100
+            : null;
+          const motor_precision_error_mm = motor.precision && motor.precision.averageError != null && mmPerPx != null
+            ? Math.round(motor.precision.averageError * mmPerPx * 100) / 100
+            : null;
+
           const motorRtTrials = motor.reactionTime && motor.reactionTime.trials;
           const motor_rt_avg = motorRtTrials && motorRtTrials.length
             ? Math.round(avg(motorRtTrials))
@@ -445,6 +502,18 @@
           const motor_aim_avg = motor.aimTrainer && (motor.aimTrainer.averageInterval != null)
             ? motor.aimTrainer.averageInterval
             : null;
+          const motor_switch_latency = motor.switching_latency && (motor.switching_latency.average != null)
+            ? motor.switching_latency.average
+            : null;
+          let key_reach_score = motor.key_map_range && (motor.key_map_range.maxReachStage != null)
+            ? motor.key_map_range.maxReachStage
+            : null;
+          if (key_reach_score == null && motor.key_map_range && motor.key_map_range.trials && motor.key_map_range.trials.length) {
+            const correctWithStage = motor.key_map_range.trials.filter(function (t) { return t.correct && (t.stageIndex != null); });
+            if (correctWithStage.length) {
+              key_reach_score = Math.max.apply(null, correctWithStage.map(function (t) { return t.stageIndex; }));
+            }
+          }
           const burst_speed_peak = motor.burstSpeed && (motor.burstSpeed.maxInputsPerSecond != null)
             ? motor.burstSpeed.maxInputsPerSecond
             : null;
@@ -463,8 +532,40 @@
             ? hearing.speechClarityPercent
             : (hearing.speechClarityRating != null ? hearing.speechClarityRating : null);
 
-          const raw_vision_data = vision && Object.keys(vision).length ? vision : null;
-          const raw_motor_data = motor && Object.keys(motor).length ? motor : null;
+          let raw_vision_data = vision && Object.keys(vision).length ? vision : null;
+          if (raw_vision_data && mmPerPx != null) {
+            raw_vision_data = JSON.parse(JSON.stringify(raw_vision_data));
+            if (raw_vision_data.fontReadability && raw_vision_data.fontReadability.minFontSize != null) {
+              raw_vision_data.fontReadability.physical_size_mm = pxToMm(
+                raw_vision_data.fontReadability.minFontSize,
+                session.monitorSizeInch,
+                session.pcResolution
+              );
+            }
+          }
+          const baseMotor = motor && typeof motor === "object" ? motor : {};
+          const hasMotorData = Object.keys(baseMotor).length > 0;
+          const hasAssistiveInfo = (session.assistiveDevice && String(session.assistiveDevice).trim()) || (session.inputDevice && String(session.inputDevice).trim());
+          let motorWithMeta = (hasMotorData || hasAssistiveInfo)
+            ? Object.assign({}, baseMotor, {
+                _metadata: {
+                  assistiveDevice: session.assistiveDevice != null ? session.assistiveDevice : "",
+                  inputDevice: session.inputDevice != null ? session.inputDevice : "",
+                }
+              })
+            : null;
+          if (motorWithMeta && motorWithMeta.precision && motorWithMeta.precision.averageError != null && mmPerPx != null) {
+            motorWithMeta = Object.assign({}, motorWithMeta, {
+              precision: Object.assign({}, motorWithMeta.precision, {
+                physical_size_mm: pxToMm(
+                  motorWithMeta.precision.averageError,
+                  session.monitorSizeInch,
+                  session.pcResolution
+                )
+              })
+            });
+          }
+          const raw_motor_data = motorWithMeta;
           const raw_cognitive_data = cognitive && Object.keys(cognitive).length ? cognitive : null;
           const observer_report = session.observer_report && typeof session.observer_report === "object"
             ? session.observer_report
@@ -485,13 +586,20 @@
             vision_aim_avg,
             fov_blind_rate,
             readable_font_size,
+            readable_font_size_mm,
             motor_rt_avg,
             motor_aim_avg,
+            motor_switch_latency,
+            key_reach_score,
             burst_speed_peak,
             fatigue_index,
+            motor_precision_error_mm,
             seq_memory_score,
             go_nogo_accuracy,
             hearing_intelligibility,
+            input_device: session.inputDevice != null ? session.inputDevice : "",
+            assistive_device: session.assistiveDevice != null ? session.assistiveDevice : "",
+            calibration_mm_per_px: mmPerPx != null ? Math.round(mmPerPx * 10000) / 10000 : null,
             raw_vision_data,
             raw_motor_data,
             raw_cognitive_data,

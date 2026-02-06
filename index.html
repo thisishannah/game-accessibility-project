@@ -1070,9 +1070,9 @@
                   <div>
                     <div class="field-label-row">
                       <label for="assistive-device">
-                        보조기기 모델명
+                        보조기기 / 입력 장치
                       </label>
-                      <span class="label-helper">사용 중인 보조입력 장치/소프트웨어 등</span>
+                      <span class="label-helper">테스트에 사용 중인 마우스, 키보드, 또는 보조 입력 장치를 적어주세요(예: 일반 마우스, 발 페달 등)</span>
                     </div>
                     <div class="input-shell">
                       <input
@@ -1080,7 +1080,7 @@
                         id="assistive-device"
                         name="assistiveDevice"
                         autocomplete="off"
-                        placeholder="예: Xbox Adaptive Controller, 스크린리더(JAWS) 등"
+                        placeholder="예: 일반 마우스, 발 페달, Xbox Adaptive Controller 등"
                         aria-describedby="assistive-device-error"
                       />
                     </div>
@@ -1196,6 +1196,31 @@
                       class="error-text"
                       aria-live="polite"
                     ></p>
+                  </div>
+
+                  <div>
+                    <div class="field-label-row">
+                      <label for="viewing-distance">
+                        시청 거리 (cm)
+                      </label>
+                      <span class="label-helper">
+                        유저와 모니터 사이 거리. 기본 60cm
+                      </span>
+                    </div>
+                    <div class="input-shell" style="display: flex; align-items: center; gap: 12px;">
+                      <input
+                        type="range"
+                        id="viewing-distance"
+                        name="viewingDistance"
+                        min="30"
+                        max="150"
+                        step="5"
+                        value="60"
+                        style="flex: 1; accent-color: var(--accent);"
+                        aria-describedby="viewing-distance-value"
+                      />
+                      <span id="viewing-distance-value" class="stat-value" style="min-width: 56px;" aria-live="polite">60 cm</span>
+                    </div>
                   </div>
 
                   <div>
@@ -1677,6 +1702,9 @@
           if (values.monitorSizeInch) {
             pills.push(pillHtml("모니터", values.monitorSizeInch + "인치"));
           }
+          if (values.viewingDistance) {
+            pills.push(pillHtml("시청 거리", values.viewingDistance + " cm"));
+          }
           if (values.cpuSpec) {
             pills.push(pillHtml("CPU", values.cpuSpec));
           }
@@ -1916,6 +1944,14 @@
           updateSummary();
         });
 
+        const viewingDistanceEl = document.getElementById("viewing-distance");
+        if (viewingDistanceEl) {
+          viewingDistanceEl.addEventListener("input", function () {
+            const valEl = document.getElementById("viewing-distance-value");
+            if (valEl) valEl.textContent = this.value + " cm";
+          });
+        }
+
         const detectResolutionButton =
           document.getElementById("detect-resolution");
         if (detectResolutionButton) {
@@ -2012,7 +2048,7 @@
             if (typeof GAStorage !== "undefined" && GAStorage.restoreSessionById(id)) {
               const s = GAStorage.readSession();
               ["user-id", "gender", "age-range", "reliability", "platform", "input-device", "assistive-device",
-               "pc-resolution", "windows-dpi", "monitor-size-inch", "cpu-spec", "gpu-spec", "game-fov", "genre", "game-title",
+               "pc-resolution", "windows-dpi", "monitor-size-inch", "viewing-distance", "cpu-spec", "gpu-spec", "game-fov", "genre", "game-title",
                "skill-tier", "playtime", "spending"].forEach(function (fid) {
                 var el = document.getElementById(fid);
                 var key = fid.replace(/-([a-z])/g, function (_, c) { return c.toUpperCase(); }).replace("User-id", "userId").replace("Monitor-size-inch", "monitorSizeInch");
@@ -2030,6 +2066,11 @@
               if (s.disabilityDetail) {
                 var ta = document.getElementById("disability-detail");
                 if (ta) ta.value = s.disabilityDetail;
+              }
+              var vdEl = document.getElementById("viewing-distance");
+              if (vdEl) {
+                var vdValEl = document.getElementById("viewing-distance-value");
+                if (vdValEl) vdValEl.textContent = vdEl.value + " cm";
               }
               (document.getElementById("user-id-error") || {}).textContent = "";
               updateSummary();

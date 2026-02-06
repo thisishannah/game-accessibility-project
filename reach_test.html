@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css">
+    <title>조작 자원 제약 - 키보드 도달 범위 · 운동 측정</title>
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #7c3aed;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --ok: #4ade80;
+        --danger: #f97373;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: #020617;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      header {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+      }
+      .back-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.9);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+      .test-area {
+        width: 100%;
+        max-width: 600px;
+        min-height: 320px;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin-top: 60px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 2px solid rgba(148, 163, 184, 0.3);
+        padding: 32px;
+      }
+      .test-message {
+        font-size: 20px;
+        font-weight: 600;
+        text-align: center;
+        color: var(--text-main);
+        padding: 0 20px;
+      }
+      .target-key {
+        font-size: 72px;
+        font-weight: 700;
+        margin: 24px 0;
+        padding: 24px 48px;
+        background: linear-gradient(135deg, #7c3aed, #22c55e);
+        border-radius: 16px;
+        font-family: monospace;
+        letter-spacing: 4px;
+      }
+      .test-sub {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-top: 8px;
+      }
+      .home-row-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 20px;
+        padding: 8px 16px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 8px;
+      }
+      .feedback {
+        font-size: 18px;
+        margin-top: 16px;
+        font-weight: 600;
+      }
+      .feedback.ok { color: var(--ok); }
+      .feedback.err { color: var(--danger); }
+      .results-panel {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.8);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        width: 100%;
+        max-width: 600px;
+      }
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        font-size: 14px;
+      }
+      .result-item:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        color: var(--ok);
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 2px solid rgba(51, 65, 85, 0.9);
+      }
+      .btn-primary {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #22c55e);
+        color: white;
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .btn-primary:hover { filter: brightness(1.1); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="motor_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: var(--text-muted);">키보드 도달 범위 (Key Reach Range)</div>
+    </header>
+
+    <div class="test-area" id="test-area">
+      <div class="test-message" id="test-message">왼손을 홈열(A,S,D,F)에 고정한 채<br>표시된 키를 정확히 누르세요</div>
+      <div class="target-key" id="target-key">—</div>
+      <div class="test-sub" id="test-sub">총 8회 (멀리 있는 키 위주)</div>
+      <div class="home-row-hint">※왼손 홈열 고정 가정. 오른손 사용자는 반대로 해도 됩니다.</div>
+      <div class="feedback" id="feedback" style="display: none;"></div>
+    </div>
+
+    <div class="results-panel" id="results-panel" style="display: none;">
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과 (도달 범위 정확도)</div>
+      <div id="results-list"></div>
+      <button class="btn-primary" id="save-btn" style="width: 100%;">결과 저장 & 허브로 이동</button>
+    </div>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const testArea = document.getElementById("test-area");
+        const testMessage = document.getElementById("test-message");
+        const targetKeyEl = document.getElementById("target-key");
+        const testSub = document.getElementById("test-sub");
+        const feedbackEl = document.getElementById("feedback");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsList = document.getElementById("results-list");
+        const saveBtn = document.getElementById("save-btn");
+
+        // 左手 홈열 기준으로 멀리 있는 키들 (우측 상단, 숫자열, 특수키)
+        const FAR_KEYS = ["p", "P", "[", "]", ";", "'", "0", "-", "=", "Backspace", "Enter", "\\"];
+        const TOTAL_TRIALS = 8;
+        const trialResults = [];
+        let currentTrial = 0;
+        let trialStartTime = 0;
+        let keyHandler = null;
+
+        function getNextTarget() {
+          const idx = currentTrial % FAR_KEYS.length;
+          return FAR_KEYS[idx];
+        }
+
+        function removeKeyHandler() {
+          if (keyHandler) {
+            window.removeEventListener("keydown", keyHandler);
+            keyHandler = null;
+          }
+        }
+
+        function startTrial() {
+          if (currentTrial >= TOTAL_TRIALS) {
+            showResults();
+            return;
+          }
+          feedbackEl.style.display = "none";
+          const target = getNextTarget();
+          targetKeyEl.textContent = target === " " ? "Space" : target;
+          testSub.textContent = (currentTrial + 1) + "/" + TOTAL_TRIALS + "회차";
+          trialStartTime = Date.now();
+
+          keyHandler = function (ev) {
+            ev.preventDefault();
+            removeKeyHandler();
+            const pressed = ev.key;
+            const code = ev.code;
+            let matched = false;
+            if (target === " ") {
+              matched = (ev.code === "Space" || pressed === " ");
+            } else if (target === "Backspace") {
+              matched = (ev.code === "Backspace");
+            } else if (target === "Enter") {
+              matched = (ev.code === "Enter");
+            } else {
+              matched = (pressed === target || (target.length === 1 && pressed.toLowerCase() === target.toLowerCase()));
+            }
+            const latency = Date.now() - trialStartTime;
+            const stageIndex = FAR_KEYS.indexOf(target);
+            trialResults.push({
+              targetKey: target,
+              pressedKey: pressed || code,
+              correct: matched,
+              latency: latency,
+              stageIndex: stageIndex >= 0 ? stageIndex : 0
+            });
+            feedbackEl.style.display = "block";
+            feedbackEl.className = "feedback " + (matched ? "ok" : "err");
+            feedbackEl.textContent = matched ? "✓ 정확함 (" + latency + " ms)" : "✗ 오타 (목표: " + target + ", 입력: " + (pressed || code) + ")";
+            currentTrial++;
+            setTimeout(function () {
+              startTrial();
+            }, 600);
+          };
+          window.addEventListener("keydown", keyHandler);
+        }
+
+        function showResults() {
+          testArea.style.display = "none";
+          resultsPanel.style.display = "block";
+          const correctCount = trialResults.filter(function (r) { return r.correct; }).length;
+          const accuracy = trialResults.length > 0 ? correctCount / trialResults.length : 0;
+          const correctLatencies = trialResults.filter(function (r) { return r.correct; }).map(function (r) { return r.latency; });
+          const avgLatency = correctLatencies.length > 0
+            ? Math.round(correctLatencies.reduce(function (a, b) { return a + b; }, 0) / correctLatencies.length)
+            : null;
+          let html = "";
+          trialResults.forEach(function (r, i) {
+            html += '<div class="result-item"><span>' + (i + 1) + "회 (" + r.targetKey + ")</span><span>" + (r.correct ? "✓ " + r.latency + " ms" : "✗") + "</span></div>";
+          });
+          html += '<div class="result-item"><span>정확도</span><span>' + (accuracy * 100).toFixed(0) + "%</span></div>';
+          if (avgLatency != null) {
+            html += '<div class="result-item"><span>평균 반응 (정답만)</span><span>' + avgLatency + " ms</span></div>";
+          }
+          resultsList.innerHTML = html;
+        }
+
+        saveBtn.addEventListener("click", function () {
+          if (trialResults.length < TOTAL_TRIALS) return;
+          const correctCount = trialResults.filter(function (r) { return r.correct; }).length;
+          const accuracy = correctCount / trialResults.length;
+          const correctLatencies = trialResults.filter(function (r) { return r.correct; }).map(function (r) { return r.latency; });
+          const avgLatency = correctLatencies.length > 0
+            ? Math.round(correctLatencies.reduce(function (a, b) { return a + b; }, 0) / correctLatencies.length)
+            : null;
+          const correctTrials = trialResults.filter(function (r) { return r.correct; });
+          const maxReachStage = correctTrials.length > 0
+            ? Math.max.apply(null, correctTrials.map(function (r) { return r.stageIndex != null ? r.stageIndex : 0; }))
+            : null;
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          if (!session.user_data) session.user_data = {};
+          const motor = session.user_data.motor_results || {};
+          motor.key_map_range = {
+            trials: trialResults,
+            correctCount: correctCount,
+            totalCount: trialResults.length,
+            accuracy: Math.round(accuracy * 100) / 100,
+            averageLatency: avgLatency,
+            maxReachStage: maxReachStage,
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ motor: motor });
+          }
+          window.location.href = "motor_hub.html";
+        });
+
+        startTrial();
+      })();
+    </script>
+  </body>
+</html>
