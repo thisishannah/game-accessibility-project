@@ -920,12 +920,15 @@
 
         function updateUserSummary(session) {
           const id = session.userId || session.id || "-";
-          const disability = session.disabilityType || "-";
+          const types = session.disabilityTypes && session.disabilityTypes.length > 0
+            ? session.disabilityTypes
+            : (session.disabilityType ? [session.disabilityType] : []);
+          const disability = types.length > 0 ? types.join(", ") : "-";
 
           sessionIdText.textContent = id || "-";
           sessionDisabilityText.textContent = disability || "-";
 
-          if (!session.disabilityType) {
+          if (types.length === 0) {
             userSummaryEl.innerHTML =
               "세션 정보가 없습니다. 먼저 메인 페이지에서 세션을 생성한 뒤 다시 이 페이지를 여는 것을 권장합니다.";
           } else {
@@ -937,34 +940,27 @@
               "</strong>";
           }
 
-          const primaryKey = mapDisabilityToKey(session.disabilityType);
-          if (primaryKey) {
+          const primaryKeys = types.map(mapDisabilityToKey).filter(Boolean);
+          if (primaryKeys.length > 0) {
             primaryDisabilityBadge.textContent =
-              "장애 유형: " + session.disabilityType;
+              "장애 유형: " + (types.length > 1 ? types.length + "개 선택" : types[0]);
             hubSubtitle.textContent =
-              "세션에서 선택한 장애 유형( " +
-              session.disabilityType +
-              " )에 맞춰 가장 중요한 측정 항목을 강조합니다.";
+              "세션에서 선택한 장애 유형에 맞춰 해당 측정 항목을 필수로 강조합니다.";
             hubHelperText.innerHTML =
-              "현재 세션의 주요 장애 유형은 <strong>" +
-              escapeHtml(session.disabilityType) +
-              "</strong>입니다. 이 유형에 해당하는 카드가 필수 측정으로 간주되며, 나머지 카드는 '스킵 가능'한 보조 측정입니다.";
+              types.length > 1
+                ? "선택한 <strong>" + escapeHtml(types.join(", ")) + "</strong>에 해당하는 카드가 모두 필수 측정입니다. 각각 완료 후 최종 전송이 가능합니다."
+                : "현재 세션의 주요 장애 유형은 <strong>" + escapeHtml(types[0]) + "</strong>입니다. 이 유형에 해당하는 카드가 필수 측정으로 간주됩니다.";
           } else {
             primaryDisabilityBadge.textContent = "장애 유형: -";
           }
 
-          // 카드 강조 상태 갱신
           const cards = measureGrid.querySelectorAll(".measure-card");
           cards.forEach((card) => {
             const cardType = card.getAttribute("data-disability-type");
-            if (cardType && cardType === session.disabilityType) {
-              card.dataset.primary = "true";
-            } else {
-              card.dataset.primary = "false";
-            }
+            card.dataset.primary = cardType && types.indexOf(cardType) !== -1 ? "true" : "false";
           });
 
-          return primaryKey;
+          return primaryKeys;
         }
 
         function updateProgressUI() {
@@ -1017,8 +1013,8 @@
           return completion;
         }
 
-        function updateCompletion(primaryKey, completion) {
-          if (!primaryKey) {
+        function updateCompletion(primaryKeys, completion) {
+          if (!primaryKeys || primaryKeys.length === 0) {
             completionBadge.textContent = "Required: 0/0";
             completionStatusText.textContent =
               "세션의 장애 유형 정보를 찾을 수 없습니다. 메인 대시보드에서 세션을 먼저 생성해 주세요.";
@@ -1029,22 +1025,15 @@
             return;
           }
 
-          const info = completion[primaryKey];
-          if (!info) {
-            completionBadge.textContent = "Required: 0/1";
-            completionStatusText.textContent =
-              "필수 측정 진행 정보를 찾지 못했습니다. 해당 측정 페이지를 한 번 이상 방문한 뒤 다시 확인해 주세요.";
-            completionStatusText.className = "status-text status-text--error";
-            finalSubmitButton.disabled = true;
-            footerHint.textContent =
-              "필수 측정 카드(" +
-              primaryKey +
-              ")를 최소 1회 이상 실행해야 합니다.";
-            return;
-          }
+          let completedCount = 0;
+          let totalRequired = primaryKeys.length;
+          primaryKeys.forEach(function (key) {
+            const info = completion[key];
+            if (info && info.total > 0 && info.current >= info.total) completedCount++;
+          });
+          const isComplete = completedCount >= totalRequired;
 
-          const isComplete = info.total > 0 && info.current >= info.total;
-          completionBadge.textContent = "Required: " + (isComplete ? "1/1" : "0/1");
+          completionBadge.textContent = "Required: " + completedCount + "/" + totalRequired;
 
           if (isComplete) {
             completionStatusText.textContent =
@@ -1052,18 +1041,18 @@
             completionStatusText.className = "status-text status-text--ok";
             finalSubmitButton.disabled = false;
             footerHint.innerHTML =
-              "<strong>필수 측정</strong>이 완료되었습니다. 필요하다면 다른 장애 유형 측정을 추가로 진행한 뒤 결과를 전송할 수 있습니다.";
+              "<strong>필수 측정</strong>이 모두 완료되었습니다. 필요하다면 스킵 가능한 측정을 추가로 진행한 뒤 결과를 전송할 수 있습니다.";
           } else {
             completionStatusText.textContent =
-              "필수 측정이 아직 완료되지 않았습니다. 강조된 카드의 진행률을 모두 채운 뒤 다시 시도하세요.";
+              "필수 측정이 아직 완료되지 않았습니다. 강조된 카드(" + (totalRequired - completedCount) + "개 남음)의 진행률을 모두 채운 뒤 다시 시도하세요.";
             completionStatusText.className = "status-text status-text--error";
             finalSubmitButton.disabled = true;
             footerHint.innerHTML =
-              "<strong>필수 측정</strong> 카드의 진행률을 모두 채워야 최종 결과 버튼이 활성화됩니다.";
+              "선택한 장애 유형에 해당하는 <strong>모든 필수 측정</strong> 카드를 완료해야 최종 결과 버튼이 활성화됩니다.";
           }
         }
 
-        function initNavigation(primaryKey) {
+        function initNavigation(primaryKeys) {
           measureGrid.addEventListener("click", (event) => {
             const card = event.target.closest(".measure-card");
             if (!card) return;
@@ -1100,15 +1089,15 @@
           });
 
           finalSubmitButton.addEventListener("click", () => {
-            window.location.href = "observer_report.html";
+            window.location.href = "summary.html";
           });
         }
 
         const session = readSession();
-        const primaryKey = updateUserSummary(session);
+        const primaryKeys = updateUserSummary(session);
         const completion = updateProgressUI();
-        updateCompletion(primaryKey, completion);
-        initNavigation(primaryKey);
+        updateCompletion(primaryKeys, completion);
+        initNavigation(primaryKeys);
       })();
     </script>
   </body>

@@ -120,11 +120,11 @@
         <div class="panel mt-md">
           <div class="section-title mb-sm">구글 시트 전송</div>
           <p class="text-xs text-muted mb-sm">
-            Google Apps Script Web App URL을 입력한 뒤 전송하면 해당 시트에 데이터가 추가됩니다.
+            전송 버튼을 누르면 지정된 구글 시트에 데이터가 추가되고, 성공 시 세션이 비워지며 메인 페이지로 이동합니다.
           </p>
           <div class="flex gap-md flex-wrap items-center">
-            <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec" class="sheets-input" />
-            <button type="button" class="btn-primary sheets-button" id="send-to-sheets">구글 시트로 전송</button>
+            <input type="text" id="sheets-url" placeholder="Web App URL" class="sheets-input" />
+            <button type="button" class="btn-primary sheets-button" id="send-to-sheets">전송</button>
           </div>
           <p id="sheets-status" class="sheets-status"></p>
         </div>
@@ -174,15 +174,19 @@
         }
 
         function renderProfileCard(session) {
-          const keys = ["userId", "gender", "ageRange", "disabilityType", "platform", "inputDevice", "pcResolution", "windowsDpi", "cpuSpec", "gpuSpec", "gameTitle", "skillTier"];
           const labels = {
             userId: "세션 ID", gender: "성별", ageRange: "연령대", disabilityType: "장애 유형",
             platform: "플랫폼", inputDevice: "입력장치", pcResolution: "해상도", windowsDpi: "DPI",
-            cpuSpec: "CPU", gpuSpec: "GPU", gameTitle: "게임명", skillTier: "숙련도"
+            monitorSizeInch: "모니터(인치)", cpuSpec: "CPU", gpuSpec: "GPU", gameTitle: "게임명", skillTier: "숙련도"
           };
+          const keys = ["userId", "gender", "ageRange", "disabilityType", "platform", "inputDevice", "pcResolution", "windowsDpi", "monitorSizeInch", "cpuSpec", "gpuSpec", "gameTitle", "skillTier"];
+          const display = { ...session };
+          if (session.disabilityTypes && session.disabilityTypes.length > 0) {
+            display.disabilityType = session.disabilityTypes.join(", ");
+          }
           const el = document.getElementById("profile-card");
-          el.innerHTML = keys.filter(k => session[k]).map(k =>
-            `<div class="profile-item"><span class="profile-label">${escapeHtml(labels[k])}</span><span class="profile-value">${escapeHtml(String(session[k]))}</span></div>`
+          el.innerHTML = keys.filter(k => display[k]).map(k =>
+            `<div class="profile-item"><span class="profile-label">${escapeHtml(labels[k])}</span><span class="profile-value">${escapeHtml(String(display[k]))}</span></div>`
           ).join("");
         }
 
@@ -371,7 +375,8 @@
         function validateSession(session) {
           const errs = [];
           if (!session.userId && !session.id) errs.push("세션 ID가 없습니다.");
-          if (!session.disabilityType) errs.push("장애 유형이 선택되지 않았습니다.");
+          const hasDisability = (session.disabilityTypes && session.disabilityTypes.length > 0) || session.disabilityType;
+          if (!hasDisability) errs.push("장애 유형이 선택되지 않았습니다.");
           if (!session.user_data) errs.push("측정 데이터(user_data)가 없습니다.");
           try {
             JSON.stringify(session);
@@ -379,6 +384,128 @@
             errs.push("JSON 직렬화 오류: " + (e.message || "알 수 없음"));
           }
           return errs;
+        }
+
+        /** FOV 결과에서 9개 포인트·각도 슬롯 중 'Blind' 판정 비율 (0~1) */
+        function calcFovBlindRate(fovResults) {
+          if (!fovResults) return null;
+          const rounds = Array.isArray(fovResults) ? fovResults : [fovResults];
+          let total = 0, blind = 0;
+          rounds.forEach(round => {
+            if (!round || typeof round !== "object") return;
+            ["P1","P2","P3","P4","P5","P6","P7","P8","P9"].forEach(pid => {
+              const pointData = round[pid];
+              if (!pointData || typeof pointData !== "object") return;
+              Object.keys(pointData).forEach(angle => {
+                total += 1;
+                if (pointData[angle] === "Blind") blind += 1;
+              });
+            });
+          });
+          return total === 0 ? null : blind / total;
+        }
+
+        /** 숫자 배열 평균 (없으면 null) */
+        function avg(arr) {
+          if (!Array.isArray(arr) || arr.length === 0) return null;
+          const sum = arr.reduce((a, b) => a + Number(b), 0);
+          return sum / arr.length;
+        }
+
+        /**
+         * 구글 시트 헤더 순서에 맞춘 전송용 객체 생성. (순서가 틀리면 시트 열이 밀리므로 유지)
+         * 키 순서: timestamp, user_id, age, gender, monitor_inch, resolution, viewing_distance, disability_type,
+         * vision_rt_avg, vision_aim_avg, fov_blind_rate, readable_font_size, motor_rt_avg, motor_aim_avg,
+         * burst_speed_peak, fatigue_index, seq_memory_score, go_nogo_accuracy, hearing_intelligibility,
+         * raw_vision_data, raw_motor_data, raw_cognitive_data, observer_report
+         */
+        function buildSheetsRowPayload(session) {
+          const ud = session.user_data || {};
+          const vision = ud.vision_results || {};
+          const motor = ud.motor_results || {};
+          const cognitive = ud.cognitive_results || {};
+          const hearing = ud.hearing_results || {};
+
+          const visionRtTrials = vision.reactionTime && vision.reactionTime.trials;
+          const vision_rt_avg = visionRtTrials && visionRtTrials.length
+            ? Math.round(avg(visionRtTrials))
+            : (vision.reactionTime && vision.reactionTime.average) != null ? vision.reactionTime.average : null;
+          const vision_aim_avg = vision.aimTrainer && (vision.aimTrainer.averageInterval != null)
+            ? vision.aimTrainer.averageInterval
+            : null;
+          const fov_blind_rate = calcFovBlindRate(vision.fovResults);
+          const readable_font_size = vision.fontReadability && vision.fontReadability.minFontSize != null
+            ? vision.fontReadability.minFontSize
+            : null;
+
+          const motorRtTrials = motor.reactionTime && motor.reactionTime.trials;
+          const motor_rt_avg = motorRtTrials && motorRtTrials.length
+            ? Math.round(avg(motorRtTrials))
+            : (motor.reactionTime && motor.reactionTime.average) != null ? motor.reactionTime.average : null;
+          const motor_aim_avg = motor.aimTrainer && (motor.aimTrainer.averageInterval != null)
+            ? motor.aimTrainer.averageInterval
+            : null;
+          const burst_speed_peak = motor.burstSpeed && (motor.burstSpeed.maxInputsPerSecond != null)
+            ? motor.burstSpeed.maxInputsPerSecond
+            : null;
+          const fatigue_index = motor.fatigue && (motor.fatigue.fatigueIndex != null)
+            ? motor.fatigue.fatigueIndex
+            : null;
+
+          const seq_memory_score = cognitive.sequenceMemory && cognitive.sequenceMemory.maxLevel != null
+            ? cognitive.sequenceMemory.maxLevel
+            : null;
+          const go_nogo_accuracy = cognitive.goNoGo && cognitive.goNoGo.successRate != null
+            ? cognitive.goNoGo.successRate
+            : null;
+
+          const hearing_intelligibility = hearing.speechClarityPercent != null
+            ? hearing.speechClarityPercent
+            : (hearing.speechClarityRating != null ? hearing.speechClarityRating : null);
+
+          const raw_vision_data = vision && Object.keys(vision).length ? vision : null;
+          const raw_motor_data = motor && Object.keys(motor).length ? motor : null;
+          const raw_cognitive_data = cognitive && Object.keys(cognitive).length ? cognitive : null;
+          const observer_report = session.observer_report && typeof session.observer_report === "object"
+            ? session.observer_report
+            : null;
+
+          return {
+            timestamp: new Date().toISOString(),
+            user_id: session.userId || session.id || "",
+            age: session.ageRange != null ? session.ageRange : "",
+            gender: session.gender != null ? session.gender : "",
+            monitor_inch: session.monitorSizeInch != null ? session.monitorSizeInch : "",
+            resolution: session.pcResolution != null ? session.pcResolution : "",
+            viewing_distance: session.viewingDistance != null ? session.viewingDistance : "",
+            disability_type: (session.disabilityTypes && session.disabilityTypes.length)
+              ? session.disabilityTypes.join(", ")
+              : (session.disabilityType != null ? session.disabilityType : ""),
+            vision_rt_avg,
+            vision_aim_avg,
+            fov_blind_rate,
+            readable_font_size,
+            motor_rt_avg,
+            motor_aim_avg,
+            burst_speed_peak,
+            fatigue_index,
+            seq_memory_score,
+            go_nogo_accuracy,
+            hearing_intelligibility,
+            raw_vision_data,
+            raw_motor_data,
+            raw_cognitive_data,
+            observer_report,
+          };
+        }
+
+        /** 세션 저장소 비우기 (전송 완료 후 호출) */
+        function clearSessionStorage() {
+          try {
+            sessionStorage.removeItem("user_data");
+            sessionStorage.removeItem("ga_current_session");
+            localStorage.removeItem("ga_current_session");
+          } catch (e) {}
         }
 
         function render(session) {
@@ -391,7 +518,9 @@
           document.getElementById("json-preview").textContent = JSON.stringify(session, null, 2);
 
           const id = session.userId || session.id || "-";
-          const disability = session.disabilityType || "-";
+          const disability = (session.disabilityTypes && session.disabilityTypes.length > 0)
+            ? session.disabilityTypes.join(", ")
+            : (session.disabilityType || "-");
           document.getElementById("user-summary").innerHTML =
             "세션 <strong>" + escapeHtml(id) + "</strong> · 장애 <strong>" + escapeHtml(disability) + "</strong>";
         }
@@ -422,20 +551,18 @@
           }
         });
 
+        const DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyrcvpXF6Fiso80SrWpPFcHg3MEcZmIKs0cM0N6AEmvNLna2OSVM0PFfpMCledzo7xm/exec";
         const sheetsUrlEl = document.getElementById("sheets-url");
         const sendToSheetsBtn = document.getElementById("send-to-sheets");
         const sheetsStatusEl = document.getElementById("sheets-status");
         try {
           const savedUrl = localStorage.getItem("ga_sheets_url");
-          if (savedUrl) sheetsUrlEl.value = savedUrl;
-        } catch (e) {}
+          sheetsUrlEl.value = (savedUrl && savedUrl.trim()) || DEPLOYED_SHEETS_URL;
+        } catch (e) {
+          sheetsUrlEl.value = DEPLOYED_SHEETS_URL;
+        }
         sendToSheetsBtn.addEventListener("click", function () {
-          const url = (sheetsUrlEl && sheetsUrlEl.value.trim()) || "";
-          if (!url) {
-            sheetsStatusEl.textContent = "구글 시트 Web App URL을 입력해 주세요.";
-            sheetsStatusEl.style.color = "#f97373";
-            return;
-          }
+          const url = (sheetsUrlEl && sheetsUrlEl.value.trim()) || DEPLOYED_SHEETS_URL;
           const session = readSession();
           const errs = validateSession(session);
           if (errs.length > 0) {
@@ -443,24 +570,31 @@
             sheetsStatusEl.style.color = "#f97373";
             return;
           }
-          try { localStorage.setItem("ga_sheets_url", url); } catch (e) {}
+          sendToSheetsBtn.disabled = true;
           sheetsStatusEl.textContent = "전송 중...";
           sheetsStatusEl.style.color = "inherit";
+          try { localStorage.setItem("ga_sheets_url", url); } catch (e) {}
+          const payload = buildSheetsRowPayload(session);
           fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(session),
+            body: JSON.stringify(payload),
           }).then(function (r) {
             if (r.ok) {
-              sheetsStatusEl.textContent = "구글 시트로 전송되었습니다.";
+              sheetsStatusEl.textContent = "전송되었습니다.";
               sheetsStatusEl.style.color = "#4ade80";
+              clearSessionStorage();
+              alert("구글 시트로 전송되었습니다. 메인 페이지로 이동합니다.");
+              window.location.href = "index.html";
             } else {
-              sheetsStatusEl.textContent = "전송 실패 (HTTP " + r.status + "). CORS 설정을 확인해 주세요.";
+              sheetsStatusEl.textContent = "전송 실패 (HTTP " + r.status + ").";
               sheetsStatusEl.style.color = "#f97373";
+              sendToSheetsBtn.disabled = false;
             }
           }).catch(function (err) {
             sheetsStatusEl.textContent = "전송 실패: " + (err.message || "네트워크 오류");
             sheetsStatusEl.style.color = "#f97373";
+            sendToSheetsBtn.disabled = false;
           });
         });
 

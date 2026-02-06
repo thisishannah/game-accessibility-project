@@ -24,6 +24,8 @@
   }
 
   function readSession() {
+    var u = safeGet(sessionStorage, "user_data");
+    if (u && typeof u === "object" && Object.keys(u).length > 0) return u;
     var s = safeGet(sessionStorage, SESSION_KEY);
     if (s) return s;
     var l = safeGet(localStorage, SESSION_KEY);
