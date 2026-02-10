@@ -23,7 +23,7 @@
     .volume-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#22c55e,#4ade80); border-radius: 999px; transition: width 0.05s; }
     .volume-label { font-size: 12px; color: var(--text-muted); min-width: 80px; }
     .sentence-box { padding: 24px; background: #1a1a1a; border-radius: 16px; border: 2px solid rgba(148,163,184,0.6);
-      font-size: 60px; line-height: 1.6; text-align: center; margin-bottom: 20px; min-height: 200px; display: flex; align-items: center; justify-content: center; }
+      font-size: 60px; line-height: 1.6; text-align: center; margin-bottom: 20px; min-height: 200px; display: flex; align-items: center; justify-content: center; white-space: pre-line; }
     .speak-cta { font-size: 54px; font-weight: 700; color: #4ade80; margin-bottom: 16px; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; }
     .record-btn { padding: 14px 28px; border-radius: 999px; border: none; background: #ef4444; color: white; font-weight: 600; font-size: 16px; cursor: pointer; display: block; margin: 0 auto 12px; }
     .record-btn.recording { background: #dc2626; animation: pulse 1s infinite; }
@@ -39,7 +39,7 @@
     .progress-indicator { text-align: center; font-size: 42px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; }
     .observer-item { margin-bottom: 24px; padding: 16px; background: rgba(15,23,42,0.6); border-radius: 12px; border: 1px solid rgba(51,65,85,0.5); }
     .observer-item .item-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
-    .observer-item .item-sentence { font-size: 15px; color: var(--text-main); margin-bottom: 12px; line-height: 1.5; }
+    .observer-item .item-sentence { font-size: 15px; color: var(--text-main); margin-bottom: 12px; line-height: 1.5; white-space: pre-line; }
     .observer-item .item-audio { margin-bottom: 12px; }
     .observer-item .item-audio audio { width: 100%; max-width: 400px; }
     .observer-item .rating-group { margin: 0; }
@@ -132,6 +132,13 @@
         return shuffled.slice(0, n);
       }
 
+      function formatSentenceWithLineBreaks(s) {
+        if (!s || typeof s !== "string") return s;
+        return s
+          .replace(/,\s+/g, ",\n")
+          .replace(/([.?!])\s+/g, "$1\n");
+      }
+
       function similarity(a, b) {
         a = (a || "").replace(/\s+/g, "").toLowerCase();
         b = (b || "").replace(/\s+/g, "").toLowerCase();
@@ -214,7 +221,7 @@
 
       function showCurrentSentence() {
         currentSentence = sentenceQueue[currentIndex];
-        sentenceBox.textContent = currentSentence;
+        sentenceBox.textContent = formatSentenceWithLineBreaks(currentSentence);
         progressIndicator.textContent = (currentIndex + 1) + "/" + TOTAL_ITEMS;
       }
 
@@ -260,7 +267,7 @@
           const num = i + 1;
           html += '<div class="observer-item">';
           html += '<div class="item-title">문장 ' + num + '</div>';
-          html += '<div class="item-sentence">' + escapeHtml(r.sentence) + '</div>';
+          html += '<div class="item-sentence">' + escapeHtml(formatSentenceWithLineBreaks(r.sentence)) + '</div>';
           html += '<div class="item-audio"><audio controls src="' + url + '"></audio></div>';
           html += '<fieldset class="rating-group"><legend class="screen-reader-only">문장 ' + num + ' 발화 명료도 평가</legend>';
           html += '<label class="rating-label"><input type="radio" name="observerRating' + num + '" value="1" /> 1: 이해 불가</label>';
@@ -312,7 +319,7 @@
         if (typeof GAStorage !== "undefined") {
           GAStorage.writeSession({ hearing: hearing });
           let done = 0;
-          if (hearing.source && hearing.overallDb != null) done++;
+          if (hearing.hearingInputSaved && hearing.source && typeof hearing.overallDb === "number" && !isNaN(hearing.overallDb)) done++;
           if (hearing.speechClarityTest) done++;
           if (hearing.articulationTest) done++;
           GAStorage.writeProgress("audio", { label: "청각언어 측정", current: done, total: 3, completedAt: new Date().toISOString() });

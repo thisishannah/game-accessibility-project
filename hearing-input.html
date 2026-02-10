@@ -20,14 +20,16 @@
       .label-required { color: #fbbf24; font-size: 11px; }
       .field-group input[type="text"], .field-group input[type="number"] { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid rgba(51,65,85,0.9); background: #020617; color: #e5e7eb; font-size: 13px; }
       .error-text { font-size: 11px; color: #f97373; margin-top: 4px; min-height: 14px; }
-      .freq-fieldset { border: 1px solid rgba(51,65,85,0.9); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+      .freq-fieldset { border: 1px solid rgba(51,65,85,0.9); border-radius: 12px; padding: 16px; margin-bottom: 20px; overflow: hidden; }
       .freq-fieldset legend { font-size: 12px; color: #b8c5d6; padding: 0 8px; }
-      .freq-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-      .freq-cell { border-radius: 8px; border: 1px solid rgba(51,65,85,0.9); padding: 8px; background: rgba(15,23,42,0.5); }
-      .freq-label { font-size: 11px; color: #b8c5d6; margin-bottom: 4px; }
-      .freq-row { display: flex; align-items: center; gap: 4px; }
-      .freq-row span { font-size: 11px; color: #b8c5d6; min-width: 14px; }
-      .freq-row input { flex: 1; padding: 6px 8px; font-size: 12px; border-radius: 6px; border: 1px solid rgba(51,65,85,0.9); background: #020617; color: #e5e7eb; }
+      .freq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      @media (min-width: 520px) { .freq-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+      .freq-cell { border-radius: 8px; border: 1px solid rgba(51,65,85,0.9); padding: 10px 12px; background: rgba(15,23,42,0.5); min-width: 0; }
+      .freq-label { font-size: 11px; color: #b8c5d6; margin-bottom: 6px; font-weight: 500; }
+      .freq-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .freq-inputs label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+      .freq-inputs label span { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+      .freq-inputs input { width: 100%; min-width: 0; padding: 6px 8px; font-size: 12px; border-radius: 6px; border: 1px solid rgba(51,65,85,0.9); background: #020617; color: #e5e7eb; box-sizing: border-box; }
       .btn-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
       .btn-secondary { padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(148,163,184,0.8); background: #020617; color: #e5e7eb; text-decoration: none; font-size: 12px; font-weight: 500; }
       .btn-primary { padding: 10px 18px; border-radius: 999px; border: none; background: linear-gradient(120deg,#4f46e5,#7c3aed,#22c55e); color: white; font-weight: 550; font-size: 13px; cursor: pointer; }
@@ -73,12 +75,48 @@
           <fieldset class="freq-fieldset">
             <legend>Hz 대역별 수치 (dB HL) — Mimi 주파수 그래프 참고</legend>
             <div class="freq-grid">
-              <div class="freq-cell"><div class="freq-label">250 Hz</div><div class="freq-row"><span>L</span><input type="number" name="hz250Left" placeholder="dB" /><span>R</span><input type="number" name="hz250Right" placeholder="dB" /></div></div>
-              <div class="freq-cell"><div class="freq-label">500 Hz</div><div class="freq-row"><span>L</span><input type="number" name="hz500Left" placeholder="dB" /><span>R</span><input type="number" name="hz500Right" placeholder="dB" /></div></div>
-              <div class="freq-cell"><div class="freq-label">1 kHz</div><div class="freq-row"><span>L</span><input type="number" name="hz1000Left" placeholder="dB" /><span>R</span><input type="number" name="hz1000Right" placeholder="dB" /></div></div>
-              <div class="freq-cell"><div class="freq-label">2 kHz</div><div class="freq-row"><span>L</span><input type="number" name="hz2000Left" placeholder="dB" /><span>R</span><input type="number" name="hz2000Right" placeholder="dB" /></div></div>
-              <div class="freq-cell"><div class="freq-label">4 kHz</div><div class="freq-row"><span>L</span><input type="number" name="hz4000Left" placeholder="dB" /><span>R</span><input type="number" name="hz4000Right" placeholder="dB" /></div></div>
-              <div class="freq-cell"><div class="freq-label">8 kHz</div><div class="freq-row"><span>L</span><input type="number" name="hz8000Left" placeholder="dB" /><span>R</span><input type="number" name="hz8000Right" placeholder="dB" /></div></div>
+              <div class="freq-cell">
+                <div class="freq-label">250 Hz</div>
+                <div class="freq-inputs">
+                  <label><span>좌(L)</span><input type="number" name="hz250Left" placeholder="dB" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz250Right" placeholder="dB" /></label>
+                </div>
+              </div>
+              <div class="freq-cell">
+                <div class="freq-label">500 Hz</div>
+                <div class="freq-inputs">
+                  <label><span>좌(L)</span><input type="number" name="hz500Left" placeholder="dB" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz500Right" placeholder="dB" /></label>
+                </div>
+              </div>
+              <div class="freq-cell">
+                <div class="freq-label">1 kHz</div>
+                <div class="freq-inputs">
+                  <label><span>좌(L)</span><input type="number" name="hz1000Left" placeholder="dB" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz1000Right" placeholder="dB" /></label>
+                </div>
+              </div>
+              <div class="freq-cell">
+                <div class="freq-label">2 kHz</div>
+                <div class="freq-inputs">
+                  <label><span>좌(L)</span><input type="number" name="hz2000Left" placeholder="dB" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz2000Right" placeholder="dB" /></label>
+                </div>
+              </div>
+              <div class="freq-cell">
+                <div class="freq-label">4 kHz</div>
+                <div class="freq-inputs">
+                  <label><span>좌(L)</span><input type="number" name="hz4000Left" placeholder="dB" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz4000Right" placeholder="dB" /></label>
+                </div>
+              </div>
+              <div class="freq-cell">
+                <div class="freq-label">8 kHz</div>
+                <div class="freq-inputs">
+                  <label><span>좌(L)</span><input type="number" name="hz8000Left" placeholder="dB" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz8000Right" placeholder="dB" /></label>
+                </div>
+              </div>
             </div>
           </fieldset>
 
@@ -147,12 +185,13 @@
             overallDb: obj.overallDb ? Number(obj.overallDb) : null,
             bands: Object.keys(band).length > 0 ? band : undefined,
             recordedAt: new Date().toISOString(),
+            hearingInputSaved: true,
           };
         }
 
         function countHearingComplete(hearing) {
           let n = 0;
-          if (hearing && hearing.source && hearing.overallDb != null) n++;
+          if (hearing && hearing.hearingInputSaved && hearing.source && typeof hearing.overallDb === "number" && !isNaN(hearing.overallDb)) n++;
           if (hearing && hearing.speechClarityTest && hearing.speechClarityPercent != null) n++;
           if (hearing && hearing.articulationTest && hearing.articulationTest.matchRate != null) n++;
           return n;

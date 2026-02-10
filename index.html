@@ -532,43 +532,62 @@
         flex-wrap: wrap;
       }
 
-      .pc-guide-panel {
-        margin-bottom: 24px;
-        padding: 20px;
-        background: rgba(124, 58, 237, 0.08);
-        border: 1px solid rgba(124, 58, 237, 0.35);
-        border-radius: 12px;
-      }
-      .pc-guide-panel h4 {
-        margin: 0 0 16px;
-        font-size: 14px;
+      .guide-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        margin-left: 6px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        border-radius: 50%;
+        background: rgba(148, 163, 184, 0.15);
+        color: var(--text-muted);
+        font-size: 11px;
         font-weight: 600;
+        cursor: help;
+        vertical-align: middle;
+      }
+      .guide-trigger:hover {
+        background: rgba(124, 58, 237, 0.25);
+        border-color: rgba(124, 58, 237, 0.5);
         color: var(--text-main);
       }
-      .pc-guide-panel .guide-item {
-        margin-bottom: 14px;
-      }
-      .pc-guide-panel .guide-item:last-child { margin-bottom: 0; }
-      .pc-guide-panel .guide-item strong {
-        display: block;
-        font-size: 12px;
-        color: var(--text-main);
-        margin-bottom: 4px;
-      }
-      .pc-guide-panel .guide-item ol {
-        margin: 0;
-        padding-left: 18px;
+      .guide-popover {
+        position: fixed;
+        z-index: 1000;
+        max-width: 320px;
+        padding: 14px 16px;
+        background: #1e293b;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
         font-size: 12px;
         line-height: 1.6;
         color: var(--text-muted);
       }
-      .pc-guide-panel .guide-item li { margin-bottom: 2px; }
-      .pc-guide-panel code {
+      .guide-popover strong { color: var(--text-main); }
+      .guide-popover ol { margin: 0; padding-left: 18px; }
+      .guide-popover li { margin-bottom: 4px; }
+      .guide-popover code {
         font-family: ui-monospace, monospace;
         font-size: 11px;
         background: rgba(0,0,0,0.3);
         padding: 1px 4px;
         border-radius: 4px;
+      }
+      .guide-popover::before {
+        content: "";
+        position: absolute;
+        top: -6px;
+        left: 20px;
+        width: 10px;
+        height: 10px;
+        background: #1e293b;
+        border-left: 1px solid rgba(148, 163, 184, 0.4);
+        border-top: 1px solid rgba(148, 163, 184, 0.4);
+        transform: rotate(45deg);
       }
 
       .hint {
@@ -1167,52 +1186,12 @@
                     </span>
                   </div>
 
-                  <div class="pc-guide-panel">
-                    <h4>아래 정보를 찾는 방법 (Windows 기준)</h4>
-                    <div class="guide-item">
-                      <strong>해상도</strong>
-                      <ol>
-                        <li>이 페이지의 <strong>「현재 해상도 자동 감지」</strong> 버튼을 클릭하면 자동 입력됩니다.</li>
-                        <li>또는 <strong>설정 → 시스템 → 디스플레이</strong> → 디스플레이 해상도에서 확인하세요.</li>
-                      </ol>
-                    </div>
-                    <div class="guide-item">
-                      <strong>윈도우 배율(DPI)</strong>
-                      <ol>
-                        <li><strong>설정 → 시스템 → 디스플레이</strong> → 배율 및 레이아웃</li>
-                        <li>「텍스트, 앱 및 기타 항목의 크기 변경」에서 100%, 125%, 150% 등의 값을 확인하세요.</li>
-                      </ol>
-                    </div>
-                    <div class="guide-item">
-                      <strong>모니터 크기</strong>
-                      <ol>
-                        <li>모니터 뒷면 스티커, 또는 제조사 사양서에서 대각선 인치를 확인하세요.</li>
-                        <li>모델명(예: LG 27GP850)으로 검색해도 됩니다.</li>
-                      </ol>
-                    </div>
-                    <div class="guide-item">
-                      <strong>CPU</strong>
-                      <ol>
-                        <li><strong>Ctrl+Shift+Esc</strong>로 작업 관리자 열기 → <strong>성능</strong> 탭 → <strong>CPU</strong> 선택</li>
-                        <li>상단에 모델명(예: Intel Core i5-12400)이 표시됩니다.</li>
-                        <li>또는 <strong>설정 → 시스템 → 정보</strong>에서 프로세서 확인.</li>
-                      </ol>
-                    </div>
-                    <div class="guide-item">
-                      <strong>GPU</strong>
-                      <ol>
-                        <li><strong>Ctrl+Shift+Esc</strong>로 작업 관리자 열기 → <strong>성능</strong> 탭 → <strong>GPU</strong> 선택</li>
-                        <li>상단에 모델명(예: NVIDIA GeForce RTX 3060)이 표시됩니다.</li>
-                        <li>또는 <strong>Win+R</strong> → <code>dxdiag</code> 입력 → 디스플레이 탭에서 확인.</li>
-                      </ol>
-                    </div>
-                  </div>
-
                   <div>
                     <div class="field-label-row">
                       <label for="pc-resolution">
                         모니터 해상도
                         <span class="label-required">필수</span>
+                        <button type="button" class="guide-trigger" data-guide="resolution" aria-label="찾는 방법">?</button>
                       </label>
                       <button
                         type="button"
@@ -1246,6 +1225,7 @@
                       <label for="windows-dpi">
                         윈도우 배율(DPI)
                         <span class="label-required">필수</span>
+                        <button type="button" class="guide-trigger" data-guide="dpi" aria-label="찾는 방법">?</button>
                       </label>
                       <span class="label-helper">
                         OS 디스플레이 설정의 배율 값(예: 100%, 125%, 150%)을 직접 확인해 입력해주세요.
@@ -1274,6 +1254,7 @@
                       <label for="monitor-size-inch">
                         모니터 크기(인치)
                         <span class="label-required">필수</span>
+                        <button type="button" class="guide-trigger" data-guide="monitor" aria-label="찾는 방법">?</button>
                       </label>
                       <span class="label-helper">
                         대각선 길이 기준 인치(예: 24, 27, 32)
@@ -1327,6 +1308,7 @@
                       <label for="cpu-spec">
                         CPU 스펙
                         <span class="label-required">필수</span>
+                        <button type="button" class="guide-trigger" data-guide="cpu" aria-label="찾는 방법">?</button>
                       </label>
                       <span class="label-helper">모델명과 대략적인 세대/코어 수 등</span>
                     </div>
@@ -1353,6 +1335,7 @@
                       <label for="gpu-spec">
                         GPU 스펙
                         <span class="label-required">필수</span>
+                        <button type="button" class="guide-trigger" data-guide="gpu" aria-label="찾는 방법">?</button>
                       </label>
                       <span class="label-helper">모델명과 VRAM 용량 등</span>
                     </div>
@@ -2076,6 +2059,58 @@
             }
           });
         }
+
+        (function initGuidePopover() {
+          const GUIDE_CONTENT = {
+            resolution: "<strong>해상도</strong><ol><li>이 페이지의 「현재 해상도 자동 감지」 버튼을 클릭하면 자동 입력됩니다.</li><li>또는 <strong>설정 → 시스템 → 디스플레이</strong> → 디스플레이 해상도에서 확인하세요.</li></ol>",
+            dpi: "<strong>윈도우 배율(DPI)</strong><ol><li><strong>설정 → 시스템 → 디스플레이</strong> → 배율 및 레이아웃</li><li>「텍스트, 앱 및 기타 항목의 크기 변경」에서 100%, 125%, 150% 등의 값을 확인하세요.</li></ol>",
+            monitor: "<strong>모니터 크기</strong><ol><li>모니터 뒷면 스티커, 또는 제조사 사양서에서 대각선 인치를 확인하세요.</li><li>모델명(예: LG 27GP850)으로 검색해도 됩니다.</li></ol>",
+            cpu: "<strong>CPU</strong><ol><li><strong>Ctrl+Shift+Esc</strong>로 작업 관리자 열기 → <strong>성능</strong> 탭 → <strong>CPU</strong> 선택</li><li>상단에 모델명(예: Intel Core i5-12400)이 표시됩니다.</li><li>또는 <strong>설정 → 시스템 → 정보</strong>에서 프로세서 확인.</li></ol>",
+            gpu: "<strong>GPU</strong><ol><li><strong>Ctrl+Shift+Esc</strong>로 작업 관리자 열기 → <strong>성능</strong> 탭 → <strong>GPU</strong> 선택</li><li>상단에 모델명(예: NVIDIA GeForce RTX 3060)이 표시됩니다.</li><li>또는 <strong>Win+R</strong> → <code>dxdiag</code> 입력 → 디스플레이 탭에서 확인.</li></ol>"
+          };
+          let popover = document.getElementById("pc-guide-popover");
+          if (!popover) {
+            popover = document.createElement("div");
+            popover.id = "pc-guide-popover";
+            popover.className = "guide-popover";
+            popover.style.display = "none";
+            document.body.appendChild(popover);
+          }
+          function hidePopover() {
+            popover.style.display = "none";
+            document.removeEventListener("click", hideOnClickOutside);
+            document.removeEventListener("keydown", hideOnEscape);
+          }
+          function hideOnClickOutside(e) {
+            if (!popover.contains(e.target) && !e.target.closest(".guide-trigger")) hidePopover();
+          }
+          function hideOnEscape(e) {
+            if (e.key === "Escape") hidePopover();
+          }
+          document.querySelectorAll(".guide-trigger").forEach(function(btn) {
+            btn.addEventListener("click", function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              const guide = this.getAttribute("data-guide");
+              const html = GUIDE_CONTENT[guide];
+              if (!html) return;
+              if (popover.style.display === "block" && popover.dataset.current === guide) {
+                hidePopover();
+                return;
+              }
+              popover.innerHTML = html;
+              popover.dataset.current = guide;
+              const rect = this.getBoundingClientRect();
+              popover.style.left = Math.min(rect.left, window.innerWidth - 340) + "px";
+              popover.style.top = (rect.bottom + 8) + "px";
+              popover.style.display = "block";
+              setTimeout(function() {
+                document.addEventListener("click", hideOnClickOutside);
+                document.addEventListener("keydown", hideOnEscape);
+              }, 0);
+            });
+          });
+        })();
 
         function persistSession(status) {
           const values = getFormValues();

@@ -204,7 +204,7 @@
         if (typeof GAStorage !== "undefined") {
           GAStorage.writeSession({ hearing: hearing });
           let done = 0;
-          if (hearing.source && hearing.overallDb != null) done++;
+          if (hearing.hearingInputSaved && hearing.source && typeof hearing.overallDb === "number" && !isNaN(hearing.overallDb)) done++;
           if (hearing.speechClarityTest) done++;
           if (hearing.articulationTest && hearing.articulationTest.matchRate != null) done++;
           GAStorage.writeProgress("audio", { label: "청각언어 측정", current: done, total: 3, completedAt: new Date().toISOString() });

@@ -240,7 +240,8 @@
           const session = readSession();
           const hearing = (session.user_data && session.user_data.hearing_results) || {};
           if (testKey === "hearing-input") {
-            return hearing.source && hearing.overallDb != null;
+            // 결과를 hearing-input 페이지에서 저장했을 때만 완료로 인정 (hearingInputSaved는 폼 제출 시에만 설정됨)
+            return Boolean(hearing.hearingInputSaved && hearing.source) && typeof hearing.overallDb === "number" && !isNaN(hearing.overallDb);
           }
           if (testKey === "speech-clarity") {
             return hearing.speechClarityTest && hearing.speechClarityPercent != null;
