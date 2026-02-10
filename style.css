@@ -815,7 +815,9 @@ body {
   font-weight: 500;
   line-height: 1.6;
   color: var(--text-secondary);
+  margin: 0 0 0.6em 0;
 }
+.test-description:last-child { margin-bottom: 0; }
 
 /* 구글 시트 입력 필드 */
 .sheets-input {

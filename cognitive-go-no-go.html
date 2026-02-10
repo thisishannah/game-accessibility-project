@@ -55,11 +55,36 @@
       }
       .instruction {
         text-align: center;
-        font-size: 18px;
+        font-size: 54px;
         font-weight: 600;
         margin-bottom: 30px;
         color: var(--text-main);
       }
+      .instruction-rules {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        flex-wrap: wrap;
+      }
+      .instruction-rule {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .instruction-rule .color-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+      }
+      .instruction-rule.go .color-icon { background: var(--ok); }
+      .instruction-rule.nogo .color-icon { background: var(--danger); }
+      .instruction-rule .symbol {
+        font-size: 66px;
+        font-weight: 700;
+      }
+      .instruction-rule.go .symbol { color: var(--ok); }
+      .instruction-rule.nogo .symbol { color: var(--danger); }
       .circle-container {
         width: 100%;
         height: 400px;
@@ -177,7 +202,8 @@
       <div class="intro-panel" id="intro-panel">
         <div class="intro-body">
           <p><strong>초록색 원</strong>이 나오면 클릭하고, <strong>빨간색 원</strong>이 나오면 클릭하지 마세요.</p>
-          <p>반응 억제와 적응력을 측정하는 테스트입니다. 준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
+          <p>반응 억제와 적응력을 측정하는 테스트입니다.</p>
+          <p>준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
         </div>
         <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>
       </div>
@@ -301,7 +327,7 @@
           circleContainer.style.display = "flex";
           instruction.style.display = "block";
           infoPanel.style.display = "block";
-          instruction.textContent = "초록색 원 → 클릭, 빨간색 원 → 클릭하지 마세요";
+          instruction.innerHTML = '<div class="instruction-rules"><div class="instruction-rule go"><span class="color-icon" aria-hidden="true"></span><span class="symbol">O</span> 클릭</div><div class="instruction-rule nogo"><span class="color-icon" aria-hidden="true"></span><span class="symbol">X</span> 클릭하지 마세요</div></div>';
           testActive = true;
           currentTrial = 0;
           trials = [];

@@ -55,7 +55,7 @@
       }
       .instruction {
         text-align: center;
-        font-size: 18px;
+        font-size: 54px;
         font-weight: 600;
         margin-bottom: 16px;
         color: var(--text-main);
@@ -402,10 +402,13 @@
           const averageError = errors.reduce(function(a, b) { return a + b; }, 0) / errors.length;
           const maxError = Math.max.apply(null, errors);
           const minError = Math.min.apply(null, errors);
+          const totalTimeMs = clicks.length >= 2 ? clicks[clicks.length - 1].timestamp - clicks[0].timestamp : 0;
+          const totalTimeSec = (totalTimeMs / 1000).toFixed(2);
           
           let html = '<div class="result-item"><span>평균 오차 거리</span><span>' + averageError.toFixed(2) + ' px</span></div>';
           html += '<div class="result-item"><span>최대 오차</span><span>' + maxError.toFixed(2) + ' px</span></div>';
           html += '<div class="result-item"><span>최소 오차</span><span>' + minError.toFixed(2) + ' px</span></div>';
+          html += '<div class="result-item"><span>첫 클릭 ~ 마지막 클릭 소요 시간</span><span>' + totalTimeSec + ' 초</span></div>';
           html += '<div class="result-item"><span>총 클릭 수</span><span>' + clicks.length + ' 회</span></div>';
           resultsContent.innerHTML = html;
         }
@@ -527,6 +530,7 @@
 
           const errors = clicks.map(function (c) { return c.error; });
           const averageError = errors.reduce(function (a, b) { return a + b; }, 0) / errors.length;
+          const totalTimeMs = clicks.length >= 2 ? clicks[clicks.length - 1].timestamp - clicks[0].timestamp : 0;
 
           const avgX = clicks.reduce(function (s, c) { return s + (c.x - c.targetX); }, 0) / clicks.length;
           const avgY = clicks.reduce(function (s, c) { return s + (c.y - c.targetY); }, 0) / clicks.length;
@@ -538,6 +542,8 @@
             averageError: parseFloat(averageError.toFixed(2)),
             maxError: parseFloat(Math.max.apply(null, errors).toFixed(2)),
             minError: parseFloat(Math.min.apply(null, errors).toFixed(2)),
+            totalCompletionTimeMs: totalTimeMs,
+            totalCompletionTimeSec: parseFloat((totalTimeMs / 1000).toFixed(2)),
             clicks: clicks.map(function (c) {
               return {
                 targetX: parseFloat(c.targetX.toFixed(2)),

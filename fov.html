@@ -114,9 +114,13 @@
     <div id="admin-layer">
         <h2 class="accent-title">실전 압축 시야 측정 (32회)</h2>
         <p class="test-description">
-            - 빨간 점 응시, 흰 점 보이면 <b>[스페이스바]</b><br>
-            - 중앙은 8방향, 외곽은 핵심 3방향씩만 측정합니다.<br>
-            - 관찰자가 마우스로 클릭하면 시작합니다.
+            빨간 점을 응시하고, 흰 점이 보이면 <b>[스페이스바]</b>를 누르세요.
+        </p>
+        <p class="test-description">
+            중앙은 8방향, 외곽은 핵심 3방향씩만 측정합니다.
+        </p>
+        <p class="test-description">
+            관찰자가 마우스로 클릭하면 시작합니다.
         </p>
         <button class="admin-btn" onclick="startTest()">측정 시작</button>
     </div>
@@ -158,31 +162,37 @@
         ];
 
         let stimulus = { x: 0, y: 0, dist: 0, active: false };
-        let moveTimer;
+        let moveTimer = null;
 
         function resize() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
+            ctx.imageSmoothingEnabled = false;
             draw();
         }
         window.addEventListener('resize', resize);
         resize();
 
         function draw() {
+            ctx.clearRect(0, 0, width, height);
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, width, height);
             if (!testActive) return;
 
             const cp = focusPoints[currentPIdx];
+            const cx = Math.round(width * cp.x / 100);
+            const cy = Math.round(height * cp.y / 100);
             ctx.fillStyle = 'red';
             ctx.beginPath();
-            ctx.arc(width * cp.x/100, height * cp.y/100, 8, 0, Math.PI*2);
+            ctx.arc(cx, cy, 8, 0, Math.PI * 2);
             ctx.fill();
 
             if (stimulus.active) {
+                const sx = Math.round(stimulus.x);
+                const sy = Math.round(stimulus.y);
                 ctx.fillStyle = 'white';
                 ctx.beginPath();
-                ctx.arc(stimulus.x, stimulus.y, 6, 0, Math.PI*2);
+                ctx.arc(sx, sy, 6, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
@@ -221,7 +231,7 @@
         }
 
         function recordPoint(failed = false) {
-            clearInterval(moveTimer);
+            if (moveTimer) { clearInterval(moveTimer); moveTimer = null; }
             const cp = focusPoints[currentPIdx];
             if (!results[cp.id]) results[cp.id] = {};
             results[cp.id][cp.angles[currentAngleIdx]] = failed ? "Blind" : stimulus.dist.toFixed(0);

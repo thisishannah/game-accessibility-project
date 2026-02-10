@@ -17,14 +17,14 @@
     .intro-panel { padding: 24px; background: rgba(2,6,23,0.9); border-radius: 16px; border: 1px solid rgba(51,65,85,0.9); margin-bottom: 24px; }
     .intro-body { font-size: 14px; line-height: 1.7; color: var(--text-muted); margin-bottom: 20px; text-align: center; }
     .intro-body p { margin: 0 0 10px 0; }
-    .instruction { text-align: center; font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text-main); }
+    .instruction { text-align: center; font-size: 48px; font-weight: 600; margin-bottom: 16px; color: var(--text-main); }
     .volume-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding: 12px; background: rgba(15,23,42,0.6); border-radius: 12px; }
     .volume-bar { flex: 1; height: 12px; background: rgba(51,65,85,0.9); border-radius: 999px; overflow: hidden; }
     .volume-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#22c55e,#4ade80); border-radius: 999px; transition: width 0.05s; }
     .volume-label { font-size: 12px; color: var(--text-muted); min-width: 80px; }
     .sentence-box { padding: 24px; background: #1a1a1a; border-radius: 16px; border: 2px solid rgba(148,163,184,0.6);
-      font-size: 20px; line-height: 1.6; text-align: center; margin-bottom: 20px; min-height: 120px; display: flex; align-items: center; justify-content: center; }
-    .speak-cta { font-size: 18px; font-weight: 700; color: #4ade80; margin-bottom: 16px; text-align: center; }
+      font-size: 60px; line-height: 1.6; text-align: center; margin-bottom: 20px; min-height: 120px; display: flex; align-items: center; justify-content: center; }
+    .speak-cta { font-size: 54px; font-weight: 700; color: #4ade80; margin-bottom: 16px; text-align: center; }
     .record-btn { padding: 14px 28px; border-radius: 999px; border: none; background: #ef4444; color: white; font-weight: 600; font-size: 16px; cursor: pointer; display: block; margin: 0 auto 12px; }
     .record-btn.recording { background: #dc2626; animation: pulse 1s infinite; }
     @keyframes pulse { 50% { opacity: 0.8; } }
@@ -36,6 +36,13 @@
     .btn-primary { margin-top: 20px; padding: 10px 20px; border-radius: 999px; border: none; background: linear-gradient(120deg,#4f46e5,#7c3aed,#22c55e); color: white; font-weight: 550; cursor: pointer; font-size: 14px; width: 100%; }
     .btn-primary:hover { filter: brightness(1.1); }
     .audio-play { margin: 16px 0; }
+    .progress-indicator { text-align: center; font-size: 42px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; }
+    .observer-item { margin-bottom: 24px; padding: 16px; background: rgba(15,23,42,0.6); border-radius: 12px; border: 1px solid rgba(51,65,85,0.5); }
+    .observer-item .item-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+    .observer-item .item-sentence { font-size: 15px; color: var(--text-main); margin-bottom: 12px; line-height: 1.5; }
+    .observer-item .item-audio { margin-bottom: 12px; }
+    .observer-item .item-audio audio { width: 100%; max-width: 400px; }
+    .observer-item .rating-group { margin: 0; }
     .screen-reader-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
   </style>
 </head>
@@ -48,7 +55,9 @@
   <div class="test-container">
     <div class="intro-panel" id="intro-panel">
       <div class="intro-body">
-        <p>화면에 나오는 문장을 <strong>그대로 읽어 주세요.</strong> 마이크가 잘 연결되었는지 볼륨 표시로 확인할 수 있습니다.</p>
+        <p>화면에 나오는 문장을 <strong>그대로 읽어 주세요.</strong></p>
+        <p>총 <strong>3개 문장</strong>을 순서대로 녹음한 뒤, 마지막에 관리자님이 각 문장별로 명료도를 평가합니다.</p>
+        <p>마이크가 잘 연결되었는지 볼륨 표시로 확인할 수 있습니다.</p>
         <p>「지금 말하세요」 안내가 나오면 녹음이 시작됩니다. 읽기를 마치면 녹음 완료 버튼을 눌러 주세요.</p>
         <p>준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
       </div>
@@ -61,6 +70,7 @@
         <span class="volume-label" id="volume-label">입력 대기 중...</span>
         <div class="volume-bar"><div class="volume-fill" id="volume-fill"></div></div>
       </div>
+      <div class="progress-indicator" id="progress-indicator">1/3</div>
       <div class="instruction">아래 문장을 읽어 주세요</div>
       <div class="sentence-box" id="sentence-box"></div>
       <div class="speak-cta" id="speak-cta" style="display: none;">지금 말하세요</div>
@@ -69,16 +79,8 @@
 
     <div id="observer-area" style="display: none;">
       <div class="instruction">녹음 재생 및 관찰자 평가</div>
-      <div class="audio-play" id="audio-play"></div>
-      <p class="intro-body" style="margin-bottom: 12px;">관찰자님이 위 녹음을 들어 보시고, 발화 명료도를 1~5점으로 평가해 주세요.</p>
-      <fieldset class="rating-group">
-        <legend class="screen-reader-only">발화 명료도 평가</legend>
-        <label class="rating-label"><input type="radio" name="observerRating" value="1" /> 1: 이해 불가</label>
-        <label class="rating-label"><input type="radio" name="observerRating" value="2" /> 2: 매우 어려움</label>
-        <label class="rating-label"><input type="radio" name="observerRating" value="3" /> 3: 보통</label>
-        <label class="rating-label"><input type="radio" name="observerRating" value="4" /> 4: 명확</label>
-        <label class="rating-label"><input type="radio" name="observerRating" value="5" /> 5: 매우 명확</label>
-      </fieldset>
+      <p class="intro-body" style="margin-bottom: 16px;">3개 문장 녹음을 모두 들어 보시고, <strong>각 문장마다</strong> 발화 명료도를 1~5점으로 평가해 주세요.</p>
+      <div id="observer-items"></div>
       <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
     </div>
   </div>
@@ -97,30 +99,37 @@
         "저 지금 부활 쿨인데, 잠시만 기다려 주세요."
       ];
 
+      const TOTAL_ITEMS = 3;
+
       const introPanel = document.getElementById("intro-panel");
       const readyBtn = document.getElementById("ready-btn");
       const testArea = document.getElementById("test-area");
+      const progressIndicator = document.getElementById("progress-indicator");
       const volumeLabel = document.getElementById("volume-label");
       const volumeFill = document.getElementById("volume-fill");
       const sentenceBox = document.getElementById("sentence-box");
       const speakCta = document.getElementById("speak-cta");
       const recordBtn = document.getElementById("record-btn");
       const observerArea = document.getElementById("observer-area");
-      const audioPlay = document.getElementById("audio-play");
+      const observerItems = document.getElementById("observer-items");
       const saveBtn = document.getElementById("save-btn");
 
       let audioContext = null;
       let analyser = null;
       let stream = null;
       let animationId = null;
+      let currentIndex = 0;
+      let sentenceQueue = [];
       let currentSentence = "";
       let mediaRecorder = null;
       let recordedChunks = [];
       let transcript = "";
       let recognition = null;
+      let recordings = [];
 
-      function getRandomSentence() {
-        return SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+      function pickRandomSentences(n) {
+        const shuffled = SENTENCES.slice().sort(function () { return Math.random() - 0.5; });
+        return shuffled.slice(0, n);
       }
 
       function similarity(a, b) {
@@ -167,11 +176,12 @@
         animationId = requestAnimationFrame(drawVolume);
       }
 
-      function stopVolume() {
+      function stopVolume(stopStream) {
         if (animationId) cancelAnimationFrame(animationId);
-        if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+        animationId = null;
+        if (stopStream && stream) stream.getTracks().forEach(function (t) { t.stop(); });
         volumeFill.style.width = "0%";
-        volumeLabel.textContent = "녹음 완료";
+        volumeLabel.textContent = stopStream ? "녹음 완료" : "마이크 연결됨";
       }
 
       function startRecognition() {
@@ -192,26 +202,43 @@
       function startTest() {
         introPanel.style.display = "none";
         testArea.style.display = "block";
-        currentSentence = getRandomSentence();
-        sentenceBox.textContent = currentSentence;
+        recordings = [];
+        sentenceQueue = pickRandomSentences(TOTAL_ITEMS);
+        currentIndex = 0;
+        showCurrentSentence();
         speakCta.style.display = "none";
         recordBtn.textContent = "지금 말하세요 (녹음 시작)";
         recordBtn.disabled = true;
         initMic();
       }
 
+      function showCurrentSentence() {
+        currentSentence = sentenceQueue[currentIndex];
+        sentenceBox.textContent = currentSentence;
+        progressIndicator.textContent = (currentIndex + 1) + "/" + TOTAL_ITEMS;
+      }
+
       recordBtn.addEventListener("click", function () {
         if (recordBtn.classList.contains("recording")) {
           mediaRecorder.stop();
           if (recognition) recognition.stop();
-          stopVolume();
-          recordBtn.classList.remove("recording");
-          recordBtn.textContent = "녹음 완료";
-          testArea.style.display = "none";
-          observerArea.style.display = "block";
           const blob = new Blob(recordedChunks, { type: "audio/webm" });
-          const url = URL.createObjectURL(blob);
-          audioPlay.innerHTML = "<audio controls src=\"" + url + "\"></audio>";
+          recordings.push({ sentence: currentSentence, transcript: transcript, blob: blob });
+          currentIndex++;
+          if (currentIndex < TOTAL_ITEMS) {
+            stopVolume(false);
+            recordBtn.classList.remove("recording");
+            showCurrentSentence();
+            recordBtn.textContent = "지금 말하세요 (녹음 시작)";
+            transcript = "";
+            drawVolume();
+          } else {
+            stopVolume(true);
+            recordBtn.classList.remove("recording");
+            testArea.style.display = "none";
+            observerArea.style.display = "block";
+            buildObserverItems();
+          }
           return;
         }
         speakCta.style.display = "block";
@@ -226,21 +253,61 @@
         recordBtn.textContent = "녹음 중… (완료하려면 클릭)";
       });
 
+      function buildObserverItems() {
+        let html = "";
+        recordings.forEach(function (r, i) {
+          const url = URL.createObjectURL(r.blob);
+          const num = i + 1;
+          html += '<div class="observer-item">';
+          html += '<div class="item-title">문장 ' + num + '</div>';
+          html += '<div class="item-sentence">' + escapeHtml(r.sentence) + '</div>';
+          html += '<div class="item-audio"><audio controls src="' + url + '"></audio></div>';
+          html += '<fieldset class="rating-group"><legend class="screen-reader-only">문장 ' + num + ' 발화 명료도 평가</legend>';
+          html += '<label class="rating-label"><input type="radio" name="observerRating' + num + '" value="1" /> 1: 이해 불가</label>';
+          html += '<label class="rating-label"><input type="radio" name="observerRating' + num + '" value="2" /> 2: 매우 어려움</label>';
+          html += '<label class="rating-label"><input type="radio" name="observerRating' + num + '" value="3" /> 3: 보통</label>';
+          html += '<label class="rating-label"><input type="radio" name="observerRating' + num + '" value="4" /> 4: 명확</label>';
+          html += '<label class="rating-label"><input type="radio" name="observerRating' + num + '" value="5" /> 5: 매우 명확</label>';
+          html += '</fieldset></div>';
+        });
+        observerItems.innerHTML = html;
+      }
+
+      function escapeHtml(s) {
+        const div = document.createElement("div");
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
       saveBtn.addEventListener("click", function () {
-        const ratingEl = document.querySelector('input[name="observerRating"]:checked');
-        const observerRating = ratingEl ? parseInt(ratingEl.value, 10) : null;
-        const matchRate = similarity(currentSentence, transcript);
+        const items = recordings.map(function (r, i) {
+          const num = i + 1;
+          const ratingEl = document.querySelector('input[name="observerRating' + num + '"]:checked');
+          const observerRating = ratingEl ? parseInt(ratingEl.value, 10) : null;
+          const matchRate = similarity(r.sentence, r.transcript);
+          return {
+            sentence: r.sentence,
+            transcript: r.transcript,
+            matchRate: matchRate,
+            observerRating: observerRating,
+            index: num
+          };
+        });
+        const ratings = items.map(function (x) { return x.observerRating; }).filter(function (x) { return x != null; });
+        const avgRating = ratings.length ? Math.round(ratings.reduce(function (a, b) { return a + b; }, 0) / ratings.length) : null;
+        const matchRates = items.map(function (x) { return x.matchRate; }).filter(function (x) { return typeof x === "number"; });
+        const avgMatchRate = matchRates.length ? Math.round(matchRates.reduce(function (a, b) { return a + b; }, 0) / matchRates.length) : null;
         const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
         if (!session.user_data) session.user_data = {};
         const hearing = session.user_data.hearing_results || {};
         hearing.articulationTest = {
-          sentence: currentSentence,
-          transcript: transcript,
-          matchRate: matchRate,
-          observerRating: observerRating,
+          totalItems: TOTAL_ITEMS,
+          items: items,
+          averageObserverRating: avgRating,
+          matchRate: avgMatchRate,
           recordedAt: new Date().toISOString()
         };
-        hearing.speechClarityRating = observerRating;
+        hearing.speechClarityRating = avgRating;
         hearing.recordedAt = new Date().toISOString();
         if (typeof GAStorage !== "undefined") {
           GAStorage.writeSession({ hearing: hearing });

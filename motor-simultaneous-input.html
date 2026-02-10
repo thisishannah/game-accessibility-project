@@ -55,7 +55,7 @@
       }
       .instruction {
         text-align: center;
-        font-size: 18px;
+        font-size: 54px;
         font-weight: 600;
         margin-bottom: 30px;
         color: var(--text-main);
@@ -86,11 +86,11 @@
       }
       .key-display {
         display: inline-block;
-        padding: 12px 20px;
+        padding: 24px 40px;
         background: rgba(148, 163, 184, 0.2);
         border: 2px solid rgba(148, 163, 184, 0.6);
         border-radius: 8px;
-        font-size: 24px;
+        font-size: 72px;
         font-weight: 600;
         margin: 5px;
       }
@@ -108,41 +108,13 @@
         border-color: var(--ok);
       }
       .plus-sign {
-        font-size: 24px;
+        font-size: 72px;
         color: var(--text-muted);
         margin: 0 5px;
       }
-      .keyboard-area {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 8px;
-        margin-bottom: 30px;
-      }
-      .key-button {
-        padding: 20px;
-        background: rgba(2, 6, 23, 0.8);
-        border: 2px solid rgba(148, 163, 184, 0.6);
-        border-radius: 12px;
-        color: var(--text-main);
-        font-size: 18px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s;
-        user-select: none;
-      }
-      .key-button:hover {
-        background: rgba(2, 6, 23, 0.95);
-        border-color: rgba(148, 163, 184, 0.9);
-      }
-      .key-button.pressed {
-        background: var(--ok);
-        border-color: var(--ok);
-        color: #000;
-        transform: scale(0.95);
-      }
       .status-message {
         text-align: center;
-        font-size: 16px;
+        font-size: 48px;
         margin-top: 20px;
         min-height: 24px;
       }
@@ -222,10 +194,6 @@
         <span class="key-display" id="key-display-1">-</span>
       </div>
 
-      <div class="keyboard-area" id="keyboard-area">
-        <!-- 키 버튼들이 동적으로 생성됩니다 -->
-      </div>
-
       <div class="status-message" id="status-message"></div>
 
       <div class="results-panel" id="results-panel">
@@ -241,7 +209,6 @@
       (function () {
         const instruction = document.getElementById("instruction");
         const keyCombination = document.getElementById("key-combination");
-        const keyboardArea = document.getElementById("keyboard-area");
         const statusMessage = document.getElementById("status-message");
         const resultsPanel = document.getElementById("results-panel");
         const resultsContent = document.getElementById("results-content");
@@ -249,12 +216,13 @@
         const retryBtn = document.getElementById("retry-btn");
 
         const KEYS = ["`", "Q", "W", "E", "R", "A", "S", "D", "F", "G", "Z", "X", "C", "V", "Shift", "Ctrl", "Space"];
-        const KEY_TO_EVENT = {
-          "`": function(e) { return e.key === "`" || e.code === "Backquote"; },
-          "Shift": function(e) { return e.key === "Shift"; },
-          "Ctrl": function(e) { return e.key === "Control"; },
-          "Alt": function(e) { return e.key === "Alt"; },
-          "Space": function(e) { return e.code === "Space" || e.key === " "; }
+        const KEY_CODE_MAP = {
+          "Backquote": "`", "KeyQ": "Q", "KeyW": "W", "KeyE": "E", "KeyR": "R",
+          "KeyA": "A", "KeyS": "S", "KeyD": "D", "KeyF": "F", "KeyG": "G",
+          "KeyZ": "Z", "KeyX": "X", "KeyC": "C", "KeyV": "V",
+          "ShiftLeft": "Shift", "ShiftRight": "Shift",
+          "ControlLeft": "Ctrl", "ControlRight": "Ctrl",
+          "Space": "Space"
         };
         const TEST_SEQUENCE = [
           { keys: 2, combinations: [
@@ -293,27 +261,13 @@
         let maxKeys = 0;
         let testCompleted = false;
 
-        function keyMatchesEvent(key, e) {
-          const matcher = KEY_TO_EVENT[key];
-          if (matcher) return matcher(e);
-          return e.key.toUpperCase() === key;
-        }
-
-        function createKeyboard() {
-          keyboardArea.innerHTML = "";
-          const displayLabels = { "`": "~", "Space": "Space" };
-          KEYS.forEach(function(key) {
-            const btn = document.createElement("button");
-            btn.className = "key-button";
-            btn.textContent = displayLabels[key] || key;
-            btn.dataset.key = key;
-            btn.addEventListener("mousedown", function(e) { e.preventDefault(); handleKeyPress(key, true); });
-            btn.addEventListener("mouseup", function(e) { e.preventDefault(); handleKeyRelease(key); });
-            btn.addEventListener("mouseleave", function() { handleKeyRelease(key); });
-            btn.addEventListener("touchstart", function(e) { e.preventDefault(); handleKeyPress(key, true); });
-            btn.addEventListener("touchend", function(e) { e.preventDefault(); handleKeyRelease(key); });
-            keyboardArea.appendChild(btn);
-          });
+        function keyMatchesEvent(e) {
+          const mapped = KEY_CODE_MAP[e.code];
+          if (mapped) return mapped;
+          if (e.key && e.key.length === 1 && /^[A-Za-z]$/.test(e.key)) {
+            return e.key.toUpperCase();
+          }
+          return null;
         }
 
         const DISPLAY_LABELS = { "`": "~", "Space": "Space" };
@@ -341,19 +295,16 @@
           });
         }
 
-        function handleKeyPress(key, isMouse) {
+        function handleKeyPress(key) {
           if (testCompleted) return;
+          if (!KEYS.includes(key)) return;
           pressedKeys.add(key);
-          const btn = document.querySelector('[data-key="' + key + '"]');
-          if (btn) btn.classList.add("pressed");
           updateKeyDisplay();
           checkCombination();
         }
 
         function handleKeyRelease(key) {
           pressedKeys.delete(key);
-          const btn = document.querySelector('[data-key="' + key + '"]');
-          if (btn) btn.classList.remove("pressed");
           updateKeyDisplay();
         }
 
@@ -429,9 +380,6 @@
 
         function resetCurrentCombination() {
           pressedKeys.clear();
-          document.querySelectorAll(".key-button").forEach(function(btn) {
-            btn.classList.remove("pressed");
-          });
           updateKeyDisplay();
           keyCombination.classList.remove("success", "failed");
           statusMessage.textContent = "";
@@ -460,7 +408,6 @@
           testCompleted = true;
           instruction.style.display = "none";
           keyCombination.style.display = "none";
-          keyboardArea.style.display = "none";
           statusMessage.style.display = "none";
           resultsPanel.style.display = "block";
           
@@ -504,7 +451,6 @@
           instruction.style.display = "block";
           instruction.textContent = "지시된 키 조합을 동시에 누르세요";
           keyCombination.style.display = "flex";
-          keyboardArea.style.display = "grid";
           statusMessage.style.display = "block";
           resultsPanel.style.display = "none";
           
@@ -513,15 +459,15 @@
         }
 
         document.addEventListener("keydown", function(e) {
-          const matched = KEYS.find(function(k) { return keyMatchesEvent(k, e); });
+          const matched = keyMatchesEvent(e);
           if (matched && !pressedKeys.has(matched)) {
             e.preventDefault();
-            handleKeyPress(matched, false);
+            handleKeyPress(matched);
           }
         });
 
         document.addEventListener("keyup", function(e) {
-          const matched = KEYS.find(function(k) { return keyMatchesEvent(k, e); });
+          const matched = keyMatchesEvent(e);
           if (matched) {
             e.preventDefault();
             handleKeyRelease(matched);
@@ -550,7 +496,6 @@
 
         retryBtn.addEventListener("click", resetTest);
 
-        createKeyboard();
         updateKeyDisplay();
         instruction.textContent = TEST_SEQUENCE[0].keys + "개 키를 동시에 누르세요";
       })();

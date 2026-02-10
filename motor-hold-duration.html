@@ -53,16 +53,18 @@
         max-width: 600px;
         margin-top: 60px;
       }
+      .instruction p { margin: 0 0 0.6em 0; line-height: 1.6; }
+      .instruction p:last-child { margin-bottom: 0; }
       .instruction {
         text-align: center;
-        font-size: 16px;
+        font-size: 48px;
         line-height: 1.6;
         margin-bottom: 24px;
         color: var(--text-main);
       }
       .phase-label {
         text-align: center;
-        font-size: 14px;
+        font-size: 42px;
         color: var(--text-muted);
         margin-bottom: 20px;
       }
@@ -264,8 +266,8 @@
         let keyboardBest = { hold_time: 0, status: "Fail" };
         let mouseBest = { hold_time: 0, status: "Fail" };
 
-        const KEYBOARD_DIRECTION = "키보드의 <strong>스페이스 버튼</strong>을 10초 동안 누르고 있으세요. 10초를 채우면 성공입니다. 중간에 손을 떼면 실패하며, 실패 시 최대 3회까지 재시도할 수 있습니다.";
-        const MOUSE_DIRECTION = "마우스의 <strong>좌클릭 버튼</strong>을 10초 동안 누르고 있으세요. 10초를 채우면 성공입니다. 중간에 손을 떼면 실패하며, 실패 시 최대 3회까지 재시도할 수 있습니다.";
+        const KEYBOARD_DIRECTION = "<p>키보드의 <strong>스페이스 버튼</strong>을 10초 동안 누르고 있으세요.</p><p>10초를 채우면 성공입니다.</p><p>중간에 손을 떼면 실패하며, 실패 시 최대 3회까지 재시도할 수 있습니다.</p>";
+        const MOUSE_DIRECTION = "<p>마우스의 <strong>좌클릭 버튼</strong>을 10초 동안 누르고 있으세요.</p><p>10초를 채우면 성공입니다.</p><p>중간에 손을 떼면 실패하며, 실패 시 최대 3회까지 재시도할 수 있습니다.</p>";
 
         function getStatus(holdTime) {
           if (holdTime >= TARGET_DURATION) return "Pass";

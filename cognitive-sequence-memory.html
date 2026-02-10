@@ -93,10 +93,18 @@
       }
       .instruction {
         text-align: center;
-        font-size: 18px;
+        font-size: 66px;
         font-weight: 600;
         margin-bottom: 30px;
         color: var(--text-main);
+      }
+      .instruction.memorize {
+        font-size: 78px;
+        color: #fbbf24;
+      }
+      .instruction.input {
+        font-size: 78px;
+        color: #4ade80;
       }
       .grid-container {
         display: grid;
@@ -213,7 +221,7 @@
           </ul>
           <p class="intro-cta">준비되면 <strong>「준비하기」</strong> 버튼을 눌러 주세요.</p>
         </div>
-        <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px;">준비하기</button>
+        <div style="text-align: center;"><button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px;">준비하기</button></div>
       </div>
       <div class="instruction" id="instruction" style="display: none;"></div>
       <div class="score-panel" id="score-panel" style="display: none;"><span id="level-display">레벨 1</span></div>
@@ -274,6 +282,7 @@
 
         function showSequence() {
           state = "showing";
+          instruction.className = "instruction memorize";
           instruction.textContent = "순서를 기억하세요";
           instruction.style.display = "block";
           scorePanel.style.display = "block";
@@ -294,6 +303,7 @@
               }, 500);
             } else {
               state = "inputting";
+              instruction.className = "instruction input";
               instruction.textContent = "방금 본 순서대로 클릭하세요";
             }
           };

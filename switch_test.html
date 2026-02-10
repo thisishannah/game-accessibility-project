@@ -56,12 +56,13 @@
         border: 2px solid rgba(148, 163, 184, 0.5);
         border-radius: 20px;
         padding: 32px;
-        text-align: center;
+        text-align: left;
       }
       .instruction-screen h2 {
         font-size: 20px;
         margin: 0 0 24px;
         color: var(--text-main);
+        text-align: center;
       }
       .instruction-screen p {
         font-size: 15px;
@@ -80,8 +81,8 @@
         border-radius: 12px;
       }
       .device-icon {
-        width: 64px;
-        height: 64px;
+        width: 56px;
+        height: 56px;
         flex-shrink: 0;
         display: flex;
         align-items: center;
@@ -89,14 +90,15 @@
         background: rgba(148, 163, 184, 0.15);
         border: 2px solid rgba(148, 163, 184, 0.5);
         border-radius: 12px;
+        color: var(--text-muted);
       }
-      .device-icon.mouse { font-size: 28px; }
-      .device-icon.keyboard { font-size: 24px; }
-      .step-text {
-        text-align: left;
-        font-size: 16px;
-        color: var(--text-main);
+      .device-icon svg {
+        width: 36px;
+        height: 36px;
       }
+      .step-text { text-align: left; font-size: 16px; color: var(--text-main); }
+      .step-text p { margin: 0 0 0.6em 0; line-height: 1.6; }
+      .step-text p:last-child { margin-bottom: 0; }
       .step-text strong { color: var(--ok); }
       .start-hint {
         margin-top: 28px;
@@ -144,6 +146,7 @@
         background: rgba(148, 163, 184, 0.1);
         border: 2px solid rgba(148, 163, 184, 0.4);
         color: var(--text-muted);
+        transition: opacity 0.2s, filter 0.2s, background 0.2s, border-color 0.2s, color 0.2s;
       }
       .phase-box.active {
         background: rgba(251, 191, 36, 0.15);
@@ -155,27 +158,100 @@
         border-color: var(--ok);
         color: var(--ok);
       }
-      .prompt-msg {
-        font-size: 18px;
-        color: var(--text-muted);
-        margin-bottom: 16px;
+      .phase-box.dimmed {
+        opacity: 0.35;
+        filter: grayscale(0.5);
       }
-      .key-display-large {
-        font-size: 72px;
-        font-weight: 700;
-        padding: 24px 48px;
-        background: rgba(0,0,0,0.5);
-        border: 4px solid var(--wait);
+      .direction-area {
+        width: 100%;
+        min-height: 220px;
+        display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .direction-panel {
+        flex: 1;
+        min-height: 200px;
         border-radius: 16px;
-        color: var(--wait);
-        font-family: monospace;
-        margin: 16px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        border: 2px solid rgba(148, 163, 184, 0.2);
+        transition: opacity 0.2s, filter 0.2s, background 0.2s, border-color 0.2s;
       }
+      .direction-panel.active {
+        background: rgba(251, 191, 36, 0.12);
+        border: 2px solid var(--wait);
+      }
+      .direction-panel.dimmed {
+        opacity: 0.25;
+        filter: grayscale(0.6);
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(148, 163, 184, 0.2);
+      }
+      .direction-panel .panel-label {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--text-muted);
+      }
+      .direction-panel.active .panel-label { color: var(--wait); }
+      .direction-panel .panel-instruction {
+        font-size: 48px;
+        font-weight: 600;
+        color: var(--text-main);
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      .direction-panel.active .panel-instruction { color: var(--wait); }
+      .keyboard-visual {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        max-width: 280px;
+      }
+      .keyboard-row {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+      }
+      .key-cap {
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: 600;
+        background: rgba(148, 163, 184, 0.2);
+        border: 2px solid rgba(148, 163, 184, 0.4);
+        border-radius: 4px;
+        color: var(--text-muted);
+      }
+      .key-cap.target {
+        background: rgba(251, 191, 36, 0.4);
+        border-color: var(--wait);
+        color: var(--wait);
+        font-size: 42px;
+        transform: scale(1.1);
+      }
+      .key-cap.space { width: 100px; }
+      .key-cap.enter { width: 44px; }
+      .keyboard-numpad {
+        display: flex;
+        gap: 4px;
+        margin-top: 4px;
+      }
+      .keyboard-numpad .key-cap { width: 48px; height: 48px; font-size: 33px; }
       .feedback-msg {
         font-size: 20px;
         font-weight: 600;
-        margin-top: 16px;
-        min-height: 28px;
+        min-height: 32px;
+        text-align: center;
       }
       .feedback-msg.hit { color: var(--ok); }
       .feedback-msg.miss { color: var(--danger); }
@@ -239,16 +315,20 @@
     <div class="test-container">
       <div class="instruction-screen" id="instruction-screen">
         <h2>디바이스 전환 속도 테스트</h2>
-        <p>마우스 클릭 후 키보드 입력까지의 반응 속도를 측정합니다.<br>게임에서 자주 사용하는 키와 숫자패드·우측 키를 번갈아 측정합니다.</p>
+        <p>마우스 클릭 후 키보드 입력까지의 반응 속도를 측정합니다.</p><p>게임에서 자주 사용하는 키와 숫자패드·우측 키를 번갈아 측정합니다.</p>
         <div class="step-row">
-          <div class="device-icon mouse" aria-hidden="true">🖱</div>
+          <div class="device-icon mouse" aria-hidden="true">
+            <svg viewBox="0 0 24 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="12" cy="24" rx="8" ry="14" fill="currentColor" opacity="0.9"/><rect x="10" y="14" width="4" height="2" rx="0.5" fill="currentColor" opacity="0.6"/><rect x="9" y="10" width="2.5" height="5" rx="0.5" fill="currentColor" opacity="0.8"/><rect x="12.5" y="10" width="2.5" height="5" rx="0.5" fill="currentColor" opacity="0.8"/><ellipse cx="12" cy="18" rx="1.5" ry="1" fill="currentColor" opacity="0.5"/></svg>
+          </div>
           <div class="step-text"><strong>1단계</strong> 아래 영역을 <strong>마우스로 클릭</strong>하세요.</div>
         </div>
         <div class="step-row">
-          <div class="device-icon keyboard" aria-hidden="true">⌨</div>
-          <div class="step-text"><strong>2단계</strong> 화면 중앙에 표시된 <strong>키를 최대한 빠르게</strong> 누르세요.<br>잘못된 키를 누르면 Miss, 같은 키를 여러 번 누르면 중복으로 기록됩니다.</div>
+          <div class="device-icon keyboard" aria-hidden="true">
+            <svg viewBox="0 0 40 24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="6" width="38" height="16" rx="2" fill="currentColor" opacity="0.9"/><rect x="4" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="9" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="14" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="19" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="24" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="29" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="34" y="9" width="2" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="6" y="14" width="6" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="13" y="14" width="6" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="20" y="14" width="6" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="27" y="14" width="10" height="3" rx="0.4" fill="currentColor" opacity="0.5"/></svg>
+          </div>
+          <div class="step-text"><p><strong>2단계</strong> 화면 중앙에 표시된 <strong>키를 최대한 빠르게</strong> 누르세요.</p><p>잘못된 키를 누르면 Miss, 같은 키를 여러 번 누르면 중복으로 기록됩니다.</p></div>
         </div>
-        <div class="start-hint" id="start-btn">▼ 여기를 마우스로 클릭하면 시작합니다</div>
+        <div class="start-hint" id="start-btn">여기를 클릭하면 시작합니다</div>
       </div>
 
       <div class="test-area" id="test-area">
@@ -256,8 +336,17 @@
           <span class="phase-box" id="phase-mouse">🖱 클릭</span>
           <span class="phase-box" id="phase-key">⌨ 키 입력</span>
         </div>
-        <div class="prompt-msg" id="prompt-msg">이 영역을 마우스로 클릭하세요</div>
-        <div class="key-display-large" id="key-display" style="display: none;"></div>
+        <div class="direction-area">
+          <div class="direction-panel mouse-panel" id="mouse-panel">
+            <div class="panel-label">마우스</div>
+            <div class="panel-instruction" id="mouse-instruction">아래 영역을 클릭하세요</div>
+          </div>
+          <div class="direction-panel keyboard-panel" id="keyboard-panel">
+            <div class="panel-label">키보드</div>
+            <div class="panel-instruction keyboard-instruction" id="keyboard-instruction">아래 표시된 키를 누르세요</div>
+            <div class="keyboard-visual" id="keyboard-visual"></div>
+          </div>
+        </div>
         <div class="feedback-msg" id="feedback-msg"></div>
         <div class="progress-text" id="progress-text">0/8 회차</div>
       </div>
@@ -280,8 +369,10 @@
         const testArea = document.getElementById("test-area");
         const phaseMouse = document.getElementById("phase-mouse");
         const phaseKey = document.getElementById("phase-key");
-        const promptMsg = document.getElementById("prompt-msg");
-        const keyDisplay = document.getElementById("key-display");
+        const mousePanel = document.getElementById("mouse-panel");
+        const keyboardPanel = document.getElementById("keyboard-panel");
+        const keyboardVisual = document.getElementById("keyboard-visual");
+        const keyboardInstruction = document.getElementById("keyboard-instruction");
         const feedbackMsg = document.getElementById("feedback-msg");
         const progressText = document.getElementById("progress-text");
         const resultsPanel = document.getElementById("results-panel");
@@ -307,6 +398,38 @@
           "Numpad1": "1", "Numpad2": "2", "Numpad5": "5",
           "NumpadEnter": "Num Enter"
         };
+
+        function buildKeyboardHTML(targetKey) {
+          let html = '<div class="keyboard-row">';
+          ["1","2","3","4"].forEach(function(k) {
+            const t = targetKey === k ? " target" : "";
+            html += '<span class="key-cap' + t + '" data-key="' + k + '">' + k + '</span>';
+          });
+          html += '</div><div class="keyboard-row">';
+          ["Q","W","E","R"].forEach(function(k) {
+            const t = targetKey === k ? " target" : "";
+            html += '<span class="key-cap' + t + '" data-key="' + k + '">' + k + '</span>';
+          });
+          html += '</div><div class="keyboard-row">';
+          ["A","S","D","F"].forEach(function(k) {
+            const t = targetKey === k ? " target" : "";
+            html += '<span class="key-cap' + t + '" data-key="' + k + '">' + k + '</span>';
+          });
+          html += '</div><div class="keyboard-row">';
+          const spaceT = targetKey === "Space" ? " target" : "";
+          const enterT = targetKey === "Enter" ? " target" : "";
+          html += '<span class="key-cap space' + spaceT + '" data-key="Space">Space</span>';
+          html += '<span class="key-cap enter' + enterT + '" data-key="Enter">Enter</span>';
+          html += '</div>';
+          html += '<div class="keyboard-numpad">';
+          const npKeys = [{ id: "Numpad1", label: "1" }, { id: "Numpad2", label: "2" }, { id: "Numpad5", label: "5" }, { id: "NumpadEnter", label: "↵" }];
+          npKeys.forEach(function(k) {
+            const t = targetKey === k.id ? " target" : "";
+            html += '<span class="key-cap' + t + '" data-key="' + k.id + '">' + k.label + '</span>';
+          });
+          html += '</div>';
+          return html;
+        }
 
         function shuffle(arr) {
           const a = arr.slice();
@@ -375,28 +498,38 @@
             return;
           }
           hasRecordedThisTrial = false;
+          testArea.classList.remove("prompt-key");
           phaseMouse.classList.add("active");
-          phaseMouse.classList.remove("done");
+          phaseMouse.classList.remove("done", "dimmed");
           phaseKey.classList.remove("active", "done");
-          keyDisplay.style.display = "none";
+          phaseKey.classList.add("dimmed");
+          mousePanel.classList.add("active");
+          mousePanel.classList.remove("dimmed");
+          keyboardPanel.classList.remove("active");
+          keyboardPanel.classList.add("dimmed");
+          keyboardVisual.innerHTML = "";
+          keyboardInstruction.style.display = "none";
           feedbackMsg.textContent = "";
           feedbackMsg.className = "feedback-msg";
-          promptMsg.textContent = "이 영역을 마우스로 클릭하세요";
           progressText.textContent = (currentTrial + 1) + "/" + TOTAL_TRIALS + " 회차";
 
           testArea.onclick = function (e) {
             if (e.button !== 0) return;
             clickTime = Date.now();
             testArea.onclick = null;
+            testArea.classList.add("prompt-key");
             phaseMouse.classList.remove("active");
-            phaseMouse.classList.add("done");
+            phaseMouse.classList.add("done", "dimmed");
+            phaseKey.classList.remove("dimmed");
             phaseKey.classList.add("active");
+            mousePanel.classList.remove("active");
+            mousePanel.classList.add("dimmed");
+            keyboardPanel.classList.remove("dimmed");
+            keyboardPanel.classList.add("active");
 
             const targetKey = trialKeys[currentTrial];
-            const displayName = DISPLAY_NAMES[targetKey] || targetKey;
-            promptMsg.textContent = "지금 아래 키를 누르세요!";
-            keyDisplay.textContent = displayName;
-            keyDisplay.style.display = "block";
+            keyboardInstruction.style.display = "block";
+            keyboardVisual.innerHTML = buildKeyboardHTML(targetKey);
 
             keyHandler = function (ev) {
               ev.preventDefault();
@@ -411,9 +544,8 @@
                   setTimeout(function() {
                     removeKeyHandler();
                     phaseKey.classList.remove("active");
-                    phaseKey.classList.add("done");
+                    phaseKey.classList.add("done", "dimmed");
                     currentTrial++;
-                    keyDisplay.style.display = "none";
                     startTrial();
                   }, 800);
                 } else {
@@ -432,9 +564,8 @@
                   feedbackMsg.className = "feedback-msg hit";
                   removeKeyHandler();
                   phaseKey.classList.remove("active");
-                  phaseKey.classList.add("done");
+                  phaseKey.classList.add("done", "dimmed");
                   currentTrial++;
-                  keyDisplay.style.display = "none";
                   setTimeout(startTrial, 1000);
                 }
               } else {
@@ -450,9 +581,8 @@
                 feedbackMsg.className = "feedback-msg miss";
                 removeKeyHandler();
                 phaseKey.classList.remove("active");
-                phaseKey.classList.add("done");
+                phaseKey.classList.add("done", "dimmed");
                 currentTrial++;
-                keyDisplay.style.display = "none";
                 setTimeout(startTrial, 1500);
               }
             };

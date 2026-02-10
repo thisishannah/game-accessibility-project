@@ -55,13 +55,18 @@
       }
       .instruction {
         text-align: center;
-        font-size: 16px;
+        font-size: 48px;
         line-height: 1.6;
         margin-bottom: 24px;
         color: var(--text-main);
       }
+      .instruction p {
+        margin: 0 0 0.6em 0;
+        line-height: 1.6;
+      }
+      .instruction p:last-child { margin-bottom: 0; }
       .instruction .hint {
-        font-size: 14px;
+        font-size: 42px;
         color: var(--text-muted);
         margin-top: 12px;
       }
@@ -72,8 +77,10 @@
         border: 4px solid var(--wait);
         background: #1a1a1a;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 0;
         position: relative;
         transition: border-color 0.2s, background 0.2s;
       }
@@ -81,16 +88,37 @@
         border-color: var(--ok);
         background: rgba(74, 222, 128, 0.08);
       }
+      .device-visual .count-zone {
+        width: 100%;
+        min-height: 72px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        padding: 12px 0;
+      }
+      .device-visual .count-zone.visible {
+        display: flex;
+      }
       .device-visual .count-overlay {
-        position: absolute;
-        font-size: 96px;
+        font-size: 48px;
         font-weight: 700;
-        color: var(--wait);
-        z-index: 2;
+        line-height: 1;
         transition: color 0.2s;
       }
-      .device-visual.active .count-overlay {
-        color: var(--ok);
+      .device-visual .count-overlay.countdown {
+        color: #fbbf24;
+      }
+      .device-visual .count-overlay.countup {
+        color: #4ade80;
+      }
+      .device-visual .device-area {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        min-height: 120px;
+        padding: 16px 0;
       }
       .space-key {
         width: 280px;
@@ -142,7 +170,7 @@
       }
       .phase-label {
         text-align: center;
-        font-size: 14px;
+        font-size: 42px;
         color: var(--text-muted);
         margin-top: 16px;
       }
@@ -203,9 +231,13 @@
       <div class="phase-label" id="phase-label"></div>
 
       <div class="device-visual" id="device-visual">
-        <div class="count-overlay" id="count-overlay"></div>
-        <div class="space-key" id="space-key">Space</div>
-        <div class="mouse-visual" id="mouse-visual" style="display: none;"><div class="left-btn"></div></div>
+        <div class="count-zone" id="count-zone">
+          <div class="count-overlay" id="count-overlay"></div>
+        </div>
+        <div class="device-area">
+          <div class="space-key" id="space-key">Space</div>
+          <div class="mouse-visual" id="mouse-visual" style="display: none;"><div class="left-btn"></div></div>
+        </div>
       </div>
 
       <div class="results-panel" id="results-panel">
@@ -224,6 +256,7 @@
         const instruction = document.getElementById("instruction");
         const phaseLabel = document.getElementById("phase-label");
         const deviceVisual = document.getElementById("device-visual");
+        const countZone = document.getElementById("count-zone");
         const countOverlay = document.getElementById("count-overlay");
         const spaceKey = document.getElementById("space-key");
         const mouseVisual = document.getElementById("mouse-visual");
@@ -243,13 +276,12 @@
         let countdownTimer = null;
         let recordingTimer = null;
 
-        const KEYBOARD_DIRECTION = "스페이스 버튼이 초록색으로 바뀌면 5초 동안 연속해서 키보드의 스페이스 버튼을 눌러주세요. 할 수 있는 한 가장 빠른 속도로 연속해서 눌러주세요.";
-        const MOUSE_DIRECTION = "좌측 마우스 버튼이 초록색으로 바뀌면 5초 동안 연속해서 마우스의 좌측 버튼을 눌러주세요. 할 수 있는 한 가장 빠른 속도로 연속해서 눌러주세요.";
+        const KEYBOARD_DIRECTION = "<p>스페이스 버튼이 초록색으로 바뀌면 5초 동안 연속해서 키보드의 스페이스 버튼을 눌러주세요.</p><p>할 수 있는 한 가장 빠른 속도로 연속해서 눌러주세요.</p>";
+        const MOUSE_DIRECTION = "<p>좌측 마우스 버튼이 초록색으로 바뀌면 5초 동안 연속해서 마우스의 좌측 버튼을 눌러주세요.</p><p>할 수 있는 한 가장 빠른 속도로 연속해서 눌러주세요.</p>";
 
         function showKeyboardPhase() {
           phase = "keyboard";
           state = "idle";
-          instruction.textContent = KEYBOARD_DIRECTION;
           instruction.innerHTML = KEYBOARD_DIRECTION + '<p class="hint">화면을 클릭하면 3초 후 시작됩니다</p>';
           phaseLabel.textContent = "1/2 · 키보드 (스페이스)";
           spaceKey.style.display = "flex";
@@ -257,12 +289,12 @@
           deviceVisual.classList.remove("active");
           countOverlay.textContent = "";
           countOverlay.style.display = "none";
+          countZone.classList.remove("visible");
         }
 
         function showMousePhase() {
           phase = "mouse";
           state = "idle";
-          instruction.textContent = MOUSE_DIRECTION;
           instruction.innerHTML = MOUSE_DIRECTION + '<p class="hint">화면을 클릭하면 3초 후 시작됩니다</p>';
           phaseLabel.textContent = "2/2 · 마우스 (좌클릭)";
           spaceKey.style.display = "none";
@@ -270,6 +302,7 @@
           deviceVisual.classList.remove("active");
           countOverlay.textContent = "";
           countOverlay.style.display = "none";
+          countZone.classList.remove("visible");
         }
 
         function startCountdown() {
@@ -277,7 +310,9 @@
           state = "countdown";
           const hint = instruction.querySelector(".hint");
           if (hint) hint.textContent = "";
+          countZone.classList.add("visible");
           countOverlay.style.display = "block";
+          countOverlay.className = "count-overlay countdown";
           let n = COUNTDOWN_SEC;
           countOverlay.textContent = n;
 
@@ -299,6 +334,7 @@
           if (phase === "keyboard") keyboardInputs = [];
           else mouseInputs = [];
 
+          countOverlay.className = "count-overlay countup";
           let sec = 1;
           countOverlay.textContent = sec;
 
@@ -321,6 +357,7 @@
           state = "done";
           deviceVisual.classList.remove("active");
           countOverlay.style.display = "none";
+          countZone.classList.remove("visible");
 
           if (phase === "keyboard") {
             showMousePhase();

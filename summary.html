@@ -318,7 +318,10 @@
             const delay = ai ? Math.round(((ai - AVG_AIM_INTERVAL_MS) / AVG_AIM_INTERVAL_MS) * 100) : null;
             html += statRow("에임 간격", ai + " ms", delay);
           }
-          if (motor.precision) html += statRow("정밀도 오차", motor.precision.averageError + " px", null);
+          if (motor.precision) {
+            html += statRow("정밀도 오차", motor.precision.averageError + " px", null);
+            if (motor.precision.totalCompletionTimeSec != null) html += statRow("정밀도 소요 시간", motor.precision.totalCompletionTimeSec + " 초", null);
+          }
           if (motor.fatigue) html += statRow("피로도 지수", motor.fatigue.fatigueIndex + "%", null);
           if (motor.switching_latency) html += statRow("디바이스 전환 지연", motor.switching_latency.average + " ms", null);
           var oneHandScore = calcOneHandEfficiency(motor);

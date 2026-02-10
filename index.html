@@ -259,6 +259,18 @@
         color: var(--text-secondary);
       }
 
+      .field-label-stacked {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+
+      .field-label-stacked .label-helper {
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
       .input-shell {
         position: relative;
       }
@@ -337,6 +349,12 @@
         border-color: rgba(129, 140, 248, 0.95);
         box-shadow: var(--shadow-focus);
         background: radial-gradient(circle at top, #020617 0, #020617 35%, #020617 100%);
+      }
+
+      fieldset {
+        border: none;
+        padding: 0;
+        margin: 0;
       }
 
       .disability-grid {
@@ -750,8 +768,7 @@
               </div>
             </div>
             <p class="header-tagline">
-              <strong>장애 유형별 경험</strong>을 기반으로<br />
-              게임 접근성을 정량·정성적으로 기록하는 도구입니다.
+              <strong>장애 유형별 경험</strong>을 기반으로 게임 접근성을 정량·정성적으로 기록하는 도구입니다.
             </p>
           </header>
         </section>
@@ -1070,11 +1087,11 @@
                   </div>
 
                   <div>
-                    <div class="field-label-row">
+                    <div class="field-label-stacked">
                       <label for="assistive-device">
                         보조기기 / 입력 장치
                       </label>
-                      <span class="label-helper">테스트에 사용 중인 마우스, 키보드, 또는 보조 입력 장치를 적어주세요(예: 일반 마우스, 발 페달 등)</span>
+                      <span class="label-helper">테스트에 사용 중인 마우스, 키보드, 또는 보조 입력 장치를 적어주세요. (예: 일반 마우스, 발 페달 등)</span>
                     </div>
                     <div class="input-shell">
                       <input
@@ -1101,7 +1118,7 @@
                   aria-labelledby="step4-title"
                   style="display: none"
                 >
-                  <div class="field-label-row">
+                  <div class="field-label-stacked">
                     <label id="step4-title">
                       PC 환경
                       <span class="label-required">필수</span>
@@ -1145,7 +1162,7 @@
                   </div>
 
                   <div>
-                    <div class="field-label-row">
+                    <div class="field-label-stacked">
                       <label for="windows-dpi">
                         윈도우 배율(DPI)
                         <span class="label-required">필수</span>
@@ -1278,7 +1295,7 @@
                   </div>
 
                   <div>
-                    <div class="field-label-row">
+                    <div class="field-label-stacked">
                       <label for="game-fov">
                         게임 내 FOV 설정
                       </label>
