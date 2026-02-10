@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>언어 명료도 테스트 · 청각언어 측정</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root { --bg: #020617; --text-main: #e5e7eb; --text-muted: #b8c5d6; --ok: #4ade80; --danger: #f97373; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: var(--text-main);
+      background: #020617; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    header { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+    .back-btn { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(148,163,184,0.6); background: rgba(2,6,23,0.9);
+      color: var(--text-main); text-decoration: none; font-size: 12px; }
+    .test-container { width: 100%; max-width: 600px; margin-top: 60px; }
+    .intro-panel { padding: 24px; background: rgba(2,6,23,0.9); border-radius: 16px; border: 1px solid rgba(51,65,85,0.9); margin-bottom: 24px; }
+    .intro-body { font-size: 14px; line-height: 1.7; color: var(--text-muted); margin-bottom: 20px; text-align: center; }
+    .intro-body p { margin: 0 0 10px 0; }
+    .instruction { text-align: center; font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
+    .word-item { margin-bottom: 24px; padding: 20px; background: rgba(15,23,42,0.6); border-radius: 12px; border: 1px solid rgba(51,65,85,0.9); }
+    .play-btn { padding: 12px 24px; border-radius: 999px; border: none; background: linear-gradient(120deg,#4f46e5,#7c3aed); color: white; font-weight: 550; cursor: pointer; font-size: 14px; margin-bottom: 12px; }
+    .play-btn:hover { filter: brightness(1.1); }
+    .word-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(51,65,85,0.9); background: #020617; color: #e5e7eb; font-size: 14px; }
+    .next-btn { margin-top: 12px; padding: 10px 20px; border-radius: 999px; border: none; background: #22c55e; color: white; font-weight: 550; cursor: pointer; width: 100%; }
+    .results-panel { margin-top: 24px; padding: 20px; background: rgba(2,6,23,0.9); border-radius: 16px; border: 1px solid rgba(51,65,85,0.9); width: 100%; }
+    .result-row { padding: 8px 0; border-bottom: 1px solid rgba(51,65,85,0.5); font-size: 14px; }
+    .result-row.correct { color: var(--ok); }
+    .result-row.wrong { color: var(--danger); }
+    .btn-primary { margin-top: 20px; padding: 10px 20px; border-radius: 999px; border: none; background: linear-gradient(120deg,#4f46e5,#7c3aed,#22c55e); color: white; font-weight: 550; cursor: pointer; font-size: 14px; width: 100%; }
+    .btn-primary:hover { filter: brightness(1.1); }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="hearing_hub.html" class="back-btn">← 허브로</a>
+    <span style="font-size: 12px; color: var(--text-muted);">언어 명료도 테스트</span>
+  </header>
+
+  <div class="test-container">
+    <div class="intro-panel" id="intro-panel">
+      <div class="intro-body">
+        <p>5개의 단어가 순서대로 재생됩니다. 들리는 단어를 정확히 입력해 주세요.</p>
+        <p>4글자 이상의 단어로, 카테고리가 랜덤하게 섞여 나옵니다. 준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
+      </div>
+      <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>
+    </div>
+
+    <div id="test-area" style="display: none;">
+      <div class="instruction" id="instruction">단어 1/5</div>
+      <div class="word-item">
+        <button type="button" class="play-btn" id="play-btn">🔊 단어 듣기</button>
+        <input type="text" class="word-input" id="word-input" placeholder="들린 단어를 입력하세요" />
+        <button type="button" class="next-btn" id="next-btn">다음 단어</button>
+      </div>
+    </div>
+
+    <div id="results-panel" style="display: none;">
+      <div class="instruction">테스트 완료</div>
+      <div id="results-content"></div>
+      <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+    </div>
+  </div>
+
+  <script src="ga-storage.js"></script>
+  <script>
+    (function () {
+      const introPanel = document.getElementById("intro-panel");
+      const readyBtn = document.getElementById("ready-btn");
+      const testArea = document.getElementById("test-area");
+      const instruction = document.getElementById("instruction");
+      const playBtn = document.getElementById("play-btn");
+      const wordInput = document.getElementById("word-input");
+      const nextBtn = document.getElementById("next-btn");
+      const resultsPanel = document.getElementById("results-panel");
+      const resultsContent = document.getElementById("results-content");
+      const saveBtn = document.getElementById("save-btn");
+
+      const WORD_POOL = {
+        동물: ["코끼리", "바다표범", "나비", "다람쥐", "참새", "토끼", "펭귄"],
+        음식: ["스트로베리", "토마토", "바나나", "수박", "오렌지", "파인애플"],
+        기술: ["컴퓨터", "키보드", "마이크", "스피커", "모니터", "키패드"],
+        게임: ["레벨업", "퀘스트", "인벤토리", "체력바", "경험치"]
+      };
+
+      let words = [];
+      let currentIndex = 0;
+      let answers = [];
+      let koVoice = null;
+
+      function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function buildWordList() {
+        const categories = Object.keys(WORD_POOL);
+        const shuffled = shuffle(categories);
+        const selected = [];
+        for (const cat of shuffled) {
+          const pool = WORD_POOL[cat].filter(w => w.length >= 4);
+          if (pool.length === 0) continue;
+          const idx = Math.floor(Math.random() * pool.length);
+          selected.push(pool[idx]);
+          if (selected.length >= 5) break;
+        }
+        return selected.length >= 5 ? selected : selected.concat(["컴퓨터", "키보드", "모니터", "스피커", "마이크"].slice(0, 5 - selected.length));
+      }
+
+      function initVoice() {
+        const voices = speechSynthesis.getVoices();
+        const ko = voices.find(v => v.lang.startsWith("ko") && v.localService);
+        if (ko) return ko;
+        return voices.find(v => v.lang.startsWith("ko")) || voices[0];
+      }
+
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = function () { koVoice = initVoice(); };
+      }
+      koVoice = initVoice();
+
+      function speakWord(word) {
+        if (!("speechSynthesis" in window)) {
+          alert("이 브라우저는 음성 합성 기능을 지원하지 않습니다.");
+          return;
+        }
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(word);
+        u.lang = "ko-KR";
+        u.rate = 0.9;
+        u.pitch = 1.0;
+        u.volume = 1.0;
+        if (koVoice) u.voice = koVoice;
+        speechSynthesis.speak(u);
+      }
+
+      function startTest() {
+        words = buildWordList();
+        currentIndex = 0;
+        answers = [];
+        introPanel.style.display = "none";
+        testArea.style.display = "block";
+        resultsPanel.style.display = "none";
+        showWord();
+      }
+
+      function showWord() {
+        if (currentIndex >= words.length) {
+          showResults();
+          return;
+        }
+        const w = words[currentIndex];
+        instruction.textContent = "단어 " + (currentIndex + 1) + "/" + words.length;
+        wordInput.value = "";
+        wordInput.focus();
+        playBtn.onclick = function () { speakWord(w); };
+      }
+
+      nextBtn.addEventListener("click", function () {
+        const w = words[currentIndex];
+        const userAnswer = wordInput.value.trim();
+        answers.push({ word: w, userAnswer: userAnswer, correct: userAnswer === w });
+        currentIndex++;
+        showWord();
+      });
+
+      wordInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") nextBtn.click();
+      });
+
+      function showResults() {
+        testArea.style.display = "none";
+        resultsPanel.style.display = "block";
+        const correctCount = answers.filter(a => a.correct).length;
+        const percent = (correctCount / words.length) * 100;
+        let html = "<div style=\"font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--ok);\">수음 명료도: " + correctCount + "/" + words.length + " (" + percent.toFixed(0) + "%)</div>";
+        answers.forEach(function (a, i) {
+          html += "<div class=\"result-row " + (a.correct ? "correct" : "wrong") + "\">" + (i + 1) + ". 정답: \"" + a.word + "\" / 입력: \"" + (a.userAnswer || "(입력 없음)") + "\"</div>";
+        });
+        resultsContent.innerHTML = html;
+      }
+
+      saveBtn.addEventListener("click", function () {
+        const correctCount = answers.filter(a => a.correct).length;
+        const percent = (correctCount / words.length) * 100;
+        const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+        if (!session.user_data) session.user_data = {};
+        const hearing = session.user_data.hearing_results || {};
+        hearing.speechClarityTest = {
+          words: words,
+          answers: answers,
+          correctCount: correctCount,
+          totalWords: words.length,
+          clarityPercent: percent
+        };
+        hearing.speechClarityPercent = percent;
+        hearing.recordedAt = new Date().toISOString();
+        if (typeof GAStorage !== "undefined") {
+          GAStorage.writeSession({ hearing: hearing });
+          let done = 0;
+          if (hearing.source && hearing.overallDb != null) done++;
+          if (hearing.speechClarityTest) done++;
+          if (hearing.articulationTest && hearing.articulationTest.matchRate != null) done++;
+          GAStorage.writeProgress("audio", { label: "청각언어 측정", current: done, total: 3, completedAt: new Date().toISOString() });
+        }
+        window.location.href = "hearing_hub.html";
+      });
+
+      readyBtn.addEventListener("click", startTest);
+    })();
+  </script>
+</body>
+</html>

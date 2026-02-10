@@ -10,7 +10,7 @@
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
         --wait: #fbbf24;
@@ -114,8 +114,8 @@
       }
       .keyboard-area {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
         margin-bottom: 30px;
       }
       .key-button {
@@ -248,11 +248,40 @@
         const saveBtn = document.getElementById("save-btn");
         const retryBtn = document.getElementById("retry-btn");
 
-        const KEYS = ["Q", "W", "E", "R", "A", "S", "D", "F", "Z", "X", "C", "V"];
+        const KEYS = ["`", "Q", "W", "E", "R", "A", "S", "D", "F", "G", "Z", "X", "C", "V", "Shift", "Ctrl", "Space"];
+        const KEY_TO_EVENT = {
+          "`": function(e) { return e.key === "`" || e.code === "Backquote"; },
+          "Shift": function(e) { return e.key === "Shift"; },
+          "Ctrl": function(e) { return e.key === "Control"; },
+          "Alt": function(e) { return e.key === "Alt"; },
+          "Space": function(e) { return e.code === "Space" || e.key === " "; }
+        };
         const TEST_SEQUENCE = [
-          { keys: 2, combinations: [["Q", "W"], ["A", "S"], ["Z", "X"]] },
-          { keys: 3, combinations: [["Q", "W", "E"], ["A", "S", "D"], ["Z", "X", "C"]] },
-          { keys: 4, combinations: [["Q", "W", "E", "R"], ["A", "S", "D", "F"], ["Z", "X", "C", "V"]] }
+          { keys: 2, combinations: [
+            ["Q", "W"],
+            ["Shift", "R"],
+            ["`", "Space"],
+            ["A", "D"],
+            ["Ctrl", "C"],
+            ["Ctrl", "G"],
+            ["E", "R"],
+            ["Shift", "W"],
+            ["Q", "E"]
+          ]},
+          { keys: 3, combinations: [
+            ["W", "A", "D"],
+            ["Shift", "W", "E"],
+            ["Q", "W", "E"],
+            ["Ctrl", "Shift", "C"],
+            ["W", "Space", "Shift"],
+            ["A", "S", "D"]
+          ]},
+          { keys: 4, combinations: [
+            ["W", "A", "S", "D"],
+            ["Shift", "W", "A", "D"],
+            ["Q", "W", "E", "R"],
+            ["Ctrl", "W", "A", "D"]
+          ]}
         ];
 
         let currentTestIndex = 0;
@@ -264,15 +293,22 @@
         let maxKeys = 0;
         let testCompleted = false;
 
+        function keyMatchesEvent(key, e) {
+          const matcher = KEY_TO_EVENT[key];
+          if (matcher) return matcher(e);
+          return e.key.toUpperCase() === key;
+        }
+
         function createKeyboard() {
           keyboardArea.innerHTML = "";
+          const displayLabels = { "`": "~", "Space": "Space" };
           KEYS.forEach(function(key) {
             const btn = document.createElement("button");
             btn.className = "key-button";
-            btn.textContent = key;
+            btn.textContent = displayLabels[key] || key;
             btn.dataset.key = key;
-            btn.addEventListener("mousedown", function() { handleKeyPress(key, true); });
-            btn.addEventListener("mouseup", function() { handleKeyRelease(key); });
+            btn.addEventListener("mousedown", function(e) { e.preventDefault(); handleKeyPress(key, true); });
+            btn.addEventListener("mouseup", function(e) { e.preventDefault(); handleKeyRelease(key); });
             btn.addEventListener("mouseleave", function() { handleKeyRelease(key); });
             btn.addEventListener("touchstart", function(e) { e.preventDefault(); handleKeyPress(key, true); });
             btn.addEventListener("touchend", function(e) { e.preventDefault(); handleKeyRelease(key); });
@@ -280,6 +316,7 @@
           });
         }
 
+        const DISPLAY_LABELS = { "`": "~", "Space": "Space" };
         function updateKeyDisplay() {
           const currentTest = TEST_SEQUENCE[currentTestIndex];
           const currentCombo = currentTest.combinations[currentCombinationIndex];
@@ -290,7 +327,7 @@
             const keyDisplay = document.createElement("span");
             keyDisplay.className = "key-display required";
             keyDisplay.id = "key-display-" + (index + 1);
-            keyDisplay.textContent = key;
+            keyDisplay.textContent = DISPLAY_LABELS[key] || key;
             if (pressedKeys.has(key)) {
               keyDisplay.classList.add("pressed");
             }
@@ -476,18 +513,18 @@
         }
 
         document.addEventListener("keydown", function(e) {
-          const key = e.key.toUpperCase();
-          if (KEYS.includes(key) && !pressedKeys.has(key)) {
+          const matched = KEYS.find(function(k) { return keyMatchesEvent(k, e); });
+          if (matched && !pressedKeys.has(matched)) {
             e.preventDefault();
-            handleKeyPress(key, false);
+            handleKeyPress(matched, false);
           }
         });
 
         document.addEventListener("keyup", function(e) {
-          const key = e.key.toUpperCase();
-          if (KEYS.includes(key)) {
+          const matched = KEYS.find(function(k) { return keyMatchesEvent(k, e); });
+          if (matched) {
             e.preventDefault();
-            handleKeyRelease(key);
+            handleKeyRelease(matched);
           }
         });
 

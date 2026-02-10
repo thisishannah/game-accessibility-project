@@ -10,7 +10,7 @@
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
         --wait: #fbbf24;
@@ -232,10 +232,10 @@
     </header>
 
     <div class="test-container">
-      <div class="instruction" id="instruction">60초 동안 지속적으로 클릭하세요</div>
+      <div class="instruction" id="instruction">30초 동안 지속적으로 클릭하세요</div>
       <div class="warning-text" id="warning-text">⚠️ 무리하지 마세요. 언제든지 중단할 수 있습니다.</div>
       
-      <div class="timer-display" id="timer-display">60</div>
+      <div class="timer-display" id="timer-display">30</div>
 
       <button class="key-button" id="key-button" disabled>
         <div id="key-display">SPACE</div>
@@ -248,7 +248,7 @@
       <button class="stop-btn" id="stop-btn" style="display: none;">중단하기</button>
 
       <div class="sections-panel" id="sections-panel">
-        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">섹션별 입력 속도</div>
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">구간별 클릭 수 (5초 단위)</div>
         <div id="sections-content"></div>
       </div>
 
@@ -256,7 +256,7 @@
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
         <div id="results-content"></div>
         <div class="chart-container" id="chart-container" style="display: none;">
-          <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; text-align: center;">섹션별 입력 속도 그래프</div>
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; text-align: center;">구간별 클릭 수 그래프</div>
           <canvas id="fatigue-chart"></canvas>
         </div>
         <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
@@ -282,8 +282,8 @@
         const saveBtn = document.getElementById("save-btn");
         const retryBtn = document.getElementById("retry-btn");
 
-        const TEST_DURATION = 60; // 60초
-        const SECTION_DURATION = 10; // 10초 단위
+        const TEST_DURATION = 30; // 30초
+        const SECTION_DURATION = 5; // 5초 단위 (총 6구간)
         const TARGET_KEY = "SPACE";
 
         let testActive = false;
@@ -329,42 +329,39 @@
         }
 
         function updateSections(elapsed) {
-          const currentSection = Math.floor(elapsed / SECTION_DURATION);
-          const sectionStartTime = currentSection * SECTION_DURATION;
-          const sectionEndTime = Math.min((currentSection + 1) * SECTION_DURATION, elapsed);
-          
-          const sectionInputs = inputs.filter(function(input) {
-            return input.elapsed >= sectionStartTime && input.elapsed < sectionEndTime;
-          });
-          
-          if (sectionInputs.length > 0) {
-            const sectionDuration = sectionEndTime - sectionStartTime;
-            const sectionRate = sectionInputs.length / sectionDuration;
+          for (let i = 0; i < 6; i++) {
+            const sectionStartTime = i * SECTION_DURATION;
+            const sectionEndTime = (i + 1) * SECTION_DURATION;
+            const sectionInputs = inputs.filter(function(input) {
+              return input.elapsed >= sectionStartTime && input.elapsed < sectionEndTime;
+            });
+            const sectionDuration = Math.max(0, Math.min(sectionEndTime, elapsed) - sectionStartTime);
+            const rate = sectionDuration > 0 ? sectionInputs.length / sectionDuration : 0;
             
-            if (!sections[currentSection]) {
-              sections[currentSection] = {
-                section: currentSection + 1,
+            if (!sections[i]) {
+              sections[i] = {
+                section: i + 1,
                 startTime: sectionStartTime,
                 endTime: sectionEndTime,
-                inputs: [],
-                rate: 0
+                inputs: sectionInputs,
+                count: sectionInputs.length,
+                rate: rate
               };
+            } else {
+              sections[i].inputs = sectionInputs;
+              sections[i].count = sectionInputs.length;
+              sections[i].rate = sectionDuration > 0 ? sectionInputs.length / sectionDuration : 0;
             }
-            
-            sections[currentSection].inputs = sectionInputs;
-            sections[currentSection].rate = sectionRate;
-            sections[currentSection].endTime = sectionEndTime;
-            
-            renderSections();
           }
+          renderSections();
         }
 
         function renderSections() {
           let html = "";
           sections.forEach(function(section) {
             html += '<div class="section-item">';
-            html += '<span class="section-label">' + section.section + '번째 섹션 (' + Math.floor(section.startTime) + '초 ~ ' + Math.floor(section.endTime) + '초)</span>';
-            html += '<span class="section-value">' + Math.round(section.rate) + ' 입력/초</span>';
+            html += '<span class="section-label">' + Math.floor(section.startTime) + '~' + Math.floor(section.endTime) + '초</span>';
+            html += '<span class="section-value">' + section.count + ' 클릭 (' + Math.round(section.rate) + '/초)</span>';
             html += '</div>';
           });
           sectionsContent.innerHTML = html;
@@ -393,14 +390,13 @@
           
           const totalTime = actualDuration || TEST_DURATION;
           const firstSection = sections[0];
-          const lastSection = sections[sections.length - 1];
-          
+          const lastSection = sections[5] || sections[sections.length - 1];
+
           let fatigueIndex = 0;
-          if (firstSection && lastSection && firstSection.rate > 0) {
-            const speedDecrease = firstSection.rate - lastSection.rate;
-            fatigueIndex = (speedDecrease / firstSection.rate) * 100;
+          if (firstSection && lastSection && firstSection.count > 0) {
+            fatigueIndex = (lastSection.count / firstSection.count) * 100;
           }
-          
+
           instruction.style.display = "none";
           warningText.style.display = "none";
           timerDisplay.style.display = "none";
@@ -491,15 +487,16 @@
           let html = '<div class="result-item"><span>총 입력 수</span><span>' + inputs.length + ' 회</span></div>';
           html += '<div class="result-item"><span>측정 시간</span><span>' + Math.round(totalTime) + ' 초</span></div>';
           if (firstSection) {
-            html += '<div class="result-item"><span>첫 10초 평균 속도</span><span>' + Math.round(firstSection.rate) + ' 입력/초</span></div>';
+            html += '<div class="result-item"><span>첫 5초 클릭 수</span><span>' + firstSection.count + ' 회</span></div>';
           }
           if (lastSection) {
-            html += '<div class="result-item"><span>마지막 10초 평균 속도</span><span>' + Math.round(lastSection.rate) + ' 입력/초</span></div>';
+            html += '<div class="result-item"><span>마지막 5초 클릭 수</span><span>' + lastSection.count + ' 회</span></div>';
           }
           html += '<div class="result-item"><span>피로도 지수</span><span>' + fatigueIndex.toFixed(1) + '%</span></div>';
+          html += '<div class="result-item" style="font-size: 12px; color: var(--text-muted);"><span>※ 마지막5초/첫5초×100. 낮을수록 피로도 높음</span></div>';
           html += '<div class="result-item" style="margin-top: 12px;"><strong>섹션별 상세 데이터:</strong></div>';
           sections.forEach(function(section) {
-            html += '<div class="result-item" style="font-size: 12px;"><span>' + section.section + '번째 (' + Math.floor(section.startTime) + '~' + Math.floor(section.endTime) + '초)</span><span>' + section.inputs.length + ' 입력, ' + Math.round(section.rate) + ' 입력/초</span></div>';
+            html += '<div class="result-item" style="font-size: 12px;"><span>' + Math.floor(section.startTime) + '~' + Math.floor(section.endTime) + '초</span><span>' + section.count + ' 클릭, ' + Math.round(section.rate) + '/초</span></div>';
           });
           resultsContent.innerHTML = html;
           
@@ -518,10 +515,10 @@
           sections = [];
           
           instruction.style.display = "block";
-          instruction.textContent = "60초 동안 지속적으로 클릭하세요";
+          instruction.textContent = "30초 동안 지속적으로 클릭하세요";
           warningText.style.display = "block";
           timerDisplay.style.display = "flex";
-          timerDisplay.textContent = "60";
+          timerDisplay.textContent = "30";
           keyButton.style.display = "block";
           keyButton.disabled = false;
           keyButton.classList.remove("active");
@@ -563,15 +560,15 @@
 
         saveBtn.addEventListener("click", function () {
           const firstSection = sections[0];
-          const lastSection = sections[sections.length - 1];
-          const actualDuration = inputs.length > 0 ? inputs[inputs.length - 1].elapsed : 0;
-          
+          const lastSection = sections[5] || sections[sections.length - 1];
+          const actualDuration = inputs.length > 0 ? Math.min(inputs[inputs.length - 1].elapsed, TEST_DURATION) : 0;
+
+          const fatigue_log = sections.slice(0, 6).map(function(s) { return s ? s.count : 0; });
           let fatigueIndex = 0;
-          if (firstSection && lastSection && firstSection.rate > 0) {
-            const speedDecrease = firstSection.rate - lastSection.rate;
-            fatigueIndex = (speedDecrease / firstSection.rate) * 100;
+          if (firstSection && lastSection && firstSection.count > 0) {
+            fatigueIndex = (lastSection.count / firstSection.count) * 100;
           }
-          
+
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
           const motor = session.user_data.motor_results || {};
@@ -579,20 +576,20 @@
             totalInputs: inputs.length,
             duration: parseFloat(actualDuration.toFixed(2)),
             completed: actualDuration >= TEST_DURATION - 1,
-            sections: sections.map(function(section) {
+            fatigue_log: fatigue_log,
+            sections: sections.slice(0, 6).map(function(section) {
+              if (!section) return { startTime: 0, endTime: 0, count: 0, rate: 0 };
               return {
                 section: section.section,
                 startTime: parseFloat(section.startTime.toFixed(2)),
                 endTime: parseFloat(section.endTime.toFixed(2)),
-                inputs: section.inputs.length,
-                averageRate: parseFloat(section.rate.toFixed(2)),
-                inputsPerSecond: parseFloat(section.rate.toFixed(2))
+                count: section.count,
+                rate: parseFloat(section.rate.toFixed(2))
               };
             }),
-            firstSectionRate: firstSection ? parseFloat(firstSection.rate.toFixed(2)) : 0,
-            lastSectionRate: lastSection ? parseFloat(lastSection.rate.toFixed(2)) : 0,
+            firstSectionCount: firstSection ? firstSection.count : 0,
+            lastSectionCount: lastSection ? lastSection.count : 0,
             fatigueIndex: parseFloat(fatigueIndex.toFixed(2)),
-            speedDecreasePercent: parseFloat(fatigueIndex.toFixed(2)),
             allInputs: inputs.map(function(input) {
               return {
                 inputNumber: input.inputNumber,

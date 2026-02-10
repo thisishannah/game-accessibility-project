@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style.css">
-    <title>Divided Attention · 인지 측정</title>
+    <title>동시 처리 테스트 · 인지 측정</title>
     <style>
       :root {
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
         --wait: #fbbf24;
@@ -53,6 +53,30 @@
         max-width: 700px;
         margin-top: 60px;
       }
+      .intro-panel {
+        width: 100%;
+        padding: 24px;
+        background: rgba(2, 6, 23, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        margin-bottom: 24px;
+      }
+      .intro-body {
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .intro-body p { margin: 0 0 10px 0; }
+      .intro-body strong { color: var(--text-main); }
+      .score-panel {
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--text-main);
+      }
       .instruction {
         text-align: center;
         font-size: 18px;
@@ -94,18 +118,6 @@
       .star.clicked {
         opacity: 0;
         transform: scale(0);
-      }
-      .info-panel {
-        position: absolute;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(2, 6, 23, 0.9);
-        padding: 10px 20px;
-        border-radius: 999px;
-        font-size: 16px;
-        font-weight: 600;
-        z-index: 10;
       }
       .results-panel {
         margin-top: 30px;
@@ -165,14 +177,21 @@
   <body>
     <header>
       <a href="cognitive_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">Divided Attention</div>
+      <div style="font-size: 12px; color: var(--text-muted);">동시 처리 테스트</div>
     </header>
 
     <div class="test-container">
-      <div class="instruction" id="instruction">중앙의 숫자를 맞추면서 주변의 별을 클릭하세요</div>
+      <div class="intro-panel" id="intro-panel">
+        <div class="intro-body">
+          <p>중앙에 출력되는 <strong style="color: var(--ok);">초록색 숫자</strong>는 <strong>키보드의 숫자 키</strong>로 누르고, <strong style="color: var(--wait);">노란색 별</strong>은 <strong>마우스로 클릭</strong>하면 점수가 계산됩니다.</p>
+          <p>숫자와 별을 동시에 처리하는 능력을 측정합니다. 준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
+        </div>
+        <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>
+      </div>
+      <div class="instruction" id="instruction" style="display: none;"></div>
+      <div class="score-panel" id="score-panel" style="display: none;">점수: <span id="score-display">0</span></div>
       
-      <div id="game-area">
-        <div class="info-panel" id="info-panel">점수: 0</div>
+      <div id="game-area" style="display: none;">
         <div class="center-number" id="center-number">5</div>
       </div>
 
@@ -187,9 +206,12 @@
     <script src="ga-storage.js"></script>
     <script>
       (function () {
+        const introPanel = document.getElementById("intro-panel");
+        const readyBtn = document.getElementById("ready-btn");
         const instruction = document.getElementById("instruction");
         const gameArea = document.getElementById("game-area");
-        const infoPanel = document.getElementById("info-panel");
+        const scorePanel = document.getElementById("score-panel");
+        const scoreDisplay = document.getElementById("score-display");
         const centerNumber = document.getElementById("center-number");
         const resultsPanel = document.getElementById("results-panel");
         const resultsContent = document.getElementById("results-content");
@@ -197,8 +219,10 @@
         const retryBtn = document.getElementById("retry-btn");
 
         const TEST_DURATION = 60; // 60초
-        const NUMBER_CHANGE_INTERVAL = 2000; // 2초마다 숫자 변경
+        const NUMBER_TIMEOUT_MS = 2500; // 숫자 입력 대기 시간 (미입력 시 자동 다음)
         const STAR_SPAWN_INTERVAL = 1500; // 1.5초마다 별 생성
+        const NUMBER_POINTS = 5;
+        const STAR_POINTS = 10;
 
         let testActive = false;
         let startTime = 0;
@@ -206,9 +230,8 @@
         let numberTrials = [];
         let starTrials = [];
         let currentNumber = 5;
-        let targetNumber = 5;
         let stars = [];
-        let numberInterval = null;
+        let numberTimeoutId = null;
         let starInterval = null;
         let testTimer = null;
 
@@ -232,17 +255,18 @@
           star.dataset.spawnTime = Date.now();
           
           star.addEventListener("click", function() {
+            if (!star.parentElement) return;
             const reactionTime = Date.now() - parseInt(star.dataset.spawnTime);
             starTrials.push({
               success: true,
               reactionTime: reactionTime,
               timestamp: Date.now()
             });
-            score += 10;
-            infoPanel.textContent = "점수: " + score;
+            score += STAR_POINTS;
+            scoreDisplay.textContent = score;
             star.classList.add("clicked");
             setTimeout(function() {
-              star.remove();
+              if (star.parentElement) star.remove();
             }, 200);
           });
           
@@ -261,32 +285,83 @@
           }, 3000);
         }
 
-        function changeNumber() {
+        function showNextNumber() {
           if (!testActive) return;
           
-          const oldNumber = currentNumber;
+          if (numberTimeoutId) {
+            clearTimeout(numberTimeoutId);
+            numberTimeoutId = null;
+          }
+          
           currentNumber = Math.floor(Math.random() * 10);
-          targetNumber = currentNumber;
           centerNumber.textContent = currentNumber;
           
           numberTrials.push({
             number: currentNumber,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            answered: false
           });
+          
+          numberTimeoutId = setTimeout(function() {
+            numberTimeoutId = null;
+            const lastTrial = numberTrials[numberTrials.length - 1];
+            if (lastTrial && !lastTrial.answered) {
+              lastTrial.answered = true;
+              lastTrial.success = false;
+            }
+            showNextNumber();
+          }, NUMBER_TIMEOUT_MS);
         }
 
+        function handleNumberKey(keyNum) {
+          if (!testActive || numberTrials.length === 0) return;
+          
+          const lastTrial = numberTrials[numberTrials.length - 1];
+          if (lastTrial.answered) return;
+          
+          lastTrial.answered = true;
+          lastTrial.success = (keyNum === currentNumber);
+          if (lastTrial.success) {
+            score += NUMBER_POINTS;
+            scoreDisplay.textContent = score;
+          }
+          
+          if (numberTimeoutId) {
+            clearTimeout(numberTimeoutId);
+            numberTimeoutId = null;
+          }
+          showNextNumber();
+        }
+
+        document.addEventListener("keydown", function(e) {
+          if (!testActive) return;
+          let num = -1;
+          if (e.key >= "0" && e.key <= "9") num = parseInt(e.key);
+          else if (e.code && /^Numpad[0-9]$/.test(e.code)) num = parseInt(e.code.replace("Numpad", ""));
+          if (num >= 0) {
+            e.preventDefault();
+            handleNumberKey(num);
+          }
+        });
+
         function startTest() {
+          introPanel.style.display = "none";
+          gameArea.style.display = "block";
+          scorePanel.style.display = "block";
+          instruction.style.display = "block";
+          instruction.textContent = "숫자 키로 숫자 입력 · 마우스로 별 클릭";
+          
           testActive = true;
           startTime = Date.now();
           score = 0;
           numberTrials = [];
           starTrials = [];
           currentNumber = 5;
-          targetNumber = 5;
           stars = [];
-          infoPanel.textContent = "점수: 0";
+          scoreDisplay.textContent = "0";
+          centerNumber.textContent = "5";
           
-          numberInterval = setInterval(changeNumber, NUMBER_CHANGE_INTERVAL);
+          showNextNumber();
           starInterval = setInterval(spawnStar, STAR_SPAWN_INTERVAL);
           
           testTimer = setTimeout(function() {
@@ -297,7 +372,7 @@
         function endTest() {
           testActive = false;
           
-          if (numberInterval) clearInterval(numberInterval);
+          if (numberTimeoutId) clearTimeout(numberTimeoutId);
           if (starInterval) clearInterval(starInterval);
           if (testTimer) clearTimeout(testTimer);
           
@@ -315,20 +390,23 @@
             ? successfulStarTrials.reduce(function(sum, t) { return sum + t.reactionTime; }, 0) / successfulStarTrials.length
             : 0;
           
-          const numberCorrect = numberTrials.length;
-          const avgNumberReactionTime = 0; // 숫자는 반응 시간이 없음
+          const numberAnswered = numberTrials.filter(function(t) { return t.answered; });
+          const numberCorrect = numberAnswered.filter(function(t) { return t.success; }).length;
+          const numberSuccessRate = numberAnswered.length > 0 ? (numberCorrect / numberAnswered.length) * 100 : 0;
           
-          const overallSuccessRate = (starSuccessRate + 100) / 2; // 별 성공률과 숫자 정확도 평균
+          const overallSuccessRate = starTrials.length > 0 && numberAnswered.length > 0
+            ? (starSuccessRate + numberSuccessRate) / 2
+            : (starTrials.length > 0 ? starSuccessRate : numberSuccessRate);
           const overallAvgReactionTime = avgStarReactionTime;
           
-          showResults(starSuccessRate, avgStarReactionTime, numberCorrect, overallSuccessRate, overallAvgReactionTime);
+          showResults(starSuccessRate, avgStarReactionTime, numberCorrect, numberAnswered.length, overallSuccessRate, avgStarReactionTime);
         }
 
-        function showResults(starSuccessRate, avgStarReactionTime, numberCorrect, overallSuccessRate, overallAvgReactionTime) {
+        function showResults(starSuccessRate, avgStarReactionTime, numberCorrect, numberTotal, overallSuccessRate, overallAvgReactionTime) {
           let html = '<div class="result-item"><span>총 점수</span><span>' + score + ' 점</span></div>';
           html += '<div class="result-item"><span>별 클릭 성공률</span><span>' + starSuccessRate.toFixed(1) + '%</span></div>';
           html += '<div class="result-item"><span>별 평균 반응 시간</span><span>' + Math.round(avgStarReactionTime) + ' ms</span></div>';
-          html += '<div class="result-item"><span>숫자 변경 횟수</span><span>' + numberCorrect + ' 회</span></div>';
+          html += '<div class="result-item"><span>숫자 입력 정확도</span><span>' + numberCorrect + '/' + numberTotal + ' (' + (numberTotal > 0 ? (numberCorrect / numberTotal * 100).toFixed(1) : 0) + '%)</span></div>';
           html += '<div class="result-item"><span>전체 성공률</span><span>' + overallSuccessRate.toFixed(1) + '%</span></div>';
           html += '<div class="result-item"><span>평균 반응 시간</span><span>' + Math.round(overallAvgReactionTime) + ' ms</span></div>';
           resultsContent.innerHTML = html;
@@ -341,17 +419,17 @@
           numberTrials = [];
           starTrials = [];
           currentNumber = 5;
-          targetNumber = 5;
           stars = [];
           
-          instruction.style.display = "block";
-          instruction.textContent = "중앙의 숫자를 맞추면서 주변의 별을 클릭하세요";
-          gameArea.style.display = "block";
-          infoPanel.textContent = "점수: 0";
+          introPanel.style.display = "block";
+          gameArea.style.display = "none";
+          scorePanel.style.display = "none";
+          instruction.style.display = "none";
           centerNumber.textContent = "5";
           resultsPanel.style.display = "none";
           
-          if (numberInterval) clearInterval(numberInterval);
+          document.querySelectorAll(".star").forEach(function(s) { s.remove(); });
+          if (numberTimeoutId) clearTimeout(numberTimeoutId);
           if (starInterval) clearInterval(starInterval);
           if (testTimer) clearTimeout(testTimer);
         }
@@ -402,9 +480,7 @@
 
         retryBtn.addEventListener("click", resetTest);
 
-        window.startTest = startTest;
-
-        instruction.innerHTML = '<button class="btn-primary" onclick="window.startTest()" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>';
+        readyBtn.addEventListener("click", startTest);
       })();
     </script>
   </body>

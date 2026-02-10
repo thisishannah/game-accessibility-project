@@ -10,7 +10,7 @@
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
         --wait: #fbbf24;
@@ -21,7 +21,7 @@
         min-height: 100vh;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--text-main);
-        background: #020617;
+        background: var(--bg);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -55,50 +55,98 @@
       }
       .instruction {
         text-align: center;
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 30px;
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 24px;
         color: var(--text-main);
       }
-      .hold-button {
+      .phase-label {
+        text-align: center;
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+      }
+      .hold-area {
         width: 100%;
-        height: 200px;
+        min-height: 280px;
         border-radius: 20px;
-        border: 4px solid rgba(148, 163, 184, 0.6);
+        border: 4px solid rgba(148, 163, 184, 0.5);
         background: #1a1a1a;
-        color: var(--text-main);
-        font-size: 24px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
         position: relative;
+      }
+      .hold-area.holding {
+        border-color: var(--ok);
+        background: rgba(74, 222, 128, 0.08);
+      }
+      .device-visual {
+        width: 280px;
+        height: 90px;
+        border-radius: 12px;
+        border: 4px solid rgba(148, 163, 184, 0.6);
+        background: #2a2a2a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+        transition: all 0.2s;
+      }
+      .hold-area.holding .device-visual {
+        border-color: var(--ok);
+        background: rgba(74, 222, 128, 0.15);
+        color: var(--ok);
+      }
+      .progress-wrapper {
+        width: 100%;
+        max-width: 400px;
+      }
+      .progress-bar-bg {
+        width: 100%;
+        height: 24px;
+        background: rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
         overflow: hidden;
       }
-      .hold-button:active {
-        background: var(--ok);
-        border-color: var(--ok);
+      .progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--ok), #22c55e);
+        border-radius: 12px;
+        transition: width 0.05s linear;
       }
-      .hold-button.holding {
-        background: var(--ok);
-        border-color: var(--ok);
-      }
-      .gauge {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 0%;
-        background: rgba(0, 255, 204, 0.3);
-        transition: height 0.1s linear;
+      .progress-label {
+        text-align: center;
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-top: 12px;
       }
       .time-display {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 48px;
+        font-size: 42px;
         font-weight: 700;
-        z-index: 2;
+        color: var(--text-main);
+        margin-top: 16px;
+      }
+      .result-message {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        margin-top: 16px;
+        min-height: 28px;
+      }
+      .result-message.success { color: var(--ok); }
+      .result-message.fail { color: var(--danger); }
+      .result-message.partial { color: var(--wait); }
+      .retry-hint {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-top: 12px;
       }
       .results-panel {
         margin-top: 30px;
@@ -116,14 +164,8 @@
         border-bottom: 1px solid rgba(51, 65, 85, 0.5);
         font-size: 14px;
       }
-      .result-item:last-child {
-        border-bottom: none;
-        font-weight: 600;
-        color: var(--ok);
-        margin-top: 8px;
-        padding-top: 12px;
-        border-top: 2px solid rgba(51, 65, 85, 0.9);
-      }
+      .result-item.section { font-weight: 600; color: var(--ok); margin-top: 12px; }
+      .result-item:last-child { border-bottom: none; }
       .btn-primary {
         margin-top: 20px;
         padding: 10px 20px;
@@ -137,23 +179,19 @@
         width: 100%;
       }
       .btn-primary:hover { filter: brightness(1.1); }
-      .btn-primary:disabled { opacity: 0.5; cursor: default; }
+      .btn-row { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+      .btn-row .btn-primary { flex: 1; min-width: 120px; margin-top: 0; }
       .retry-btn {
-        margin-top: 15px;
-        padding: 8px 16px;
+        padding: 10px 20px;
         border-radius: 999px;
         border: 1px solid rgba(148, 163, 184, 0.6);
-        background: rgba(2, 6, 23, 0.8);
+        background: rgba(30, 41, 59, 0.8);
         color: var(--text-main);
-        font-weight: 500;
+        font-weight: 550;
         cursor: pointer;
-        font-size: 13px;
-        width: 100%;
+        font-size: 14px;
       }
-      .retry-btn:hover {
-        background: rgba(2, 6, 23, 0.95);
-        border-color: rgba(148, 163, 184, 0.9);
-      }
+      .retry-btn:hover { background: rgba(51, 65, 85, 0.9); }
     </style>
   </head>
   <body>
@@ -163,133 +201,287 @@
     </header>
 
     <div class="test-container">
-      <div class="instruction" id="instruction">버튼을 누르고 있는 동안 게이지가 차오릅니다.<br>손을 떼거나 입력이 끊기면 측정이 종료됩니다.</div>
-      
-      <button class="hold-button" id="hold-button">
-        <div class="gauge" id="gauge"></div>
+      <div class="instruction" id="instruction"></div>
+      <div class="phase-label" id="phase-label"></div>
+
+      <div class="hold-area" id="hold-area">
+        <div class="device-visual" id="device-visual">Space</div>
+        <div class="progress-wrapper">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-label" id="progress-label">0초 / 10초</div>
+        </div>
         <div class="time-display" id="time-display">0.00s</div>
-      </button>
+        <div class="result-message" id="result-message"></div>
+        <div class="retry-hint" id="retry-hint"></div>
+      </div>
+
+      <div class="btn-row" id="phase-buttons" style="display: none;">
+        <button class="retry-btn" id="retry-phase-btn">다시 시도</button>
+        <button class="btn-primary" id="next-phase-btn">다음 단계</button>
+      </div>
 
       <div class="results-panel" id="results-panel">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
         <div id="results-content"></div>
-        <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
-        <button class="retry-btn" id="retry-btn">다시 측정하기</button>
+        <div class="btn-row">
+          <button class="retry-btn" id="retry-btn">다시 측정하기</button>
+          <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+        </div>
       </div>
     </div>
 
     <script src="ga-storage.js"></script>
     <script>
       (function () {
-        const holdButton = document.getElementById("hold-button");
-        const gauge = document.getElementById("gauge");
-        const timeDisplay = document.getElementById("time-display");
         const instruction = document.getElementById("instruction");
+        const phaseLabel = document.getElementById("phase-label");
+        const holdArea = document.getElementById("hold-area");
+        const deviceVisual = document.getElementById("device-visual");
+        const progressFill = document.getElementById("progress-fill");
+        const progressLabel = document.getElementById("progress-label");
+        const timeDisplay = document.getElementById("time-display");
+        const resultMessage = document.getElementById("result-message");
+        const retryHint = document.getElementById("retry-hint");
+        const phaseButtons = document.getElementById("phase-buttons");
+        const retryPhaseBtn = document.getElementById("retry-phase-btn");
+        const nextPhaseBtn = document.getElementById("next-phase-btn");
         const resultsPanel = document.getElementById("results-panel");
         const resultsContent = document.getElementById("results-content");
         const saveBtn = document.getElementById("save-btn");
         const retryBtn = document.getElementById("retry-btn");
 
+        const TARGET_DURATION = 10;
+        const MAX_RETRIES = 3;
+
+        let phase = "keyboard";
+        let state = "idle";
         let isHolding = false;
         let startTime = 0;
-        let currentDuration = 0;
-        let gaugeInterval = null;
-        let timeInterval = null;
-        let maxDuration = 0;
+        let tickInterval = null;
+        let retryCount = 0;
+        let keyboardBest = { hold_time: 0, status: "Fail" };
+        let mouseBest = { hold_time: 0, status: "Fail" };
+
+        const KEYBOARD_DIRECTION = "키보드의 <strong>스페이스 버튼</strong>을 10초 동안 누르고 있으세요. 10초를 채우면 성공입니다. 중간에 손을 떼면 실패하며, 실패 시 최대 3회까지 재시도할 수 있습니다.";
+        const MOUSE_DIRECTION = "마우스의 <strong>좌클릭 버튼</strong>을 10초 동안 누르고 있으세요. 10초를 채우면 성공입니다. 중간에 손을 떼면 실패하며, 실패 시 최대 3회까지 재시도할 수 있습니다.";
+
+        function getStatus(holdTime) {
+          if (holdTime >= TARGET_DURATION) return "Pass";
+          if (holdTime >= 5) return "Partial";
+          return "Fail";
+        }
+
+        function showKeyboardPhase() {
+          phase = "keyboard";
+          state = "idle";
+          retryCount = 0;
+          instruction.innerHTML = KEYBOARD_DIRECTION;
+          phaseLabel.textContent = "1/2 · 키보드 (스페이스)";
+          deviceVisual.textContent = "Space";
+          phaseButtons.style.display = "none";
+          resetVisuals();
+        }
+
+        function showMousePhase() {
+          phase = "mouse";
+          state = "idle";
+          retryCount = 0;
+          instruction.innerHTML = MOUSE_DIRECTION;
+          phaseLabel.textContent = "2/2 · 마우스 (좌클릭)";
+          deviceVisual.textContent = "마우스 좌클릭";
+          phaseButtons.style.display = "none";
+          resetVisuals();
+        }
+
+        function resetVisuals() {
+          isHolding = false;
+          holdArea.classList.remove("holding");
+          progressFill.style.width = "0%";
+          progressLabel.textContent = "0초 / 10초";
+          timeDisplay.textContent = "0.00s";
+          resultMessage.textContent = "";
+          resultMessage.className = "result-message";
+          retryHint.textContent = "";
+          if (tickInterval) {
+            clearInterval(tickInterval);
+            tickInterval = null;
+          }
+        }
 
         function startHold() {
-          if (isHolding) return;
+          if (isHolding || state === "done") return;
+          state = "holding";
           isHolding = true;
           startTime = Date.now();
-          holdButton.classList.add("holding");
-          instruction.textContent = "버튼을 계속 누르고 있으세요...";
-          
-          gaugeInterval = setInterval(function () {
-            currentDuration = (Date.now() - startTime) / 1000;
-            const percentage = Math.min((currentDuration / 30) * 100, 100);
-            gauge.style.height = percentage + "%";
-            timeDisplay.textContent = currentDuration.toFixed(2) + "s";
-            
-            if (currentDuration > maxDuration) {
-              maxDuration = currentDuration;
+          holdArea.classList.add("holding");
+
+          tickInterval = setInterval(function () {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const pct = Math.min((elapsed / TARGET_DURATION) * 100, 100);
+            progressFill.style.width = pct + "%";
+            progressLabel.textContent = elapsed.toFixed(1) + "초 / 10초";
+            timeDisplay.textContent = elapsed.toFixed(2) + "s";
+
+            if (elapsed >= TARGET_DURATION) {
+              endHold(true);
             }
-          }, 10);
+          }, 50);
+        }
+
+        function endHold(success) {
+          if (!isHolding) return;
+          isHolding = false;
+          if (tickInterval) {
+            clearInterval(tickInterval);
+            tickInterval = null;
+          }
+          state = "done";
+
+          const elapsed = (Date.now() - startTime) / 1000;
+          const holdTime = Math.min(elapsed, TARGET_DURATION);
+          const status = success ? "Pass" : getStatus(holdTime);
+
+          holdArea.classList.remove("holding");
+
+          if (success) {
+            resultMessage.textContent = "성공! 충분한 유지 능력을 확인했습니다.";
+            resultMessage.className = "result-message success";
+          } else {
+            resultMessage.textContent = holdTime.toFixed(2) + "초에서 손을 뗐습니다. (" + status + ")";
+            resultMessage.className = "result-message " + (status === "Partial" ? "partial" : "fail");
+          }
+
+          const best = phase === "keyboard" ? keyboardBest : mouseBest;
+          if (holdTime > best.hold_time || (success && best.status !== "Pass")) {
+            if (phase === "keyboard") {
+              keyboardBest = { hold_time: success ? TARGET_DURATION : holdTime, status: status };
+            } else {
+              mouseBest = { hold_time: success ? TARGET_DURATION : holdTime, status: status };
+            }
+          }
+
+          if (success) {
+            retryHint.textContent = "";
+            phaseButtons.style.display = "flex";
+            nextPhaseBtn.style.display = "block";
+            retryPhaseBtn.style.display = "none";
+          } else {
+            const remaining = MAX_RETRIES - retryCount - 1;
+            if (remaining > 0) {
+              retryHint.textContent = "재시도 가능: " + remaining + "회 남음";
+              phaseButtons.style.display = "flex";
+              retryPhaseBtn.style.display = "block";
+              nextPhaseBtn.style.display = phase === "keyboard" ? "block" : "none";
+            } else {
+              retryHint.textContent = "재시도 기회를 모두 사용했습니다.";
+              phaseButtons.style.display = "flex";
+              retryPhaseBtn.style.display = "none";
+              nextPhaseBtn.style.display = "block";
+            }
+          }
         }
 
         function stopHold() {
           if (!isHolding) return;
-          isHolding = false;
-          holdButton.classList.remove("holding");
-          
-          if (gaugeInterval) {
-            clearInterval(gaugeInterval);
-            gaugeInterval = null;
-          }
-          
-          currentDuration = (Date.now() - startTime) / 1000;
-          if (currentDuration > maxDuration) {
-            maxDuration = currentDuration;
-          }
-          
-          showResults();
+          retryCount++;
+          endHold(false);
         }
 
-        function showResults() {
+        document.addEventListener("keydown", function (e) {
+          if (e.code === "Space" || e.key === " ") {
+            e.preventDefault();
+            if (phase === "keyboard") startHold();
+          }
+        });
+
+        document.addEventListener("keyup", function (e) {
+          if ((e.code === "Space" || e.key === " ") && phase === "keyboard") {
+            e.preventDefault();
+            stopHold();
+          }
+        });
+
+        holdArea.addEventListener("mousedown", function (e) {
+          if (e.button === 0 && phase === "mouse") {
+            e.preventDefault();
+            startHold();
+          }
+        });
+
+        holdArea.addEventListener("mouseup", function (e) {
+          if (e.button === 0 && phase === "mouse") {
+            e.preventDefault();
+            stopHold();
+          }
+        });
+
+        holdArea.addEventListener("mouseleave", function (e) {
+          if (phase === "mouse" && isHolding) stopHold();
+        });
+
+        document.addEventListener("mouseup", function (e) {
+          if (e.button === 0 && phase === "mouse" && isHolding) stopHold();
+        });
+
+        retryPhaseBtn.addEventListener("click", function () {
+          resetVisuals();
+          state = "idle";
+          phaseButtons.style.display = "none";
+        });
+
+        nextPhaseBtn.addEventListener("click", function () {
+          if (phase === "keyboard") {
+            showMousePhase();
+          } else {
+            showFinalResults();
+          }
+        });
+
+        function showFinalResults() {
           instruction.style.display = "none";
-          holdButton.style.display = "none";
+          phaseLabel.style.display = "none";
+          holdArea.style.display = "none";
+          phaseButtons.style.display = "none";
           resultsPanel.style.display = "block";
-          
-          let html = '<div class="result-item"><span>측정된 시간</span><span>' + currentDuration.toFixed(2) + ' 초</span></div>';
-          html += '<div class="result-item"><span>최대 홀드 시간</span><span>' + maxDuration.toFixed(2) + ' 초</span></div>';
+
+          const kb = keyboardBest;
+          const ms = mouseBest;
+
+          let html = '<div class="result-item section">키보드 (스페이스)</div>';
+          html += '<div class="result-item"><span>최선 기록</span><span>' + kb.hold_time.toFixed(2) + '초</span></div>';
+          html += '<div class="result-item"><span>상태</span><span>' + kb.status + '</span></div>';
+          html += '<div class="result-item section">마우스 (좌클릭)</div>';
+          html += '<div class="result-item"><span>최선 기록</span><span>' + ms.hold_time.toFixed(2) + '초</span></div>';
+          html += '<div class="result-item"><span>상태</span><span>' + ms.status + '</span></div>';
           resultsContent.innerHTML = html;
         }
 
         function resetTest() {
-          isHolding = false;
-          startTime = 0;
-          currentDuration = 0;
-          maxDuration = 0;
-          gauge.style.height = "0%";
-          timeDisplay.textContent = "0.00s";
-          holdButton.classList.remove("holding");
           instruction.style.display = "block";
-          instruction.textContent = "버튼을 누르고 있는 동안 게이지가 차오릅니다.<br>손을 떼거나 입력이 끊기면 측정이 종료됩니다.";
-          holdButton.style.display = "block";
+          phaseLabel.style.display = "block";
+          holdArea.style.display = "flex";
           resultsPanel.style.display = "none";
-          
-          if (gaugeInterval) {
-            clearInterval(gaugeInterval);
-            gaugeInterval = null;
-          }
-          if (timeInterval) {
-            clearInterval(timeInterval);
-            timeInterval = null;
-          }
+          keyboardBest = { hold_time: 0, status: "Fail" };
+          mouseBest = { hold_time: 0, status: "Fail" };
+          showKeyboardPhase();
         }
-
-        holdButton.addEventListener("mousedown", startHold);
-        holdButton.addEventListener("mouseup", stopHold);
-        holdButton.addEventListener("mouseleave", stopHold);
-        holdButton.addEventListener("touchstart", function(e) {
-          e.preventDefault();
-          startHold();
-        });
-        holdButton.addEventListener("touchend", function(e) {
-          e.preventDefault();
-          stopHold();
-        });
-        holdButton.addEventListener("touchcancel", function(e) {
-          e.preventDefault();
-          stopHold();
-        });
 
         saveBtn.addEventListener("click", function () {
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
           const motor = session.user_data.motor_results || {};
           motor.holdDuration = {
-            duration: parseFloat(maxDuration.toFixed(2)),
-            lastAttempt: parseFloat(currentDuration.toFixed(2)),
+            keyboard: {
+              hold_time: parseFloat(keyboardBest.hold_time.toFixed(2)),
+              status: keyboardBest.status
+            },
+            mouse: {
+              hold_time: parseFloat(mouseBest.hold_time.toFixed(2)),
+              status: mouseBest.status
+            },
+            targetDuration: TARGET_DURATION,
             unit: "s",
             recordedAt: new Date().toISOString()
           };
@@ -300,6 +492,8 @@
         });
 
         retryBtn.addEventListener("click", resetTest);
+
+        showKeyboardPhase();
       })();
     </script>
   </body>

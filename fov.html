@@ -144,16 +144,17 @@
         let currentPIdx = 0, currentAngleIdx = 0, results = {};
 
         // 0:우, 45:우상, 90:상, 135:좌상, 180:좌, 225:좌하, 270:하, 315:우하
+        // 최외곽 마진 18% (버튼과 겹치지 않도록), 중앙 P5는 예외
         const focusPoints = [
-            {id: "P1", x: 5, y: 5,   angles: [0, 315, 270]},      // 우, 우하, 하
-            {id: "P2", x: 50, y: 5,  angles: [180, 270, 0]},      // 좌, 하, 우
-            {id: "P3", x: 95, y: 5,  angles: [180, 225, 270]},    // 좌, 좌하, 하
-            {id: "P4", x: 5, y: 50,  angles: [90, 0, 270]},       // 상, 우, 하
-            {id: "P5", x: 50, y: 50, angles: [0, 45, 90, 135, 180, 225, 270, 315]}, // 정밀
-            {id: "P6", x: 95, y: 50, angles: [90, 180, 270]},     // 상, 좌, 하
-            {id: "P7", x: 5, y: 95,  angles: [0, 45, 90]},        // 우, 우상, 상
-            {id: "P8", x: 50, y: 95, angles: [180, 90, 0]},       // 좌, 상, 우
-            {id: "P9", x: 95, y: 95, angles: [180, 135, 90]}      // 좌, 좌상, 상
+            {id: "P1", x: 18, y: 18, angles: [0, 315, 270]},      // 좌상
+            {id: "P2", x: 50, y: 18, angles: [180, 270, 0]},      // 상
+            {id: "P3", x: 82, y: 18, angles: [180, 225, 270]},    // 우상
+            {id: "P4", x: 18, y: 50, angles: [90, 0, 270]},       // 좌
+            {id: "P5", x: 50, y: 50, angles: [0, 45, 90, 135, 180, 225, 270, 315]}, // 정밀(중앙)
+            {id: "P6", x: 82, y: 50, angles: [90, 180, 270]},     // 우
+            {id: "P7", x: 18, y: 82, angles: [0, 45, 90]},        // 좌하
+            {id: "P8", x: 50, y: 82, angles: [180, 90, 0]},       // 하
+            {id: "P9", x: 82, y: 82, angles: [180, 135, 90]}      // 우하
         ];
 
         let stimulus = { x: 0, y: 0, dist: 0, active: false };
@@ -209,13 +210,13 @@
                 stimulus.active = true;
                 if (moveTimer) clearInterval(moveTimer);
                 moveTimer = setInterval(() => {
-                    stimulus.dist -= 25; 
+                    stimulus.dist -= 25;
                     const angleRad = cp.angles[currentAngleIdx] * (Math.PI / 180);
                     stimulus.x = (width * cp.x/100) + Math.cos(angleRad) * stimulus.dist;
                     stimulus.y = (height * cp.y/100) - Math.sin(angleRad) * stimulus.dist;
                     draw();
                     if (stimulus.dist <= 0) recordPoint(true);
-                }, 70); 
+                }, 70);
             }, 1200); 
         }
 
@@ -243,6 +244,7 @@
                 <h2 class="accent-title">측정 완료</h2>
                 <p style="font-size:0.9em; margin-bottom:20px;">측정이 완료되었습니다. 결과를 확인한 후 저장해주세요.</p>
                 <div class="btn-group">
+                    <button class="admin-btn" onclick="startTest()">재시도</button>
                     <button class="admin-btn" onclick="showVisualization()">시야각 시각화 보기</button>
                     <button class="admin-btn" onclick="saveResults()">결과 저장 & 허브로 이동</button>
                 </div>

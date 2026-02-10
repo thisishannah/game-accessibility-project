@@ -13,7 +13,7 @@
         --accent-strong: rgba(124, 58, 237, 0.35);
         --border-subtle: rgba(148, 163, 184, 0.5);
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --radius-lg: 20px;
         --radius-md: 12px;
@@ -90,9 +90,9 @@
         font-weight: 800;
       }
       .brand-text-main { display: flex; flex-direction: column; gap: 2px; }
-      .brand-text-main span:first-child { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+      .brand-text-main span:first-child { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
       .brand-text-main span:last-child { font-size: 16px; font-weight: 650; }
-      .header-meta { text-align: right; font-size: 11px; color: var(--text-muted); }
+      .header-meta { text-align: right; font-size: 14px; color: var(--text-secondary); }
       .header-meta strong { color: #e5e7eb; font-weight: 600; }
       @media (max-width: 900px) {
         header.header { flex-direction: column; align-items: flex-start; }
@@ -125,8 +125,9 @@
         background: radial-gradient(circle at top, rgba(15, 23, 42, 0.92), #020617);
       }
       .section-subtitle {
-        font-size: 12px;
-        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
         margin-bottom: 14px;
       }
       .test-grid {
@@ -218,7 +219,7 @@
         justify-content: center;
         font-size: 11px;
       }
-      .hint { font-size: 11px; color: var(--text-muted); }
+      .hint { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
       .hint strong { color: #e5e7eb; font-weight: 600; }
       .progress-summary {
         margin-top: 12px;
@@ -233,7 +234,7 @@
         gap: 8px;
         margin-bottom: 6px;
       }
-      .progress-label { color: var(--text-muted); }
+      .progress-label { color: var(--text-secondary); font-weight: 500; }
       .progress-value { font-variant-numeric: tabular-nums; font-weight: 550; }
       .summary-pill {
         display: inline-flex;
@@ -285,7 +286,7 @@
             <div class="test-grid" id="test-grid">
               <article class="test-card" data-test="sequence-memory" tabindex="0">
                 <div class="test-card-head">
-                  <div class="test-card-title">Sequence Memory</div>
+                  <div class="test-card-title">순서 기억 테스트</div>
                   <span class="test-card-badge" data-progress="sequence-memory" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
@@ -295,7 +296,7 @@
 
               <article class="test-card" data-test="go-no-go" tabindex="0">
                 <div class="test-card-head">
-                  <div class="test-card-title">Go/No-Go Test</div>
+                  <div class="test-card-title">반응 통제 테스트</div>
                   <span class="test-card-badge" data-progress="go-no-go" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
@@ -305,7 +306,7 @@
 
               <article class="test-card" data-test="divided-attention" tabindex="0">
                 <div class="test-card-head">
-                  <div class="test-card-title">Divided Attention</div>
+                  <div class="test-card-title">동시 처리 테스트</div>
                   <span class="test-card-badge" data-progress="divided-attention" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
@@ -315,7 +316,7 @@
 
               <article class="test-card" data-test="reading-speed" tabindex="0">
                 <div class="test-card-head">
-                  <div class="test-card-title">Reading Speed</div>
+                  <div class="test-card-title">핵심 파악 테스트</div>
                   <span class="test-card-badge" data-progress="reading-speed" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
@@ -345,27 +346,27 @@
             <div class="right-body">
               <p>인지 측정은 다음 4개 테스트로 구성됩니다.</p>
               <ul>
-                <li><strong>Sequence Memory</strong>: 격자판 불빛 순서 기억력</li>
-                <li><strong>Go/No-Go</strong>: 반응 억제 및 적응력</li>
-                <li><strong>Divided Attention</strong>: 동시 처리 능력</li>
-                <li><strong>Reading Speed</strong>: 텍스트 소화력</li>
+                <li><strong>순서 기억 테스트</strong>: 격자판 불빛 순서 기억력</li>
+                <li><strong>반응 통제 테스트</strong>: 반응 억제 및 적응력</li>
+                <li><strong>동시 처리 테스트</strong>: 동시 처리 능력</li>
+                <li><strong>핵심 파악 테스트</strong>: 텍스트 소화력</li>
               </ul>
             </div>
             <div class="progress-summary">
               <div class="progress-row">
-                <span class="progress-label">Sequence Memory</span>
+                <span class="progress-label">순서 기억 테스트</span>
                 <span class="progress-value" id="progress-sequence">0/1</span>
               </div>
               <div class="progress-row">
-                <span class="progress-label">Go/No-Go</span>
+                <span class="progress-label">반응 통제 테스트</span>
                 <span class="progress-value" id="progress-go-no-go">0/1</span>
               </div>
               <div class="progress-row">
-                <span class="progress-label">Divided Attention</span>
+                <span class="progress-label">동시 처리 테스트</span>
                 <span class="progress-value" id="progress-divided">0/1</span>
               </div>
               <div class="progress-row">
-                <span class="progress-label">Reading Speed</span>
+                <span class="progress-label">핵심 파악 테스트</span>
                 <span class="progress-value" id="progress-reading">0/1</span>
               </div>
               <div class="progress-row divider-solid">
@@ -399,10 +400,10 @@
         const finalHint = document.getElementById("final-hint");
 
         const TEST_CONFIG = {
-          "sequence-memory": { url: "cognitive-sequence-memory.html", label: "Sequence Memory", total: 1 },
-          "go-no-go": { url: "cognitive-go-no-go.html", label: "Go/No-Go", total: 1 },
-          "divided-attention": { url: "cognitive-divided-attention.html", label: "Divided Attention", total: 1 },
-          "reading-speed": { url: "cognitive-reading-speed.html", label: "Reading Speed", total: 1 }
+          "sequence-memory": { url: "cognitive-sequence-memory.html", label: "순서 기억 테스트", total: 1 },
+          "go-no-go": { url: "cognitive-go-no-go.html", label: "반응 통제 테스트", total: 1 },
+          "divided-attention": { url: "cognitive-divided-attention.html", label: "동시 처리 테스트", total: 1 },
+          "reading-speed": { url: "cognitive-reading-speed.html", label: "핵심 파악 테스트", total: 1 }
         };
 
         function readSession() {
@@ -475,7 +476,7 @@
             finalHint.innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong> 허브로 돌아가면 인지 측정이 완료로 표시됩니다.";
             if (typeof GAStorage !== "undefined") {
               GAStorage.writeProgress("cognitive", {
-                label: "Sequence Memory + Go/No-Go + Divided Attention + Reading Speed",
+                label: "순서 기억 테스트 + 반응 통제 테스트 + 동시 처리 테스트 + 핵심 파악 테스트",
                 current: 4,
                 total: 4,
                 completedAt: new Date().toISOString()

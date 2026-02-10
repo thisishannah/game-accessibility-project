@@ -4,16 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style.css">
-    <title>Burst Speed 테스트 · 운동 측정</title>
+    <title>연타 입력 테스트 · 운동 측정</title>
     <style>
       :root {
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
-        --wait: #fbbf24;
+        --wait: #94a3b8;
       }
       * { box-sizing: border-box; }
       body {
@@ -21,7 +21,7 @@
         min-height: 100vh;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--text-main);
-        background: #020617;
+        background: var(--bg);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -55,73 +55,96 @@
       }
       .instruction {
         text-align: center;
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 30px;
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 24px;
         color: var(--text-main);
       }
-      .countdown-display {
-        text-align: center;
-        font-size: 72px;
-        font-weight: 700;
-        color: var(--wait);
-        margin-bottom: 20px;
-        min-height: 100px;
+      .instruction .hint {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-top: 12px;
+      }
+      .device-visual {
+        width: 100%;
+        min-height: 200px;
+        border-radius: 20px;
+        border: 4px solid var(--wait);
+        background: #1a1a1a;
         display: flex;
         align-items: center;
         justify-content: center;
+        position: relative;
+        transition: border-color 0.2s, background 0.2s;
       }
-      .countdown-display.active {
+      .device-visual.active {
+        border-color: var(--ok);
+        background: rgba(74, 222, 128, 0.08);
+      }
+      .device-visual .count-overlay {
+        position: absolute;
+        font-size: 96px;
+        font-weight: 700;
+        color: var(--wait);
+        z-index: 2;
+        transition: color 0.2s;
+      }
+      .device-visual.active .count-overlay {
         color: var(--ok);
       }
-      .key-button {
-        width: 100%;
-        height: 200px;
-        border-radius: 20px;
-        border: 4px solid rgba(148, 163, 184, 0.6);
-        background: #1a1a1a;
-        color: var(--text-main);
-        font-size: 32px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.1s;
+      .space-key {
+        width: 280px;
+        height: 80px;
+        border-radius: 12px;
+        border: 4px solid var(--wait);
+        background: #2a2a2a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-muted);
+        transition: all 0.2s;
+      }
+      .device-visual.active .space-key {
+        border-color: var(--ok);
+        background: rgba(74, 222, 128, 0.15);
+        color: var(--ok);
+      }
+      .mouse-visual {
+        width: 120px;
+        height: 180px;
+        border-radius: 60px 60px 20px 20px;
+        border: 4px solid var(--wait);
+        background: #2a2a2a;
         position: relative;
-        overflow: hidden;
-        user-select: none;
+        transition: all 0.2s;
+        flex-shrink: 0;
       }
-      .key-button:active {
-        background: var(--ok);
+      .mouse-visual .left-btn {
+        position: absolute;
+        top: 24px;
+        left: 12px;
+        width: 48px;
+        height: 55px;
+        border-radius: 8px;
+        border: 3px solid var(--wait);
+        background: #1a1a1a;
+        transition: all 0.2s;
+      }
+      .device-visual.active .mouse-visual {
         border-color: var(--ok);
-        transform: scale(0.98);
+        background: rgba(74, 222, 128, 0.08);
       }
-      .key-button.active {
-        background: var(--ok);
+      .device-visual.active .mouse-visual .left-btn {
         border-color: var(--ok);
+        background: rgba(74, 222, 128, 0.25);
       }
-      .key-button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .stats-panel {
-        margin-top: 30px;
-        padding: 20px;
-        background: rgba(2, 6, 23, 0.8);
-        border-radius: 16px;
-        border: 1px solid rgba(51, 65, 85, 0.9);
+      .phase-label {
         text-align: center;
-      }
-      .stat-item {
-        margin-bottom: 15px;
-      }
-      .stat-label {
         font-size: 14px;
         color: var(--text-muted);
-        margin-bottom: 5px;
-      }
-      .stat-value {
-        font-size: 36px;
-        font-weight: 700;
-        color: var(--ok);
+        margin-top: 16px;
       }
       .results-panel {
         margin-top: 30px;
@@ -139,14 +162,8 @@
         border-bottom: 1px solid rgba(51, 65, 85, 0.5);
         font-size: 14px;
       }
-      .result-item:last-child {
-        border-bottom: none;
-        font-weight: 600;
-        color: var(--ok);
-        margin-top: 8px;
-        padding-top: 12px;
-        border-top: 2px solid rgba(51, 65, 85, 0.9);
-      }
+      .result-item:last-child { border-bottom: none; }
+      .result-item.section { font-weight: 600; color: var(--ok); margin-top: 12px; }
       .btn-primary {
         margin-top: 20px;
         padding: 10px 20px;
@@ -160,56 +177,44 @@
         width: 100%;
       }
       .btn-primary:hover { filter: brightness(1.1); }
-      .btn-primary:disabled { opacity: 0.5; cursor: default; }
+      .btn-row-results { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+      .btn-row-results .btn-primary { margin-top: 0; flex: 1; min-width: 120px; }
       .retry-btn {
-        margin-top: 10px;
-        padding: 8px 16px;
+        padding: 10px 20px;
         border-radius: 999px;
         border: 1px solid rgba(148, 163, 184, 0.6);
-        background: rgba(2, 6, 23, 0.8);
+        background: rgba(30, 41, 59, 0.8);
         color: var(--text-main);
-        font-weight: 500;
+        font-weight: 550;
         cursor: pointer;
-        font-size: 13px;
-        width: 100%;
+        font-size: 14px;
       }
-      .retry-btn:hover {
-        background: rgba(2, 6, 23, 0.95);
-        border-color: rgba(148, 163, 184, 0.9);
-      }
+      .retry-btn:hover { background: rgba(51, 65, 85, 0.9); }
     </style>
   </head>
   <body>
     <header>
       <a href="motor_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">Burst Speed 테스트</div>
+      <div style="font-size: 12px; color: var(--text-muted);">연타 입력 테스트</div>
     </header>
 
     <div class="test-container">
-      <div class="instruction" id="instruction">준비되면 버튼을 눌러 시작하세요</div>
-      
-      <div class="countdown-display" id="countdown-display">준비</div>
+      <div class="instruction" id="instruction"></div>
+      <div class="phase-label" id="phase-label"></div>
 
-      <button class="key-button" id="key-button" disabled>
-        <div id="key-display">SPACE</div>
-      </button>
-
-      <div class="stats-panel" id="stats-panel" style="display: none;">
-        <div class="stat-item">
-          <div class="stat-label">현재 초당 입력수</div>
-          <div class="stat-value" id="current-rate">0</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">최고 초당 입력수</div>
-          <div class="stat-value" id="max-rate">0</div>
-        </div>
+      <div class="device-visual" id="device-visual">
+        <div class="count-overlay" id="count-overlay"></div>
+        <div class="space-key" id="space-key">Space</div>
+        <div class="mouse-visual" id="mouse-visual" style="display: none;"><div class="left-btn"></div></div>
       </div>
 
       <div class="results-panel" id="results-panel">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
         <div id="results-content"></div>
-        <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
-        <button class="retry-btn" id="retry-btn">다시 측정하기</button>
+        <div class="btn-row-results">
+          <button class="retry-btn" id="retry-btn">다시 측정하기</button>
+          <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+        </div>
       </div>
     </div>
 
@@ -217,194 +222,200 @@
     <script>
       (function () {
         const instruction = document.getElementById("instruction");
-        const countdownDisplay = document.getElementById("countdown-display");
-        const keyButton = document.getElementById("key-button");
-        const keyDisplay = document.getElementById("key-display");
-        const statsPanel = document.getElementById("stats-panel");
-        const currentRateEl = document.getElementById("current-rate");
-        const maxRateEl = document.getElementById("max-rate");
+        const phaseLabel = document.getElementById("phase-label");
+        const deviceVisual = document.getElementById("device-visual");
+        const countOverlay = document.getElementById("count-overlay");
+        const spaceKey = document.getElementById("space-key");
+        const mouseVisual = document.getElementById("mouse-visual");
         const resultsPanel = document.getElementById("results-panel");
         const resultsContent = document.getElementById("results-content");
         const saveBtn = document.getElementById("save-btn");
         const retryBtn = document.getElementById("retry-btn");
 
-        const TEST_DURATION = 5; // 5초
-        const TARGET_KEY = "SPACE";
+        const TEST_DURATION = 5;
+        const COUNTDOWN_SEC = 3;
 
-        let testActive = false;
+        let phase = "keyboard"; // keyboard | mouse | done
+        let state = "idle"; // idle | countdown | recording | done
         let startTime = 0;
-        let inputCount = 0;
-        let inputs = [];
-        let maxInputsPerSecond = 0;
-        let countdownInterval = null;
-        let testInterval = null;
-        let rateUpdateInterval = null;
+        let keyboardInputs = [];
+        let mouseInputs = [];
+        let countdownTimer = null;
+        let recordingTimer = null;
+
+        const KEYBOARD_DIRECTION = "스페이스 버튼이 초록색으로 바뀌면 5초 동안 연속해서 키보드의 스페이스 버튼을 눌러주세요. 할 수 있는 한 가장 빠른 속도로 연속해서 눌러주세요.";
+        const MOUSE_DIRECTION = "좌측 마우스 버튼이 초록색으로 바뀌면 5초 동안 연속해서 마우스의 좌측 버튼을 눌러주세요. 할 수 있는 한 가장 빠른 속도로 연속해서 눌러주세요.";
+
+        function showKeyboardPhase() {
+          phase = "keyboard";
+          state = "idle";
+          instruction.textContent = KEYBOARD_DIRECTION;
+          instruction.innerHTML = KEYBOARD_DIRECTION + '<p class="hint">화면을 클릭하면 3초 후 시작됩니다</p>';
+          phaseLabel.textContent = "1/2 · 키보드 (스페이스)";
+          spaceKey.style.display = "flex";
+          mouseVisual.style.display = "none";
+          deviceVisual.classList.remove("active");
+          countOverlay.textContent = "";
+          countOverlay.style.display = "none";
+        }
+
+        function showMousePhase() {
+          phase = "mouse";
+          state = "idle";
+          instruction.textContent = MOUSE_DIRECTION;
+          instruction.innerHTML = MOUSE_DIRECTION + '<p class="hint">화면을 클릭하면 3초 후 시작됩니다</p>';
+          phaseLabel.textContent = "2/2 · 마우스 (좌클릭)";
+          spaceKey.style.display = "none";
+          mouseVisual.style.display = "block";
+          deviceVisual.classList.remove("active");
+          countOverlay.textContent = "";
+          countOverlay.style.display = "none";
+        }
 
         function startCountdown() {
-          let countdown = 3;
-          countdownDisplay.textContent = countdown;
-          countdownDisplay.classList.remove("active");
-          
-          countdownInterval = setInterval(function() {
-            countdown--;
-            if (countdown > 0) {
-              countdownDisplay.textContent = countdown;
-            } else if (countdown === 0) {
-              countdownDisplay.textContent = "시작!";
-              countdownDisplay.classList.add("active");
-              clearInterval(countdownInterval);
-              setTimeout(function() {
-                startTest();
-              }, 500);
+          if (state !== "idle") return;
+          state = "countdown";
+          const hint = instruction.querySelector(".hint");
+          if (hint) hint.textContent = "";
+          countOverlay.style.display = "block";
+          let n = COUNTDOWN_SEC;
+          countOverlay.textContent = n;
+
+          countdownTimer = setInterval(function () {
+            n--;
+            if (n > 0) {
+              countOverlay.textContent = n;
+            } else {
+              clearInterval(countdownTimer);
+              deviceVisual.classList.add("active");
+              startRecording();
             }
           }, 1000);
         }
 
-        function startTest() {
-          testActive = true;
+        function startRecording() {
+          state = "recording";
           startTime = Date.now();
-          inputCount = 0;
-          inputs = [];
-          maxInputsPerSecond = 0;
-          keyButton.disabled = false;
-          keyButton.classList.add("active");
-          instruction.textContent = "최대한 빠르게 " + TARGET_KEY + " 키를 연타하세요!";
-          countdownDisplay.textContent = TEST_DURATION;
-          statsPanel.style.display = "block";
-          
-          let elapsed = 0;
-          testInterval = setInterval(function() {
-            elapsed = (Date.now() - startTime) / 1000;
-            const remaining = Math.max(0, TEST_DURATION - elapsed);
-            countdownDisplay.textContent = remaining.toFixed(1);
-            
-            if (remaining <= 0) {
-              endTest();
-            }
-          }, 100);
-          
-          rateUpdateInterval = setInterval(function() {
+          if (phase === "keyboard") keyboardInputs = [];
+          else mouseInputs = [];
+
+          let sec = 1;
+          countOverlay.textContent = sec;
+
+          recordingTimer = setInterval(function () {
             const elapsed = (Date.now() - startTime) / 1000;
-            if (elapsed > 0) {
-              const currentRate = inputCount / elapsed;
-              currentRateEl.textContent = Math.round(currentRate);
-              if (currentRate > maxInputsPerSecond) {
-                maxInputsPerSecond = currentRate;
-                maxRateEl.textContent = Math.round(maxInputsPerSecond);
-              }
+            if (elapsed >= TEST_DURATION) {
+              endRecording();
+              return;
             }
-          }, 100);
+            const nextSec = Math.floor(elapsed) + 1;
+            if (nextSec !== sec) {
+              sec = nextSec;
+              countOverlay.textContent = sec;
+            }
+          }, 50);
         }
 
-        function handleInput() {
-          if (!testActive) return;
-          inputCount++;
+        function endRecording() {
+          clearInterval(recordingTimer);
+          state = "done";
+          deviceVisual.classList.remove("active");
+          countOverlay.style.display = "none";
+
+          if (phase === "keyboard") {
+            showMousePhase();
+          } else {
+            showFinalResults();
+          }
+        }
+
+        function handleKeyboardInput() {
+          if (state !== "recording" || phase !== "keyboard") return;
           const elapsed = (Date.now() - startTime) / 1000;
-          inputs.push({
-            timestamp: Date.now(),
-            elapsed: elapsed,
-            inputNumber: inputCount
-          });
-          
-          const currentRate = inputCount / elapsed;
-          currentRateEl.textContent = Math.round(currentRate);
-          if (currentRate > maxInputsPerSecond) {
-            maxInputsPerSecond = currentRate;
-            maxRateEl.textContent = Math.round(maxInputsPerSecond);
-          }
+          if (elapsed >= TEST_DURATION) return;
+          keyboardInputs.push({ elapsed: elapsed });
         }
 
-        function endTest() {
-          testActive = false;
-          keyButton.disabled = true;
-          keyButton.classList.remove("active");
-          
-          if (countdownInterval) clearInterval(countdownInterval);
-          if (testInterval) clearInterval(testInterval);
-          if (rateUpdateInterval) clearInterval(rateUpdateInterval);
-          
-          const totalTime = (Date.now() - startTime) / 1000;
-          const finalRate = inputCount / totalTime;
-          
-          if (finalRate > maxInputsPerSecond) {
-            maxInputsPerSecond = finalRate;
-          }
-          
+        function handleMouseInput() {
+          if (state !== "recording" || phase !== "mouse") return;
+          const elapsed = (Date.now() - startTime) / 1000;
+          if (elapsed >= TEST_DURATION) return;
+          mouseInputs.push({ elapsed: elapsed });
+        }
+
+        function showFinalResults() {
+          phase = "done";
           instruction.style.display = "none";
-          countdownDisplay.style.display = "none";
-          keyButton.style.display = "none";
-          statsPanel.style.display = "none";
+          phaseLabel.style.display = "none";
+          deviceVisual.style.display = "none";
           resultsPanel.style.display = "block";
-          
-          showResults(totalTime, finalRate);
-        }
 
-        function showResults(totalTime, finalRate) {
-          let html = '<div class="result-item"><span>총 입력 수</span><span>' + inputCount + ' 회</span></div>';
-          html += '<div class="result-item"><span>측정 시간</span><span>' + totalTime.toFixed(2) + ' 초</span></div>';
-          html += '<div class="result-item"><span>평균 초당 입력수</span><span>' + Math.round(finalRate) + ' 입력/초</span></div>';
-          html += '<div class="result-item"><span>최고 초당 입력수</span><span>' + Math.round(maxInputsPerSecond) + ' 입력/초</span></div>';
+          const kbCount = keyboardInputs.length;
+          const msCount = mouseInputs.length;
+          const kbRate = TEST_DURATION > 0 ? kbCount / TEST_DURATION : 0;
+          const msRate = TEST_DURATION > 0 ? msCount / TEST_DURATION : 0;
+
+          let html = '<div class="result-item section">키보드 (스페이스)</div>';
+          html += '<div class="result-item"><span>총 입력 수</span><span>' + kbCount + ' 회</span></div>';
+          html += '<div class="result-item"><span>초당 입력수</span><span>' + Math.round(kbRate) + ' 입력/초</span></div>';
+          html += '<div class="result-item section">마우스 (좌클릭)</div>';
+          html += '<div class="result-item"><span>총 클릭 수</span><span>' + msCount + ' 회</span></div>';
+          html += '<div class="result-item"><span>초당 클릭수</span><span>' + Math.round(msRate) + ' 클릭/초</span></div>';
           resultsContent.innerHTML = html;
         }
 
         function resetTest() {
-          testActive = false;
-          startTime = 0;
-          inputCount = 0;
-          inputs = [];
-          maxInputsPerSecond = 0;
-          
+          clearInterval(countdownTimer);
+          clearInterval(recordingTimer);
+          state = "idle";
+          phase = "keyboard";
           instruction.style.display = "block";
-          instruction.textContent = "준비되면 버튼을 눌러 시작하세요";
-          countdownDisplay.style.display = "flex";
-          countdownDisplay.textContent = "준비";
-          countdownDisplay.classList.remove("active");
-          keyButton.style.display = "block";
-          keyButton.disabled = false;
-          keyButton.classList.remove("active");
-          statsPanel.style.display = "none";
+          phaseLabel.style.display = "block";
+          deviceVisual.style.display = "flex";
           resultsPanel.style.display = "none";
-          
-          if (countdownInterval) clearInterval(countdownInterval);
-          if (testInterval) clearInterval(testInterval);
-          if (rateUpdateInterval) clearInterval(rateUpdateInterval);
+          showKeyboardPhase();
         }
 
-        keyButton.addEventListener("click", function() {
-          if (!testActive && startTime === 0) {
-            startCountdown();
-          } else if (testActive) {
-            handleInput();
+        deviceVisual.addEventListener("click", function (e) {
+          if (state === "idle") startCountdown();
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.code === "Space") {
+            e.preventDefault();
+            if (state === "idle") startCountdown();
+            else if (state === "recording" && phase === "keyboard") handleKeyboardInput();
           }
         });
 
-        document.addEventListener("keydown", function(e) {
-          if (e.code === "Space" && testActive) {
+        document.addEventListener("mousedown", function (e) {
+          if (e.button === 0 && state === "recording" && phase === "mouse") {
             e.preventDefault();
-            handleInput();
+            handleMouseInput();
           }
         });
 
         saveBtn.addEventListener("click", function () {
-          const totalTime = inputs.length > 0 ? (inputs[inputs.length - 1].elapsed) : 0;
-          const finalRate = totalTime > 0 ? inputCount / totalTime : 0;
-          const maxRate = Math.max(maxInputsPerSecond, finalRate);
-          
+          const kbCount = keyboardInputs.length;
+          const msCount = mouseInputs.length;
+          const kbRate = TEST_DURATION > 0 ? kbCount / TEST_DURATION : 0;
+          const msRate = TEST_DURATION > 0 ? msCount / TEST_DURATION : 0;
+
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
           const motor = session.user_data.motor_results || {};
           motor.burstSpeed = {
-            totalInputs: inputCount,
-            duration: parseFloat(totalTime.toFixed(2)),
-            averageInputsPerSecond: Math.round(finalRate),
-            maxInputsPerSecond: Math.round(maxRate),
-            inputs: inputs.map(function(input) {
-              return {
-                inputNumber: input.inputNumber,
-                elapsed: parseFloat(input.elapsed.toFixed(3)),
-                timestamp: input.timestamp
-              };
-            }),
+            keyboard: {
+              totalInputs: kbCount,
+              inputsPerSecond: Math.round(kbRate),
+              inputs: keyboardInputs.map(function (i) { return { elapsed: parseFloat(i.elapsed.toFixed(3)) }; })
+            },
+            mouse: {
+              totalInputs: msCount,
+              inputsPerSecond: Math.round(msRate),
+              inputs: mouseInputs.map(function (i) { return { elapsed: parseFloat(i.elapsed.toFixed(3)) }; })
+            },
+            duration: TEST_DURATION,
             unit: "inputs/second",
             recordedAt: new Date().toISOString()
           };
@@ -415,6 +426,8 @@
         });
 
         retryBtn.addEventListener("click", resetTest);
+
+        showKeyboardPhase();
       })();
     </script>
   </body>

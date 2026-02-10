@@ -13,7 +13,7 @@
         --accent-strong: rgba(124, 58, 237, 0.35);
         --border-subtle: rgba(148, 163, 184, 0.5);
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --radius-lg: 20px;
         --radius-md: 12px;
@@ -90,9 +90,9 @@
         font-weight: 800;
       }
       .brand-text-main { display: flex; flex-direction: column; gap: 2px; }
-      .brand-text-main span:first-child { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+      .brand-text-main span:first-child { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
       .brand-text-main span:last-child { font-size: 16px; font-weight: 650; }
-      .header-meta { text-align: right; font-size: 11px; color: var(--text-muted); }
+      .header-meta { text-align: right; font-size: 14px; color: var(--text-secondary); }
       .header-meta strong { color: #e5e7eb; font-weight: 600; }
       @media (max-width: 900px) {
         header.header { flex-direction: column; align-items: flex-start; }
@@ -125,8 +125,9 @@
         background: radial-gradient(circle at top, rgba(15, 23, 42, 0.92), #020617);
       }
       .section-subtitle {
-        font-size: 12px;
-        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
         margin-bottom: 14px;
       }
       .test-grid {
@@ -218,7 +219,7 @@
         justify-content: center;
         font-size: 11px;
       }
-      .hint { font-size: 11px; color: var(--text-muted); }
+      .hint { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
       .hint strong { color: #e5e7eb; font-weight: 600; }
       .progress-summary {
         margin-top: 12px;
@@ -233,7 +234,7 @@
         gap: 8px;
         margin-bottom: 6px;
       }
-      .progress-label { color: var(--text-muted); }
+      .progress-label { color: var(--text-secondary); font-weight: 500; }
       .progress-value { font-variant-numeric: tabular-nums; font-weight: 550; }
       .summary-pill {
         display: inline-flex;

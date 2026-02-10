@@ -10,7 +10,7 @@
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
         --wait: #fbbf24;
@@ -57,7 +57,20 @@
         text-align: center;
         font-size: 18px;
         font-weight: 600;
-        margin-bottom: 30px;
+        margin-bottom: 16px;
+        color: var(--text-main);
+      }
+      .precision-progress {
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      .precision-progress .info-panel {
+        display: inline-block;
+        background: rgba(2, 6, 23, 0.9);
+        padding: 10px 20px;
+        border-radius: 999px;
+        font-size: 18px;
+        font-weight: 600;
         color: var(--text-main);
       }
       #target-area {
@@ -69,6 +82,11 @@
         cursor: crosshair;
         overflow: hidden;
       }
+      .grid-lines {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
       .target {
         position: absolute;
         width: 40px;
@@ -77,8 +95,8 @@
         border-radius: 50%;
         background: rgba(74, 222, 128, 0.1);
         transform: translate(-50%, -50%);
-        top: 50%;
-        left: 50%;
+        z-index: 1;
+        transition: left 0.15s, top 0.15s;
       }
       .target-center {
         position: absolute;
@@ -87,9 +105,8 @@
         background: var(--ok);
         border-radius: 50%;
         transform: translate(-50%, -50%);
-        top: 50%;
-        left: 50%;
         z-index: 2;
+        transition: left 0.15s, top 0.15s;
       }
       .click-dot {
         position: absolute;
@@ -100,18 +117,6 @@
         transform: translate(-50%, -50%);
         pointer-events: none;
         z-index: 3;
-      }
-      .info-panel {
-        position: absolute;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(2, 6, 23, 0.9);
-        padding: 10px 20px;
-        border-radius: 999px;
-        font-size: 18px;
-        font-weight: 600;
-        z-index: 5;
       }
       .results-panel {
         margin-top: 30px;
@@ -166,6 +171,17 @@
         background: rgba(2, 6, 23, 0.95);
         border-color: rgba(148, 163, 184, 0.9);
       }
+      .retry-btn {
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(30, 41, 59, 0.8);
+        color: var(--text-main);
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .retry-btn:hover { background: rgba(51, 65, 85, 0.9); border-color: rgba(148, 163, 184, 0.9); }
       .popup-overlay {
         position: fixed;
         top: 0;
@@ -224,10 +240,12 @@
     </header>
 
     <div class="test-container">
-      <div class="instruction" id="instruction">정중앙의 타겟을 정확하게 클릭하세요 (총 20회)</div>
-      
-      <div id="target-area">
+      <div class="instruction" id="instruction">바둑판 교차점에 나타나는 타겟의 정중앙을 클릭하세요 (총 20회)</div>
+      <div class="precision-progress" id="precision-progress">
         <div class="info-panel" id="info-panel">클릭: 0/20</div>
+      </div>
+      <div id="target-area">
+        <div class="grid-lines"></div>
         <div class="target"></div>
         <div class="target-center"></div>
       </div>
@@ -235,17 +253,20 @@
       <div class="results-panel" id="results-panel">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
         <div id="results-content"></div>
+        <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+        <button class="retry-btn" id="retry-btn">재시도</button>
         <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
         <button class="btn-secondary" id="visualize-btn">편향 시각화 보기</button>
+      </div>
       </div>
     </div>
 
     <div class="popup-overlay" id="popup-overlay">
       <div class="popup-content">
-        <button class="popup-close" onclick="closePopup()">×</button>
+        <button class="popup-close" id="popup-close-btn" type="button" aria-label="닫기">×</button>
         <h2 style="color:#00ffcc; margin-top:0;">클릭 편향 시각화</h2>
         <p style="font-size:0.9em; color:#9ca3af; margin-bottom:15px;">
-          빨간 점은 실제 클릭 지점, 청록색 원은 타겟 중심입니다. 점들의 분포를 통해 편향 방향을 확인할 수 있습니다.
+          빨간 점은 실제 클릭 지점, 청록색 원은 각 교차점의 타겟 중심입니다. 점들의 분포를 통해 편향 방향을 확인할 수 있습니다.
         </p>
         <canvas id="visualization-canvas"></canvas>
       </div>
@@ -263,58 +284,117 @@
         const visualizeBtn = document.getElementById("visualize-btn");
 
         const TOTAL_CLICKS = 20;
-        const TARGET_CENTER_X = targetArea.offsetWidth / 2;
-        const TARGET_CENTER_Y = targetArea.offsetHeight / 2;
+        const COLS = 5;
+        const ROWS = 4;
         const TARGET_RADIUS = 20;
 
         let clicks = [];
         let currentClick = 0;
+        let gridPositions = [];
+        let areaWidth = 600;
+        let areaHeight = 500;
 
-        /**
-         * 타겟 중심과 클릭 지점 사이의 거리 계산 (픽셀 오차)
-         * 공식: distance = √[(x2 - x1)² + (y2 - y1)²]
-         * @param {number} x1 - 타겟 중심 X 좌표
-         * @param {number} y1 - 타겟 중심 Y 좌표
-         * @param {number} x2 - 클릭 지점 X 좌표
-         * @param {number} y2 - 클릭 지점 Y 좌표
-         * @returns {number} 픽셀 단위 거리
-         */
+        function buildGrid() {
+          const w = targetArea.offsetWidth || areaWidth;
+          const h = targetArea.offsetHeight || areaHeight;
+          areaWidth = w;
+          areaHeight = h;
+          const margin = Math.min(w, h) * 0.12;
+          const gridW = w - 2 * margin;
+          const gridH = h - 2 * margin;
+
+          gridPositions = [];
+          for (let row = 0; row < ROWS; row++) {
+            for (let col = 0; col < COLS; col++) {
+              const x = margin + (col / (COLS - 1)) * gridW;
+              const y = margin + (row / (ROWS - 1)) * gridH;
+              gridPositions.push({ x: x, y: y });
+            }
+          }
+
+          const gridEl = targetArea.querySelector(".grid-lines");
+          gridEl.innerHTML = "";
+          const lineStyle = "position:absolute; background:rgba(148,163,184,0.25);";
+          for (let i = 0; i < COLS; i++) {
+            const div = document.createElement("div");
+            const x = margin + (i / (COLS - 1)) * gridW;
+            div.style.cssText = lineStyle + "left:" + x + "px;top:" + margin + "px;width:1px;height:" + gridH + "px;";
+            gridEl.appendChild(div);
+          }
+          for (let i = 0; i < ROWS; i++) {
+            const div = document.createElement("div");
+            const y = margin + (i / (ROWS - 1)) * gridH;
+            div.style.cssText = lineStyle + "left:" + margin + "px;top:" + y + "px;height:1px;width:" + gridW + "px;";
+            gridEl.appendChild(div);
+          }
+        }
+
+        function updateTargetPosition() {
+          const pos = gridPositions[currentClick];
+          if (!pos) return;
+          const targetEl = targetArea.querySelector(".target");
+          const centerEl = targetArea.querySelector(".target-center");
+          targetEl.style.left = pos.x + "px";
+          targetEl.style.top = pos.y + "px";
+          centerEl.style.left = pos.x + "px";
+          centerEl.style.top = pos.y + "px";
+        }
+
         function calculateDistance(x1, y1, x2, y2) {
           return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
         }
 
         targetArea.addEventListener("click", function (e) {
           if (currentClick >= TOTAL_CLICKS) return;
-          
+          const pos = gridPositions[currentClick];
+          if (!pos) return;
+
           const rect = targetArea.getBoundingClientRect();
           const clickX = e.clientX - rect.left;
           const clickY = e.clientY - rect.top;
-          
-          const error = calculateDistance(clickX, clickY, TARGET_CENTER_X, TARGET_CENTER_Y);
-          
+          const error = calculateDistance(clickX, clickY, pos.x, pos.y);
+
           clicks.push({
+            targetX: pos.x,
+            targetY: pos.y,
             x: clickX,
             y: clickY,
             error: error,
             timestamp: Date.now()
           });
-          
+
           const dot = document.createElement("div");
           dot.className = "click-dot";
           dot.style.left = clickX + "px";
           dot.style.top = clickY + "px";
           targetArea.appendChild(dot);
-          
+
           currentClick++;
           infoPanel.textContent = "클릭: " + currentClick + "/" + TOTAL_CLICKS;
-          
+
           if (currentClick >= TOTAL_CLICKS) {
             showResults();
+          } else {
+            updateTargetPosition();
           }
         });
 
+        function resetTest() {
+          clicks = [];
+          currentClick = 0;
+          targetArea.querySelectorAll(".click-dot").forEach(function (el) { el.remove(); });
+          instruction.style.display = "block";
+          document.getElementById("precision-progress").style.display = "block";
+          targetArea.style.display = "block";
+          resultsPanel.style.display = "none";
+          infoPanel.textContent = "클릭: 0/" + TOTAL_CLICKS;
+          buildGrid();
+          updateTargetPosition();
+        }
+
         function showResults() {
           instruction.style.display = "none";
+          document.getElementById("precision-progress").style.display = "none";
           targetArea.style.display = "none";
           resultsPanel.style.display = "block";
           
@@ -336,56 +416,66 @@
           const size = Math.min(600, window.innerWidth - 100);
           visCanvas.width = size;
           visCanvas.height = size;
-          
+
+          const areaW = areaWidth;
+          const areaH = areaHeight;
+          const scale = Math.min(size / areaW, size / areaH) * 0.9;
+          const ox = (size - areaW * scale) / 2;
+          const oy = (size - areaH * scale) / 2;
+
+          function toCanvas(x, y) {
+            return { x: ox + x * scale, y: oy + y * scale };
+          }
+
           visCtx.fillStyle = "#1a1a1a";
           visCtx.fillRect(0, 0, size, size);
-          
-          const centerX = size / 2;
-          const centerY = size / 2;
-          const scale = Math.min(size / targetArea.offsetWidth, size / targetArea.offsetHeight) * 0.8;
-          
-          visCtx.strokeStyle = "rgba(148, 163, 184, 0.3)";
+
+          const margin = Math.min(areaW, areaH) * 0.12;
+          const gridW = areaW - 2 * margin;
+          const gridH = areaH - 2 * margin;
+          visCtx.strokeStyle = "rgba(148, 163, 184, 0.25)";
           visCtx.lineWidth = 1;
-          for (let i = 0; i <= 10; i++) {
-            const pos = (size / 10) * i;
+          for (let i = 0; i < COLS; i++) {
+            const x = margin + (i / (COLS - 1)) * gridW;
+            const p = toCanvas(x, margin);
             visCtx.beginPath();
-            visCtx.moveTo(pos, 0);
-            visCtx.lineTo(pos, size);
-            visCtx.stroke();
-            visCtx.beginPath();
-            visCtx.moveTo(0, pos);
-            visCtx.lineTo(size, pos);
+            visCtx.moveTo(p.x, p.y);
+            visCtx.lineTo(p.x, p.y + gridH * scale);
             visCtx.stroke();
           }
-          
-          visCtx.strokeStyle = "#00ffcc";
-          visCtx.lineWidth = 2;
-          visCtx.beginPath();
-          visCtx.arc(centerX, centerY, TARGET_RADIUS * scale, 0, Math.PI * 2);
-          visCtx.stroke();
-          
-          visCtx.fillStyle = "#00ffcc";
-          visCtx.beginPath();
-          visCtx.arc(centerX, centerY, 2, 0, Math.PI * 2);
-          visCtx.fill();
-          
-          clicks.forEach(function(click) {
-            const x = centerX + (click.x - TARGET_CENTER_X) * scale;
-            const y = centerY + (click.y - TARGET_CENTER_Y) * scale;
-            
+          for (let i = 0; i < ROWS; i++) {
+            const y = margin + (i / (ROWS - 1)) * gridH;
+            const p = toCanvas(margin, y);
+            visCtx.beginPath();
+            visCtx.moveTo(p.x, p.y);
+            visCtx.lineTo(p.x + gridW * scale, p.y);
+            visCtx.stroke();
+          }
+
+          clicks.forEach(function (c) {
+            const tc = toCanvas(c.targetX, c.targetY);
+            const pc = toCanvas(c.x, c.y);
+            visCtx.strokeStyle = "#00ffcc";
+            visCtx.lineWidth = 2;
+            visCtx.beginPath();
+            visCtx.arc(tc.x, tc.y, TARGET_RADIUS * scale, 0, Math.PI * 2);
+            visCtx.stroke();
             visCtx.fillStyle = "#f97373";
             visCtx.beginPath();
-            visCtx.arc(x, y, 3, 0, Math.PI * 2);
+            visCtx.arc(pc.x, pc.y, 3, 0, Math.PI * 2);
             visCtx.fill();
           });
-          
-          const avgX = clicks.reduce(function(sum, c) { return sum + (c.x - TARGET_CENTER_X); }, 0) / clicks.length;
-          const avgY = clicks.reduce(function(sum, c) { return sum + (c.y - TARGET_CENTER_Y); }, 0) / clicks.length;
-          
-          if (Math.abs(avgX) > 1 || Math.abs(avgY) > 1) {
-            const biasX = centerX + avgX * scale;
-            const biasY = centerY + avgY * scale;
-            
+
+          const avgOffsetX = clicks.reduce(function (s, c) { return s + (c.x - c.targetX); }, 0) / clicks.length;
+          const avgOffsetY = clicks.reduce(function (s, c) { return s + (c.y - c.targetY); }, 0) / clicks.length;
+          const avgTargetX = clicks.reduce(function (s, c) { return s + c.targetX; }, 0) / clicks.length;
+          const avgTargetY = clicks.reduce(function (s, c) { return s + c.targetY; }, 0) / clicks.length;
+          const centerX = ox + avgTargetX * scale;
+          const centerY = oy + avgTargetY * scale;
+          const biasX = centerX + avgOffsetX * scale;
+          const biasY = centerY + avgOffsetY * scale;
+
+          if (Math.abs(avgOffsetX) > 1 || Math.abs(avgOffsetY) > 1) {
             visCtx.strokeStyle = "#fbbf24";
             visCtx.lineWidth = 2;
             visCtx.setLineDash([5, 5]);
@@ -394,13 +484,12 @@
             visCtx.lineTo(biasX, biasY);
             visCtx.stroke();
             visCtx.setLineDash([]);
-            
             visCtx.fillStyle = "#fbbf24";
             visCtx.beginPath();
             visCtx.arc(biasX, biasY, 4, 0, Math.PI * 2);
             visCtx.fill();
           }
-          
+
           visCtx.fillStyle = "#fff";
           visCtx.font = "12px sans-serif";
           visCtx.textAlign = "left";
@@ -415,7 +504,7 @@
           visCtx.fill();
           visCtx.fillStyle = "#fff";
           visCtx.fillText("클릭 지점", 38, size - 6);
-          if (Math.abs(avgX) > 1 || Math.abs(avgY) > 1) {
+          if (Math.abs(avgOffsetX) > 1 || Math.abs(avgOffsetY) > 1) {
             visCtx.fillStyle = "#fbbf24";
             visCtx.beginPath();
             visCtx.arc(20, size + 10, 4, 0, Math.PI * 2);
@@ -423,7 +512,7 @@
             visCtx.fillStyle = "#fff";
             visCtx.fillText("평균 편향", 38, size + 16);
           }
-          
+
           document.getElementById("popup-overlay").style.display = "flex";
         }
 
@@ -431,14 +520,16 @@
           document.getElementById("popup-overlay").style.display = "none";
         }
 
+        document.querySelector(".popup-close").addEventListener("click", closePopup);
+        document.getElementById("retry-btn").addEventListener("click", resetTest);
         saveBtn.addEventListener("click", function () {
           if (clicks.length < TOTAL_CLICKS) return;
-          
-          const errors = clicks.map(function(c) { return c.error; });
-          const averageError = errors.reduce(function(a, b) { return a + b; }, 0) / errors.length;
-          
-          const avgX = clicks.reduce(function(sum, c) { return sum + (c.x - TARGET_CENTER_X); }, 0) / clicks.length;
-          const avgY = clicks.reduce(function(sum, c) { return sum + (c.y - TARGET_CENTER_Y); }, 0) / clicks.length;
+
+          const errors = clicks.map(function (c) { return c.error; });
+          const averageError = errors.reduce(function (a, b) { return a + b; }, 0) / errors.length;
+
+          const avgX = clicks.reduce(function (s, c) { return s + (c.x - c.targetX); }, 0) / clicks.length;
+          const avgY = clicks.reduce(function (s, c) { return s + (c.y - c.targetY); }, 0) / clicks.length;
           
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
@@ -447,8 +538,10 @@
             averageError: parseFloat(averageError.toFixed(2)),
             maxError: parseFloat(Math.max.apply(null, errors).toFixed(2)),
             minError: parseFloat(Math.min.apply(null, errors).toFixed(2)),
-            clicks: clicks.map(function(c) {
+            clicks: clicks.map(function (c) {
               return {
+                targetX: parseFloat(c.targetX.toFixed(2)),
+                targetY: parseFloat(c.targetY.toFixed(2)),
                 x: parseFloat(c.x.toFixed(2)),
                 y: parseFloat(c.y.toFixed(2)),
                 error: parseFloat(c.error.toFixed(2))
@@ -469,11 +562,14 @@
 
         visualizeBtn.addEventListener("click", showVisualization);
 
-        window.addEventListener("keydown", function(e) {
+        window.addEventListener("keydown", function (e) {
           if (e.key === "Escape") {
             closePopup();
           }
         });
+
+        buildGrid();
+        updateTargetPosition();
       })();
     </script>
   </body>

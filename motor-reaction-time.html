@@ -10,10 +10,11 @@
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
-        --ok: #4ade80;
-        --danger: #f97373;
-        --wait: #fbbf24;
+        --text-muted: #b8c5d6;
+        /* 색각이상 고려: 파랑(대기) vs 주황(클릭) - 대비·밝기 차이로 구분 */
+        --ready-bg: #1e40af;
+        --click-bg: #f59e0b;
+        --danger: #dc2626;
       }
       * { box-sizing: border-box; }
       body {
@@ -62,16 +63,19 @@
         position: relative;
         margin-top: 60px;
       }
-      .test-area.waiting { background: #1a1a1a; cursor: wait; }
-      .test-area.ready { background: var(--wait); cursor: pointer; }
-      .test-area.click { background: var(--ok); cursor: pointer; }
+      .test-area.waiting { background: #1e293b; cursor: wait; }
+      .test-area.ready { background: var(--ready-bg); cursor: pointer; }
+      .test-area.click { background: var(--click-bg); cursor: pointer; }
       .test-area.too-early { background: var(--danger); cursor: not-allowed; }
       .test-message {
         font-size: 24px;
         font-weight: 600;
         text-align: center;
-        color: var(--text-main);
       }
+      .test-area.waiting .test-message,
+      .test-area.ready .test-message,
+      .test-area.too-early .test-message { color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+      .test-area.click .test-message { color: #0f172a; text-shadow: 0 1px 2px rgba(255,255,255,0.2); }
       .results-panel {
         margin-top: 30px;
         padding: 20px;
@@ -109,6 +113,10 @@
       }
       .btn-primary:hover { filter: brightness(1.1); }
       .btn-primary:disabled { opacity: 0.5; cursor: default; }
+      .btn-row-results { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+      .btn-row-results .btn-primary { flex: 1; min-width: 140px; margin-top: 0; }
+      .btn-retry { padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.6); background: rgba(30, 41, 59, 0.8); color: var(--text-main); font-weight: 550; cursor: pointer; font-size: 14px; }
+      .btn-retry:hover { background: rgba(51, 65, 85, 0.9); border-color: rgba(148, 163, 184, 0.9); }
     </style>
   </head>
   <body>
@@ -124,7 +132,10 @@
     <div class="results-panel" id="results-panel" style="display: none;">
       <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
       <div id="results-list"></div>
-      <button class="btn-primary" id="save-btn" style="width: 100%;">결과 저장 & 허브로 이동</button>
+      <div class="btn-row-results">
+        <button class="btn-retry" id="retry-btn">재시도</button>
+        <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+      </div>
     </div>
 
     <script src="ga-storage.js"></script>
@@ -147,28 +158,37 @@
           return 2000 + Math.random() * 3000; // 2-5초
         }
 
+        function goToReady() {
+          state = "ready";
+          testArea.className = "test-area ready";
+          testMessage.textContent = "기다리세요... 화면이 바뀌면 클릭하세요";
+          startTime = Date.now();
+          waitTimeout = setTimeout(function () {
+            if (state === "ready") {
+              state = "click";
+              testArea.className = "test-area click";
+              testMessage.textContent = "지금 클릭하세요!";
+              startTime = Date.now();
+            }
+          }, getRandomDelay());
+        }
+
         function startTrial() {
           if (currentTrial >= TOTAL_TRIALS) {
             showResults();
             return;
           }
-          state = "waiting";
-          testArea.className = "test-area waiting";
-          testMessage.textContent = "대기 중... 클릭하면 시작합니다";
-          testArea.onclick = function () {
-            state = "ready";
-            testArea.className = "test-area ready";
-            testMessage.textContent = "초록색이 되면 클릭하세요";
-            startTime = Date.now();
-            waitTimeout = setTimeout(function () {
-              if (state === "ready") {
-                state = "click";
-                testArea.className = "test-area click";
-                testMessage.textContent = "지금 클릭하세요!";
-                startTime = Date.now();
-              }
-            }, getRandomDelay());
-          };
+          if (currentTrial === 0 && trials.length === 0) {
+            state = "waiting";
+            testArea.className = "test-area waiting";
+            testMessage.textContent = "대기 중... 클릭하면 시작합니다";
+            testArea.onclick = function () {
+              testArea.onclick = null;
+              goToReady();
+            };
+          } else {
+            goToReady();
+          }
         }
 
         testArea.addEventListener("click", function () {
@@ -177,23 +197,31 @@
             trials.push(reactionTime);
             currentTrial++;
             testMessage.textContent = reactionTime + " ms";
-            setTimeout(function () {
-              if (currentTrial < TOTAL_TRIALS) {
+            if (currentTrial < TOTAL_TRIALS) {
+              setTimeout(function () {
                 startTrial();
-              } else {
-                showResults();
-              }
-            }, 1000);
+              }, 2000);
+            } else {
+              setTimeout(function () { showResults(); }, 2000);
+            }
           } else if (state === "ready") {
             clearTimeout(waitTimeout);
             state = "too-early";
             testArea.className = "test-area too-early";
-            testMessage.textContent = "너무 빨랐습니다. 다시 시작합니다.";
+            testMessage.textContent = "너무 빨랐습니다. 다시 시도합니다.";
             setTimeout(function () {
-              startTrial();
+              goToReady();
             }, 1500);
           }
         });
+
+        function resetTest() {
+          trials = [];
+          currentTrial = 0;
+          testArea.style.display = "flex";
+          resultsPanel.style.display = "none";
+          startTrial();
+        }
 
         function showResults() {
           testArea.style.display = "none";
@@ -207,6 +235,7 @@
           resultsList.innerHTML = html;
         }
 
+        document.getElementById("retry-btn").addEventListener("click", resetTest);
         saveBtn.addEventListener("click", function () {
           if (trials.length < TOTAL_TRIALS) return;
           const avg = trials.reduce((a, b) => a + b, 0) / trials.length;

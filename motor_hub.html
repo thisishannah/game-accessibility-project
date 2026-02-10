@@ -13,7 +13,7 @@
         --accent-strong: rgba(124, 58, 237, 0.35);
         --border-subtle: rgba(148, 163, 184, 0.5);
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --radius-lg: 20px;
         --radius-md: 12px;
@@ -90,9 +90,9 @@
         font-weight: 800;
       }
       .brand-text-main { display: flex; flex-direction: column; gap: 2px; }
-      .brand-text-main span:first-child { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+      .brand-text-main span:first-child { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
       .brand-text-main span:last-child { font-size: 16px; font-weight: 650; }
-      .header-meta { text-align: right; font-size: 11px; color: var(--text-muted); }
+      .header-meta { text-align: right; font-size: 14px; color: var(--text-secondary); }
       .header-meta strong { color: #e5e7eb; font-weight: 600; }
       @media (max-width: 900px) {
         header.header { flex-direction: column; align-items: flex-start; }
@@ -125,8 +125,9 @@
         background: radial-gradient(circle at top, rgba(15, 23, 42, 0.92), #020617);
       }
       .section-subtitle {
-        font-size: 12px;
-        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
         margin-bottom: 14px;
       }
       .test-grid {
@@ -218,7 +219,7 @@
         justify-content: center;
         font-size: 11px;
       }
-      .hint { font-size: 11px; color: var(--text-muted); }
+      .hint { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
       .hint strong { color: #e5e7eb; font-weight: 600; }
       .progress-summary {
         margin-top: 12px;
@@ -233,7 +234,7 @@
         gap: 8px;
         margin-bottom: 6px;
       }
-      .progress-label { color: var(--text-muted); }
+      .progress-label { color: var(--text-secondary); font-weight: 500; }
       .progress-value { font-variant-numeric: tabular-nums; font-weight: 550; }
       .summary-pill {
         display: inline-flex;
@@ -318,11 +319,11 @@
               <!-- 폭발력 -->
               <article class="test-card" data-test="burst-speed" tabindex="0">
                 <div class="test-card-head">
-                  <div class="test-card-title">Burst Speed</div>
+                  <div class="test-card-title">연타 입력 테스트</div>
                   <span class="test-card-badge" data-progress="burst-speed" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
-                  5초 동안 특정 키를 최대한 연타하여 최고 초당 입력수를 기록합니다.
+                  키보드(스페이스)와 마우스(좌클릭) 각각 5초 동안 최대 연타 속도를 측정합니다.
                 </div>
               </article>
 
@@ -333,7 +334,7 @@
                   <span class="test-card-badge" data-progress="simultaneous-input" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
-                  2개, 3개, 4개 이상의 키 조합을 동시에 누를 수 있는지 테스트. 성공한 최대 동시 입력 개수 기록.
+                  게임에서 자주 쓰는 다양한 키 조합(Q+W, Shift+R, WASD 등)을 동시에 누를 수 있는지 테스트. 성공한 최대 동시 입력 개수 기록.
                 </div>
               </article>
 
@@ -344,7 +345,7 @@
                   <span class="test-card-badge" data-progress="hold-duration" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
-                  버튼을 누르고 있는 동안 게이지가 차오르며, 손을 떼거나 입력이 끊기는 순간까지의 시간 기록.
+                  키보드(스페이스)와 마우스(좌클릭) 각각 10초 유지 능력 측정. 10초 달성 시 성공, 실패 시 최대 3회 재시도.
                 </div>
               </article>
 
@@ -366,21 +367,11 @@
                   <span class="test-card-badge" data-progress="switch-test" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
-                  마우스 클릭 직후 키보드 키를 누르는 속도(Device Switching Latency) 측정. 한 손·손가락 결손 유저 지원.
+                  마우스 클릭 후 게임키·숫자패드 등 표시된 키 입력 속도 측정. Hit/Miss/중복 구분, 회차별 상세 기록.
                 </div>
               </article>
 
-              <!-- 조작 자원 제약: 도달 범위 -->
-              <article class="test-card" data-test="reach-test" tabindex="0">
-                <div class="test-card-head">
-                  <div class="test-card-title">키보드 도달 범위</div>
-                  <span class="test-card-badge" data-progress="reach-test" data-done="false">0/1</span>
-                </div>
-                <div class="test-card-desc">
-                  고정된 손 위치에서 가장 멀리 있는 키를 얼마나 정확히 누르는지 측정하는 도달 범위 테스트.
-                </div>
-              </article>
-            </div>
+              </div>
 
             <div class="btn-row divider">
               <button type="button" class="btn-secondary" id="back-to-hub">
@@ -401,14 +392,14 @@
               <span class="section-title-pill">Progress</span>
             </div>
             <div class="right-body">
-              <p>운동 측정은 다음 9개 테스트로 구성됩니다. (권장 순서대로 배치됨)</p>
+              <p>운동 측정은 다음 8개 테스트로 구성됩니다. (권장 순서대로 배치됨)</p>
               <ul>
                 <li><strong>순발력: 반응속도</strong> - 기본 반응속도 측정 (4회 평균)</li>
                 <li><strong>정밀도: 정밀도 & 에임</strong> - 클릭 정확도 및 편향 측정, 타겟 클릭 속도</li>
-                <li><strong>폭발력: Burst Speed</strong> - 5초 동안 최대 연타 속도 측정</li>
+                <li><strong>폭발력: 연타 입력</strong> - 키보드·마우스 각 5초 최대 연타 속도 측정</li>
                 <li><strong>협응력: 동시 입력</strong> - 여러 키를 동시에 누를 수 있는 최대 개수</li>
                 <li><strong>유지력: 최대 홀드 시간</strong> - 버튼을 누르고 유지할 수 있는 최대 시간</li>
-                <li><strong>지구력: 피로도</strong> - 60초 지속 입력으로 피로도 지수 계산 (마지막 수행 권장)</li>
+                <li><strong>지구력: 피로도</strong> - 30초 동안 5초 단위(6구간) 클릭 수 수집, 마지막/첫 구간 비율로 피로도 지수 계산</li>
               </ul>
             </div>
             <div class="progress-summary">
@@ -433,7 +424,7 @@
                 <span class="progress-value" id="progress-precision">0/1</span>
               </div>
               <div class="progress-row">
-                <span class="progress-label">Burst Speed</span>
+                <span class="progress-label">연타 입력</span>
                 <span class="progress-value" id="progress-burst">0/1</span>
               </div>
               <div class="progress-row">
@@ -444,13 +435,9 @@
                 <span class="progress-label">디바이스 전환</span>
                 <span class="progress-value" id="progress-switch">0/1</span>
               </div>
-              <div class="progress-row">
-                <span class="progress-label">도달 범위</span>
-                <span class="progress-value" id="progress-reach">0/1</span>
-              </div>
               <div class="progress-row divider-solid">
                 <span class="progress-label">전체</span>
-                <span class="progress-value" id="progress-total">0/9</span>
+                <span class="progress-value" id="progress-total">0/8</span>
               </div>
             </div>
             <div class="mt-md text-xs">
@@ -484,10 +471,9 @@
           "hold-duration": { url: "motor-hold-duration.html", label: "최대 홀드 시간", total: 1 },
           "simultaneous-input": { url: "motor-simultaneous-input.html", label: "동시 입력", total: 1 },
           "precision": { url: "motor-precision.html", label: "정밀도", total: 1 },
-          "burst-speed": { url: "motor-burst-speed.html", label: "Burst Speed", total: 1 },
+          "burst-speed": { url: "motor-burst-speed.html", label: "연타 입력", total: 1 },
           "fatigue": { url: "motor-fatigue.html", label: "피로도", total: 1 },
-          "switch-test": { url: "switch_test.html", label: "디바이스 전환", total: 1 },
-          "reach-test": { url: "reach_test.html", label: "도달 범위", total: 1 }
+          "switch-test": { url: "switch_test.html", label: "디바이스 전환", total: 1 }
         };
 
         function readSession() {
@@ -524,19 +510,17 @@
           } else if (testKey === "aim-trainer") {
             return motor.aimTrainer && motor.aimTrainer.targets && motor.aimTrainer.targets.length >= 30;
           } else if (testKey === "hold-duration") {
-            return motor.holdDuration && motor.holdDuration.duration !== undefined;
+            return motor.holdDuration && motor.holdDuration.keyboard && motor.holdDuration.mouse;
           } else if (testKey === "simultaneous-input") {
             return motor.simultaneousInput && motor.simultaneousInput.maxKeys !== undefined;
           } else if (testKey === "precision") {
             return motor.precision && motor.precision.averageError !== undefined;
           } else if (testKey === "burst-speed") {
-            return motor.burstSpeed && motor.burstSpeed.maxInputsPerSecond !== undefined;
+            return motor.burstSpeed && motor.burstSpeed.keyboard && motor.burstSpeed.mouse;
           } else if (testKey === "fatigue") {
             return motor.fatigue && motor.fatigue.fatigueIndex !== undefined;
           } else if (testKey === "switch-test") {
-            return motor.switching_latency && motor.switching_latency.average !== undefined;
-          } else if (testKey === "reach-test") {
-            return motor.key_map_range && motor.key_map_range.accuracy !== undefined;
+            return motor.switching_latency && motor.switching_latency.trials && motor.switching_latency.trials.length >= 8;
           }
           return false;
         }
@@ -568,16 +552,15 @@
           document.getElementById("progress-burst").textContent = (checkTestCompletion("burst-speed") ? 1 : 0) + "/1";
           document.getElementById("progress-fatigue").textContent = (checkTestCompletion("fatigue") ? 1 : 0) + "/1";
           document.getElementById("progress-switch").textContent = (checkTestCompletion("switch-test") ? 1 : 0) + "/1";
-          document.getElementById("progress-reach").textContent = (checkTestCompletion("reach-test") ? 1 : 0) + "/1";
-          document.getElementById("progress-total").textContent = totalComplete + "/9";
+          document.getElementById("progress-total").textContent = totalComplete + "/8";
 
-          if (totalComplete >= 9) {
+          if (totalComplete >= 8) {
             finalHint.innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong> 허브로 돌아가면 운동 측정이 완료로 표시됩니다.";
             if (typeof GAStorage !== "undefined") {
               GAStorage.writeProgress("motor", {
-                label: "반응속도 + 에임 + 홀드 + 동시입력 + 정밀도 + Burst Speed + 피로도 + 디바이스전환 + 도달범위",
-                current: 9,
-                total: 9,
+                label: "반응속도 + 에임 + 홀드 + 동시입력 + 정밀도 + 연타입력 + 피로도 + 디바이스전환",
+                current: 8,
+                total: 8,
                 completedAt: new Date().toISOString()
               });
             }

@@ -13,7 +13,7 @@
         --accent-strong: rgba(124, 58, 237, 0.35);
         --border-subtle: rgba(148, 163, 184, 0.4);
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --danger: #f97373;
         --radius-lg: 18px;
         --radius-md: 12px;
@@ -186,8 +186,9 @@
       }
 
       .section-subtitle {
-        font-size: 12px;
-        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
         margin-bottom: 16px;
       }
 
@@ -230,8 +231,8 @@
       .measure-card {
         position: relative;
         border-radius: var(--radius-lg);
-        border: 1px solid var(--glass-border);
-        background: var(--glass-bg);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        background: rgba(15, 23, 42, 0.75);
         backdrop-filter: var(--glass-blur);
         -webkit-backdrop-filter: var(--glass-blur);
         padding: var(--spacing-md);
@@ -240,16 +241,17 @@
         gap: var(--spacing-sm);
         cursor: pointer;
         transition: all var(--transition-base);
-        opacity: 0.6;
+        opacity: 0.9;
         min-height: 48px;
       }
 
       .measure-card[data-primary="true"] {
         opacity: 1;
-        border-color: rgba(129, 140, 248, 1);
-        background: radial-gradient(circle at top, var(--accent-soft), #020617 62%);
-        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.55),
-          0 16px 36px rgba(15, 23, 42, 1);
+        border: 2px solid rgba(129, 140, 248, 0.9);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(124, 58, 237, 0.2) 50%, rgba(15, 23, 42, 0.9) 100%);
+        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 16px 36px rgba(15, 23, 42, 0.8);
       }
 
       .measure-card[data-primary="true"]::before {
@@ -257,16 +259,23 @@
         position: absolute;
         inset: 0;
         border-radius: inherit;
-        background: radial-gradient(circle at top, var(--accent-strong), transparent 66%);
-        opacity: 0.35;
+        background: radial-gradient(circle at 30% 20%, rgba(129, 140, 248, 0.2), transparent 55%);
         pointer-events: none;
+      }
+
+      .measure-card[data-primary="true"] .measure-title {
+        color: #e0e7ff;
+      }
+
+      .measure-card[data-primary="true"] .measure-sub {
+        color: rgba(203, 213, 225, 0.9);
       }
 
       .measure-card:hover {
         transform: translateY(-4px);
         border-color: var(--border-medium);
         box-shadow: var(--shadow-lg);
-        opacity: 0.9;
+        opacity: 1;
       }
 
       .measure-card:focus-visible {
@@ -277,8 +286,8 @@
 
       .measure-card[data-primary="true"]:hover {
         transform: translateY(-4px);
-        border-color: var(--accent-primary);
-        box-shadow: var(--shadow-lg), var(--shadow-glow);
+        border-color: rgba(129, 140, 248, 1);
+        box-shadow: var(--shadow-lg), 0 0 24px rgba(99, 102, 241, 0.25);
       }
 
       .measure-head {
@@ -319,20 +328,7 @@
 
       .measure-sub {
         font-size: 11px;
-        color: var(--text-muted);
-      }
-
-      .measure-skip-tag {
-        font-size: 10px;
-        border-radius: var(--radius-pill);
-        padding: 2px 7px;
-        border: 1px dashed rgba(148, 163, 184, 0.7);
-        color: rgba(148, 163, 184, 0.95);
-        background: radial-gradient(circle at top, #020617, #020617 70%);
-      }
-
-      .measure-card[data-primary="true"] .measure-skip-tag {
-        display: none;
+        color: rgba(203, 213, 225, 0.92);
       }
 
       .measure-progress {
@@ -345,7 +341,7 @@
       }
 
       .measure-progress-label {
-        color: var(--text-muted);
+        color: rgba(203, 213, 225, 0.9);
       }
 
       .measure-progress-value {
@@ -619,7 +615,6 @@
                       </div>
                     </div>
                   </div>
-                  <span class="measure-skip-tag">스킵 가능</span>
                 </div>
                 <div class="measure-progress">
                   <span
@@ -661,7 +656,6 @@
                       </div>
                     </div>
                   </div>
-                  <span class="measure-skip-tag">스킵 가능</span>
                 </div>
                 <div class="measure-progress">
                   <span
@@ -703,7 +697,6 @@
                       </div>
                     </div>
                   </div>
-                  <span class="measure-skip-tag">스킵 가능</span>
                 </div>
                 <div class="measure-progress">
                   <span
@@ -745,7 +738,6 @@
                       </div>
                     </div>
                   </div>
-                  <span class="measure-skip-tag">스킵 가능</span>
                 </div>
                 <div class="measure-progress">
                   <span
@@ -1041,7 +1033,7 @@
             completionStatusText.className = "status-text status-text--ok";
             finalSubmitButton.disabled = false;
             footerHint.innerHTML =
-              "<strong>필수 측정</strong>이 모두 완료되었습니다. 필요하다면 스킵 가능한 측정을 추가로 진행한 뒤 결과를 전송할 수 있습니다.";
+              "<strong>필수 측정</strong>이 모두 완료되었습니다. 필요하다면 선택 측정을 추가로 진행한 뒤 결과를 전송할 수 있습니다.";
           } else {
             completionStatusText.textContent =
               "필수 측정이 아직 완료되지 않았습니다. 강조된 카드(" + (totalRequired - completedCount) + "개 남음)의 진행률을 모두 채운 뒤 다시 시도하세요.";
@@ -1063,7 +1055,7 @@
             const urlByKey = {
               visual: "vision_hub.html",
               motor: "motor_hub.html",
-              audio: "hearing.html",
+              audio: "hearing_hub.html",
               cognitive: "cognitive_hub.html",
             };
 

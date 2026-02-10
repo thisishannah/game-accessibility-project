@@ -321,7 +321,6 @@
           if (motor.precision) html += statRow("정밀도 오차", motor.precision.averageError + " px", null);
           if (motor.fatigue) html += statRow("피로도 지수", motor.fatigue.fatigueIndex + "%", null);
           if (motor.switching_latency) html += statRow("디바이스 전환 지연", motor.switching_latency.average + " ms", null);
-          if (motor.key_map_range) html += statRow("도달 범위 정확도", (motor.key_map_range.accuracy * 100).toFixed(0) + "%", null);
           var oneHandScore = calcOneHandEfficiency(motor);
           if (oneHandScore != null) {
             html += statRow("한 손 조작 효율성", oneHandScore + " / 100", null);
@@ -329,15 +328,13 @@
           stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
         }
 
-        /** switching_latency + key_map_range 기반 한 손 조작 효율성 점수 (0~100). 둘 다 있어야 계산. */
+        /** switching_latency 기반 한 손 조작 효율성 점수 (0~100). key_map_range 삭제로 switching만 사용. */
         function calcOneHandEfficiency(motor) {
           if (!motor) return null;
           var sw = motor.switching_latency && motor.switching_latency.average != null ? motor.switching_latency.average : null;
-          var acc = motor.key_map_range && motor.key_map_range.accuracy != null ? motor.key_map_range.accuracy : null;
-          if (sw == null || acc == null) return null;
-          var switchScore = 40 * (1 - Math.min(1, sw / 600));
-          var reachScore = 60 * acc;
-          return Math.round(switchScore + reachScore);
+          if (sw == null) return null;
+          var switchScore = 100 * (1 - Math.min(1, sw / 600));
+          return Math.round(switchScore);
         }
 
         function renderCognitiveCard(cognitive) {
@@ -350,10 +347,10 @@
             return;
           }
           let html = "";
-          if (cognitive.sequenceMemory) html += statRow("Sequence Memory", cognitive.sequenceMemory.maxLevel + " 레벨", null);
-          if (cognitive.goNoGo) html += statRow("Go/No-Go 성공률", (cognitive.goNoGo.successRate * 100).toFixed(1) + "%", null);
-          if (cognitive.dividedAttention) html += statRow("Divided Attention", cognitive.dividedAttention.starSuccessRate * 100 + "%", null);
-          if (cognitive.readingSpeed) html += statRow("Reading Speed", cognitive.readingSpeed.successRate * 100 + "%", null);
+          if (cognitive.sequenceMemory) html += statRow("순서 기억 테스트", cognitive.sequenceMemory.maxLevel + " 레벨", null);
+          if (cognitive.goNoGo) html += statRow("반응 통제 테스트 성공률", (cognitive.goNoGo.successRate * 100).toFixed(1) + "%", null);
+          if (cognitive.dividedAttention) html += statRow("동시 처리 테스트", cognitive.dividedAttention.starSuccessRate * 100 + "%", null);
+          if (cognitive.readingSpeed) html += statRow("핵심 파악 테스트", cognitive.readingSpeed.successRate * 100 + "%", null);
           stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
         }
 
@@ -367,9 +364,10 @@
             return;
           }
           let html = "";
-          if (hearing.overallDb) html += statRow("전체 청력(dB)", hearing.overallDb, null);
+          if (hearing.overallDb != null) html += statRow("전체 청력(dB)", hearing.overallDb, null);
           if (hearing.speechClarityPercent != null) html += statRow("수음 명료도", hearing.speechClarityPercent.toFixed(0) + "%", null);
-          if (hearing.speechClarityRating) html += statRow("발화 명료도", hearing.speechClarityRating + "/5", null);
+          if (hearing.articulationTest && hearing.articulationTest.matchRate != null) html += statRow("발화 인식 일치도", hearing.articulationTest.matchRate + "%", null);
+          if (hearing.speechClarityRating != null) html += statRow("관찰자 발화 명료도", hearing.speechClarityRating + "/5", null);
           stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
         }
 
@@ -514,12 +512,22 @@
               key_reach_score = Math.max.apply(null, correctWithStage.map(function (t) { return t.stageIndex; }));
             }
           }
-          const burst_speed_peak = motor.burstSpeed && (motor.burstSpeed.maxInputsPerSecond != null)
-            ? motor.burstSpeed.maxInputsPerSecond
+          const burst_speed_peak = motor.burstSpeed
+            ? (motor.burstSpeed.keyboard && motor.burstSpeed.mouse
+              ? Math.max(
+                  motor.burstSpeed.keyboard.inputsPerSecond || 0,
+                  motor.burstSpeed.mouse.inputsPerSecond || 0
+                )
+              : (motor.burstSpeed.maxInputsPerSecond != null ? motor.burstSpeed.maxInputsPerSecond : null))
             : null;
-          const fatigue_index = motor.fatigue && (motor.fatigue.fatigueIndex != null)
-            ? motor.fatigue.fatigueIndex
-            : null;
+          let fatigue_index = null;
+          if (motor.fatigue) {
+            if (motor.fatigue.fatigue_log && motor.fatigue.fatigue_log.length >= 6 && motor.fatigue.fatigue_log[0] > 0) {
+              fatigue_index = Math.round((motor.fatigue.fatigue_log[5] / motor.fatigue.fatigue_log[0]) * 1000) / 10;
+            } else if (motor.fatigue.fatigueIndex != null) {
+              fatigue_index = motor.fatigue.fatigueIndex;
+            }
+          }
 
           const seq_memory_score = cognitive.sequenceMemory && cognitive.sequenceMemory.maxLevel != null
             ? cognitive.sequenceMemory.maxLevel

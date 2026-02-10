@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>청각언어 측정 허브 · 게임 접근성</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      :root {
+        --bg: #020617; --accent: #7c3aed; --accent-soft: rgba(124, 58, 237, 0.18);
+        --text-main: #e5e7eb; --text-muted: #b8c5d6; --ok: #4ade80;
+        --radius-lg: 20px; --radius-md: 12px; --radius-pill: 999px;
+        --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.95);
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: var(--text-main);
+        background: radial-gradient(circle at top, #111827 0, #020617 52%);
+        display: flex; align-items: stretch; justify-content: center; padding: 32px 16px; }
+      .shell { max-width: 1040px; width: 100%; background: radial-gradient(circle at top left, #020617 0, #020617 45%),
+          radial-gradient(circle at bottom right, #020617 0, #020617 60%);
+        border-radius: 26px; border: 1px solid rgba(148, 163, 184, 0.9); box-shadow: var(--shadow-soft);
+        padding: 20px 22px 22px; position: relative; overflow: hidden; }
+      .shell::before { content: ""; position: absolute; inset: -35%;
+        background: radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.24) 0, transparent 55%),
+          radial-gradient(circle at 100% 0%, rgba(129, 140, 248, 0.26) 0, transparent 55%),
+          radial-gradient(circle at 50% 120%, rgba(244, 114, 182, 0.18) 0, transparent 58%);
+        opacity: 0.9; mix-blend-mode: soft-light; pointer-events: none; }
+      .shell-inner { position: relative; z-index: 1; }
+      header.header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+      .brand { display: flex; align-items: center; gap: 10px; }
+      .brand-logo { width: 32px; height: 32px; border-radius: 18px;
+        background: conic-gradient(from 210deg, #7c3aed, #22d3ee, #f97316, #7c3aed);
+        padding: 3px; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9), 0 10px 24px rgba(15, 23, 42, 0.9); }
+      .brand-logo-inner { width: 100%; height: 100%; border-radius: 14px;
+        background: radial-gradient(circle at 30% 15%, #e5e7eb, #e5e7eb 5%, #020617 70%);
+        display: flex; align-items: center; justify-content: center; color: #020617; font-size: 15px; font-weight: 800; }
+      .brand-text-main { display: flex; flex-direction: column; gap: 2px; }
+      .brand-text-main span:first-child { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+      .brand-text-main span:last-child { font-size: 16px; font-weight: 650; }
+      .header-meta { text-align: right; font-size: 14px; color: var(--text-muted); }
+      .header-meta strong { color: #e5e7eb; font-weight: 600; }
+      @media (max-width: 900px) { header.header { flex-direction: column; align-items: flex-start; } .header-meta { text-align: left; } }
+      .panel { background: radial-gradient(circle at top left, #020617 0, #020617 55%),
+          radial-gradient(circle at bottom right, #020617 0, #020617 60%);
+        border-radius: var(--radius-lg); border: 1px solid rgba(51, 65, 85, 0.9);
+        padding: 16px 18px 18px; margin-bottom: 14px; position: relative; overflow: hidden; }
+      .section-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+      .section-title-pill { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-muted);
+        border-radius: var(--radius-pill); border: 1px solid rgba(148, 163, 184, 0.6); padding: 2px 9px;
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.92), #020617); }
+      .section-subtitle { font-size: 14px; font-weight: 500; color: var(--text-muted); margin-bottom: 14px; }
+      .test-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      @media (max-width: 640px) { .test-grid { grid-template-columns: minmax(0, 1fr); } }
+      .test-card { border-radius: var(--radius-md); border: 1px solid rgba(51, 65, 85, 0.9);
+        background: radial-gradient(circle at top, #020617 0, #020617 58%); padding: 12px 13px 13px;
+        cursor: pointer; transition: transform 0.08s, border-color 0.15s, box-shadow 0.16s; }
+      .test-card:hover { transform: translateY(-1px); border-color: rgba(148, 163, 184, 0.95); box-shadow: 0 14px 26px rgba(15, 23, 42, 0.95); }
+      .test-card[data-complete="true"] { border-color: rgba(74, 222, 128, 0.6); background: radial-gradient(circle at top, rgba(74, 222, 128, 0.08), #020617 60%); }
+      .test-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+      .test-card-title { font-size: 13px; font-weight: 600; }
+      .test-card-badge { font-size: 11px; font-variant-numeric: tabular-nums; border-radius: var(--radius-pill);
+        padding: 2px 8px; border: 1px solid rgba(148, 163, 184, 0.6); background: radial-gradient(circle at top, #020617, #020617 70%); }
+      .test-card-badge[data-done="true"] { border-color: rgba(74, 222, 128, 0.8); color: var(--ok); }
+      .test-card-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+      .btn-row { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+      .btn-secondary { border-radius: var(--radius-pill); padding: 7px 13px; border: 1px solid rgba(148, 163, 184, 0.8);
+        cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500;
+        color: rgba(209, 213, 219, 0.95); background: radial-gradient(circle at top, #020617, #020617 65%);
+        transition: transform 0.08s, box-shadow 0.1s; text-decoration: none; }
+      .btn-secondary:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(15, 23, 42, 0.95); }
+      .btn-icon { width: 18px; height: 18px; border-radius: 999px; background: radial-gradient(circle at 25% 0%, #e5e7eb, #020617 65%);
+        display: flex; align-items: center; justify-content: center; font-size: 11px; }
+      .hint { font-size: 14px; font-weight: 500; color: var(--text-muted); }
+      .hint strong { color: #e5e7eb; font-weight: 600; }
+      .progress-summary { margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(51, 65, 85, 0.9); font-size: 12px; }
+      .progress-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+      .progress-label { color: var(--text-muted); font-weight: 500; }
+      .progress-value { font-variant-numeric: tabular-nums; font-weight: 550; }
+      .summary-pill { display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-pill);
+        border: 1px solid rgba(148, 163, 184, 0.8); padding: 3px 8px; background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), #020617);
+        font-size: 11px; margin-top: 4px; }
+      .right-body { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+      .right-body ul { margin: 8px 0 0; padding-left: 18px; }
+      .right-body li { margin-bottom: 4px; }
+      @media (max-width: 900px) {
+        .shell-inner { display: grid; grid-template-columns: minmax(0, 1fr); }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell" aria-labelledby="hearing-title">
+      <div class="shell-inner" style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 20px;">
+        <header class="header" style="grid-column: 1 / -1;">
+          <div class="brand" aria-label="청각언어 측정 허브">
+            <div class="brand-logo" aria-hidden="true"><div class="brand-logo-inner">GA</div></div>
+            <div class="brand-text-main">
+              <span>게임 접근성 측정</span>
+              <span id="hearing-title">청각언어 측정 허브</span>
+            </div>
+          </div>
+          <div class="header-meta" id="user-summary">세션 정보 로딩 중...</div>
+        </header>
+        <section class="panel" aria-label="청각언어 측정 테스트 선택" style="grid-column: 1;">
+          <div class="section-title">
+            <span>청각언어 측정 테스트</span>
+            <span class="section-title-pill">Audio · Speech</span>
+          </div>
+          <p class="section-subtitle">
+            아래 3개의 항목을 진행해 주세요. Mimi 등 외부 앱 결과 입력, 수음 명료도, 발화 명료도를 측정합니다.
+          </p>
+
+          <div class="test-grid" id="test-grid">
+            <article class="test-card" data-test="hearing-input" tabindex="0">
+              <div class="test-card-head">
+                <div class="test-card-title">청력 측정 결과 입력</div>
+                <span class="test-card-badge" data-progress="hearing-input" data-done="false">0/1</span>
+              </div>
+              <div class="test-card-desc">
+                Mimi 등 외부 앱에서 측정한 청력 결과(dB, 주파수별)를 입력합니다.
+              </div>
+            </article>
+
+            <article class="test-card" data-test="speech-clarity" tabindex="0">
+              <div class="test-card-head">
+                <div class="test-card-title">언어 명료도 테스트</div>
+                <span class="test-card-badge" data-progress="speech-clarity" data-done="false">0/1</span>
+              </div>
+              <div class="test-card-desc">
+                단어를 듣고 들린 내용을 입력해 수음 명료도를 측정합니다.
+              </div>
+            </article>
+
+            <article class="test-card" data-test="articulation" tabindex="0">
+              <div class="test-card-head">
+                <div class="test-card-title">발화 명료도 테스트</div>
+                <span class="test-card-badge" data-progress="articulation" data-done="false">0/1</span>
+              </div>
+              <div class="test-card-desc">
+                화면의 문장을 읽어 녹음하고, 발화 인식 일치도를 측정합니다.
+              </div>
+            </article>
+          </div>
+
+          <div class="btn-row divider">
+            <a href="hub.html" class="btn-secondary" id="back-to-hub">
+              <span class="btn-icon" aria-hidden="true">◀</span>
+              <span>허브로 돌아가기</span>
+            </a>
+            <p class="hint" id="final-hint">
+              모든 항목을 완료하면 측정 허브에서 청각언어 측정이 완료로 표시됩니다.
+            </p>
+          </div>
+        </section>
+
+        <aside class="panel" aria-label="진행 상황" style="grid-column: 2;">
+          <div class="section-title">
+            <span>진행 상황</span>
+            <span class="section-title-pill">Progress</span>
+          </div>
+          <div class="right-body">
+            <p>청각언어 측정은 다음 3개 항목으로 구성됩니다.</p>
+            <ul>
+              <li><strong>청력 측정 결과</strong>: 외부 앱(Mimi 등) dB/주파수별 수치 입력</li>
+              <li><strong>언어 명료도</strong>: 단어 듣고 입력 (수음 명료도)</li>
+              <li><strong>발화 명료도</strong>: 문장 읽기 녹음 + 인식 일치도</li>
+            </ul>
+          </div>
+          <div class="progress-summary">
+            <div class="progress-row">
+              <span class="progress-label">청력 측정 결과</span>
+              <span class="progress-value" id="progress-hearing-input">0/1</span>
+            </div>
+            <div class="progress-row">
+              <span class="progress-label">언어 명료도</span>
+              <span class="progress-value" id="progress-speech-clarity">0/1</span>
+            </div>
+            <div class="progress-row">
+              <span class="progress-label">발화 명료도</span>
+              <span class="progress-value" id="progress-articulation">0/1</span>
+            </div>
+            <div class="progress-row divider-solid">
+              <span class="progress-label">전체</span>
+              <span class="progress-value" id="progress-total">0/3</span>
+            </div>
+          </div>
+          <div class="mt-md text-xs">
+            <div>현재 세션</div>
+            <div class="summary-pill">
+              <span>ID</span>
+              <span id="session-id-text">-</span>
+              <span class="opacity-60 ml-xs">·</span>
+              <span>장애</span>
+              <span id="session-disability-text">-</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const userSummaryEl = document.getElementById("user-summary");
+        const sessionIdText = document.getElementById("session-id-text");
+        const sessionDisabilityText = document.getElementById("session-disability-text");
+        const testGrid = document.getElementById("test-grid");
+        const finalHint = document.getElementById("final-hint");
+
+        const TEST_CONFIG = {
+          "hearing-input": { url: "hearing-input.html", label: "청력 측정 결과", total: 1 },
+          "speech-clarity": { url: "hearing-speech-clarity.html", label: "언어 명료도", total: 1 },
+          "articulation": { url: "hearing-articulation.html", label: "발화 명료도", total: 1 }
+        };
+
+        function readSession() {
+          return (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+        }
+
+        function escapeHtml(str) {
+          return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function updateUserSummary() {
+          const session = readSession();
+          const id = session.userId || session.id || "-";
+          const disability = session.disabilityType || "-";
+          if (sessionIdText) sessionIdText.textContent = id || "-";
+          if (sessionDisabilityText) sessionDisabilityText.textContent = disability || "-";
+          if (userSummaryEl) {
+            if (!session.disabilityType) {
+              userSummaryEl.innerHTML = "세션 정보가 없습니다. 메인 페이지에서 세션을 먼저 생성해 주세요.";
+            } else {
+              userSummaryEl.innerHTML = '세션 <strong>' + escapeHtml(id || "unnamed") + "</strong> · 장애 유형 <strong>" + escapeHtml(disability) + "</strong>";
+            }
+          }
+        }
+
+        function checkTestCompletion(testKey) {
+          const session = readSession();
+          const hearing = (session.user_data && session.user_data.hearing_results) || {};
+          if (testKey === "hearing-input") {
+            return hearing.source && hearing.overallDb != null;
+          }
+          if (testKey === "speech-clarity") {
+            return hearing.speechClarityTest && hearing.speechClarityPercent != null;
+          }
+          if (testKey === "articulation") {
+            return hearing.articulationTest && hearing.articulationTest.matchRate != null;
+          }
+          return false;
+        }
+
+        function updateProgress() {
+          const keys = Object.keys(TEST_CONFIG);
+          let doneCount = 0;
+          keys.forEach(function (k) {
+            const el = document.getElementById("progress-" + k);
+            const badge = document.querySelector('[data-progress="' + k + '"]');
+            const card = document.querySelector('.test-card[data-test="' + k + '"]');
+            const done = checkTestCompletion(k);
+            if (el) el.textContent = (done ? 1 : 0) + "/1";
+            if (badge) { badge.textContent = (done ? 1 : 0) + "/1"; badge.dataset.done = done ? "true" : "false"; }
+            if (card) card.dataset.complete = done ? "true" : "false";
+            if (done) doneCount++;
+          });
+          const totalEl = document.getElementById("progress-total");
+          if (totalEl) totalEl.textContent = doneCount + "/3";
+          if (finalHint) {
+            if (doneCount >= 3) {
+              finalHint.innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong> 허브로 돌아가면 청각언어 측정이 완료로 표시됩니다.";
+            } else {
+              finalHint.textContent = "모든 항목을 완료하면 측정 허브에서 청각언어 측정이 완료로 표시됩니다.";
+            }
+          }
+        }
+
+        testGrid.addEventListener("click", function (e) {
+          const card = e.target.closest(".test-card");
+          if (!card) return;
+          const key = card.getAttribute("data-test");
+          if (!key || !TEST_CONFIG[key]) return;
+          window.location.href = TEST_CONFIG[key].url;
+        });
+
+        testGrid.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            const card = e.target.closest(".test-card");
+            if (!card) return;
+            e.preventDefault();
+            const key = card.getAttribute("data-test");
+            if (key && TEST_CONFIG[key]) window.location.href = TEST_CONFIG[key].url;
+          }
+        });
+
+        updateUserSummary();
+        updateProgress();
+      })();
+    </script>
+  </body>
+</html>

@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style.css">
-    <title>Sequence Memory · 인지 측정</title>
+    <title>순서 기억 테스트 · 인지 측정</title>
     <style>
       :root {
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
         --wait: #fbbf24;
@@ -52,6 +52,44 @@
         width: 100%;
         max-width: 600px;
         margin-top: 60px;
+      }
+      .intro-panel {
+        width: 100%;
+        padding: 24px;
+        background: rgba(2, 6, 23, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        margin-bottom: 24px;
+      }
+      .intro-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--text-main);
+        text-align: center;
+      }
+      .intro-body {
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+      }
+      .intro-body p { margin: 0 0 12px 0; }
+      .intro-body ul {
+        margin: 12px 0;
+        padding-left: 20px;
+      }
+      .intro-body .intro-cta {
+        margin-top: 20px;
+        font-weight: 500;
+        color: var(--text-main);
+      }
+      .score-panel {
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--text-main);
       }
       .instruction {
         text-align: center;
@@ -160,14 +198,28 @@
   <body>
     <header>
       <a href="cognitive_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">Sequence Memory</div>
+      <div style="font-size: 12px; color: var(--text-muted);">순서 기억 테스트</div>
     </header>
 
     <div class="test-container">
-      <div class="instruction" id="instruction">준비되면 시작 버튼을 누르세요</div>
-      <div class="info-panel" id="info-panel"></div>
+      <div class="intro-panel" id="intro-panel">
+        <div class="intro-title">순서 기억 테스트</div>
+        <div class="intro-body">
+          <p>3×3 격자판에서 불빛이 순서대로 켜집니다. 그 순서를 기억했다가 같은 순서대로 클릭해 주세요.</p>
+          <ul>
+            <li>레벨 1부터 시작해 맞출 때마다 레벨이 올라갑니다.</li>
+            <li>불빛이 한 칸씩 늘어나며, 최대 레벨 5까지 진행됩니다.</li>
+            <li>순서를 잘못 클릭하면 테스트가 종료됩니다.</li>
+          </ul>
+          <p class="intro-cta">준비되면 <strong>「준비하기」</strong> 버튼을 눌러 주세요.</p>
+        </div>
+        <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px;">준비하기</button>
+      </div>
+      <div class="instruction" id="instruction" style="display: none;"></div>
+      <div class="score-panel" id="score-panel" style="display: none;"><span id="level-display">레벨 1</span></div>
+      <div class="info-panel" id="info-panel" style="display: none;"></div>
       
-      <div class="grid-container" id="grid-container"></div>
+      <div class="grid-container" id="grid-container" style="display: none;"></div>
 
       <div class="results-panel" id="results-panel">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
@@ -180,7 +232,11 @@
     <script src="ga-storage.js"></script>
     <script>
       (function () {
+        const introPanel = document.getElementById("intro-panel");
+        const readyBtn = document.getElementById("ready-btn");
         const instruction = document.getElementById("instruction");
+        const scorePanel = document.getElementById("score-panel");
+        const levelDisplay = document.getElementById("level-display");
         const infoPanel = document.getElementById("info-panel");
         const gridContainer = document.getElementById("grid-container");
         const resultsPanel = document.getElementById("results-panel");
@@ -219,7 +275,9 @@
         function showSequence() {
           state = "showing";
           instruction.textContent = "순서를 기억하세요";
-          infoPanel.textContent = "레벨 " + currentLevel;
+          instruction.style.display = "block";
+          scorePanel.style.display = "block";
+          levelDisplay.textContent = "레벨 " + currentLevel;
           userSequence = [];
           
           let index = 0;
@@ -237,7 +295,6 @@
             } else {
               state = "inputting";
               instruction.textContent = "방금 본 순서대로 클릭하세요";
-              infoPanel.textContent = "";
             }
           };
           
@@ -306,6 +363,8 @@
         }
 
         function startTest() {
+          introPanel.style.display = "none";
+          gridContainer.style.display = "grid";
           testCompleted = false;
           currentLevel = 1;
           sequence = generateSequence(currentLevel);
@@ -319,6 +378,7 @@
           testCompleted = true;
           state = "finished";
           instruction.style.display = "none";
+          scorePanel.style.display = "none";
           gridContainer.style.display = "none";
           infoPanel.style.display = "none";
           resultsPanel.style.display = "block";
@@ -351,10 +411,9 @@
           successes = 0;
           failures = 0;
           
-          instruction.style.display = "block";
-          instruction.textContent = "준비되면 시작 버튼을 누르세요";
-          infoPanel.style.display = "block";
-          infoPanel.textContent = "";
+          introPanel.style.display = "block";
+          instruction.style.display = "none";
+          scorePanel.style.display = "none";
           gridContainer.style.display = "grid";
           resultsPanel.style.display = "none";
           
@@ -394,11 +453,9 @@
 
         retryBtn.addEventListener("click", resetTest);
 
-        window.startTest = startTest;
+        readyBtn.addEventListener("click", startTest);
 
         createGrid();
-        instruction.textContent = "준비되면 시작 버튼을 누르세요";
-        infoPanel.innerHTML = '<button class="btn-primary" onclick="window.startTest()" style="width: auto; padding: 12px 30px;">시작하기</button>';
       })();
     </script>
   </body>

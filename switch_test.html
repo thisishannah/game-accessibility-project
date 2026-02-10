@@ -10,7 +10,7 @@
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
         --wait: #fbbf24;
@@ -21,7 +21,7 @@
         min-height: 100vh;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--text-main);
-        background: #020617;
+        background: var(--bg);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -49,10 +49,71 @@
         cursor: pointer;
       }
       .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+      .test-container { width: 100%; max-width: 600px; margin-top: 60px; }
+
+      .instruction-screen {
+        background: rgba(15, 23, 42, 0.95);
+        border: 2px solid rgba(148, 163, 184, 0.5);
+        border-radius: 20px;
+        padding: 32px;
+        text-align: center;
+      }
+      .instruction-screen h2 {
+        font-size: 20px;
+        margin: 0 0 24px;
+        color: var(--text-main);
+      }
+      .instruction-screen p {
+        font-size: 15px;
+        line-height: 1.7;
+        color: var(--text-muted);
+        margin: 0 0 24px;
+      }
+      .step-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin: 20px 0;
+        padding: 20px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 12px;
+      }
+      .device-icon {
+        width: 64px;
+        height: 64px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(148, 163, 184, 0.15);
+        border: 2px solid rgba(148, 163, 184, 0.5);
+        border-radius: 12px;
+      }
+      .device-icon.mouse { font-size: 28px; }
+      .device-icon.keyboard { font-size: 24px; }
+      .step-text {
+        text-align: left;
+        font-size: 16px;
+        color: var(--text-main);
+      }
+      .step-text strong { color: var(--ok); }
+      .start-hint {
+        margin-top: 28px;
+        padding: 16px;
+        background: rgba(74, 222, 128, 0.1);
+        border: 1px solid var(--ok);
+        border-radius: 12px;
+        font-size: 15px;
+        color: var(--ok);
+        cursor: pointer;
+      }
+      .start-hint:hover { background: rgba(74, 222, 128, 0.2); }
+
       .test-area {
         width: 100%;
         max-width: 600px;
-        height: 400px;
+        min-height: 400px;
         border-radius: 20px;
         display: flex;
         flex-direction: column;
@@ -61,32 +122,68 @@
         cursor: pointer;
         transition: background-color 0.2s;
         position: relative;
-        margin-top: 60px;
+        margin-top: 20px;
         background: #1a1a1a;
-        border: 2px dashed rgba(148, 163, 184, 0.4);
+        border: 2px solid rgba(148, 163, 184, 0.4);
       }
-      .test-area.waiting { background: #1a1a1a; cursor: pointer; }
-      .test-area.prompt-key { background: var(--wait); cursor: default; }
-      .test-area.done { background: var(--ok); cursor: default; }
-      .test-message {
-        font-size: 22px;
+      .test-area.waiting { cursor: pointer; }
+      .test-area.prompt-key { cursor: default; }
+      .test-area.done { cursor: default; }
+      .phase-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+      .phase-box {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 14px;
         font-weight: 600;
-        text-align: center;
-        color: var(--text-main);
-        padding: 0 20px;
+        background: rgba(148, 163, 184, 0.1);
+        border: 2px solid rgba(148, 163, 184, 0.4);
+        color: var(--text-muted);
       }
-      .test-sub {
+      .phase-box.active {
+        background: rgba(251, 191, 36, 0.15);
+        border-color: var(--wait);
+        color: var(--wait);
+      }
+      .phase-box.done {
+        background: rgba(74, 222, 128, 0.15);
+        border-color: var(--ok);
+        color: var(--ok);
+      }
+      .prompt-msg {
+        font-size: 18px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+      }
+      .key-display-large {
+        font-size: 72px;
+        font-weight: 700;
+        padding: 24px 48px;
+        background: rgba(0,0,0,0.5);
+        border: 4px solid var(--wait);
+        border-radius: 16px;
+        color: var(--wait);
+        font-family: monospace;
+        margin: 16px 0;
+      }
+      .feedback-msg {
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 16px;
+        min-height: 28px;
+      }
+      .feedback-msg.hit { color: var(--ok); }
+      .feedback-msg.miss { color: var(--danger); }
+      .feedback-msg.dup { color: var(--wait); }
+      .progress-text {
         font-size: 14px;
         color: var(--text-muted);
-        margin-top: 12px;
-      }
-      .key-hint {
-        font-size: 32px;
-        margin-top: 20px;
-        padding: 16px 32px;
-        background: rgba(0,0,0,0.3);
-        border-radius: 12px;
-        font-family: monospace;
+        margin-top: 16px;
       }
       .results-panel {
         margin-top: 30px;
@@ -104,14 +201,8 @@
         border-bottom: 1px solid rgba(51, 65, 85, 0.5);
         font-size: 14px;
       }
-      .result-item:last-child {
-        border-bottom: none;
-        font-weight: 600;
-        color: var(--ok);
-        margin-top: 8px;
-        padding-top: 12px;
-        border-top: 2px solid rgba(51, 65, 85, 0.9);
-      }
+      .result-item:last-child { border-bottom: none; }
+      .result-item.section { font-weight: 600; color: var(--ok); margin-top: 12px; }
       .btn-primary {
         margin-top: 20px;
         padding: 10px 20px;
@@ -124,44 +215,137 @@
         font-size: 14px;
       }
       .btn-primary:hover { filter: brightness(1.1); }
-      .btn-primary:disabled { opacity: 0.5; cursor: default; }
+      .btn-row-results { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+      .btn-row-results .btn-primary, .btn-row-results .retry-btn { flex: 1; min-width: 120px; margin-top: 0; }
+      .retry-btn {
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(30, 41, 59, 0.8);
+        color: var(--text-main);
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .retry-btn:hover { background: rgba(51, 65, 85, 0.9); }
     </style>
   </head>
   <body>
     <header>
       <a href="motor_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">디바이스 전환 속도 (Device Switching Latency)</div>
+      <div style="font-size: 12px; color: var(--text-muted);">디바이스 전환 속도</div>
     </header>
 
-    <div class="test-area waiting" id="test-area">
-      <div class="test-message" id="test-message">마우스로 이 영역을 클릭한 직후<br>지시된 키를 최대한 빠르게 누르세요</div>
-      <div class="test-sub" id="test-sub">클릭하면 시작합니다 (총 6회)</div>
-      <div class="key-hint" id="key-hint" style="display: none;">[ Space ]</div>
-    </div>
+    <div class="test-container">
+      <div class="instruction-screen" id="instruction-screen">
+        <h2>디바이스 전환 속도 테스트</h2>
+        <p>마우스 클릭 후 키보드 입력까지의 반응 속도를 측정합니다.<br>게임에서 자주 사용하는 키와 숫자패드·우측 키를 번갈아 측정합니다.</p>
+        <div class="step-row">
+          <div class="device-icon mouse" aria-hidden="true">🖱</div>
+          <div class="step-text"><strong>1단계</strong> 아래 영역을 <strong>마우스로 클릭</strong>하세요.</div>
+        </div>
+        <div class="step-row">
+          <div class="device-icon keyboard" aria-hidden="true">⌨</div>
+          <div class="step-text"><strong>2단계</strong> 화면 중앙에 표시된 <strong>키를 최대한 빠르게</strong> 누르세요.<br>잘못된 키를 누르면 Miss, 같은 키를 여러 번 누르면 중복으로 기록됩니다.</div>
+        </div>
+        <div class="start-hint" id="start-btn">▼ 여기를 마우스로 클릭하면 시작합니다</div>
+      </div>
 
-    <div class="results-panel" id="results-panel" style="display: none;">
-      <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과 (마우스 클릭 → 키 입력 지연)</div>
-      <div id="results-list"></div>
-      <button class="btn-primary" id="save-btn" style="width: 100%;">결과 저장 & 허브로 이동</button>
+      <div class="test-area" id="test-area">
+        <div class="phase-indicator">
+          <span class="phase-box" id="phase-mouse">🖱 클릭</span>
+          <span class="phase-box" id="phase-key">⌨ 키 입력</span>
+        </div>
+        <div class="prompt-msg" id="prompt-msg">이 영역을 마우스로 클릭하세요</div>
+        <div class="key-display-large" id="key-display" style="display: none;"></div>
+        <div class="feedback-msg" id="feedback-msg"></div>
+        <div class="progress-text" id="progress-text">0/8 회차</div>
+      </div>
+
+      <div class="results-panel" id="results-panel" style="display: none;">
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+        <div id="results-list"></div>
+        <div class="btn-row-results">
+          <button class="retry-btn" id="retry-btn">재시도</button>
+          <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
+        </div>
+      </div>
     </div>
 
     <script src="ga-storage.js"></script>
     <script>
       (function () {
+        const instructionScreen = document.getElementById("instruction-screen");
+        const startBtn = document.getElementById("start-btn");
         const testArea = document.getElementById("test-area");
-        const testMessage = document.getElementById("test-message");
-        const testSub = document.getElementById("test-sub");
-        const keyHint = document.getElementById("key-hint");
+        const phaseMouse = document.getElementById("phase-mouse");
+        const phaseKey = document.getElementById("phase-key");
+        const promptMsg = document.getElementById("prompt-msg");
+        const keyDisplay = document.getElementById("key-display");
+        const feedbackMsg = document.getElementById("feedback-msg");
+        const progressText = document.getElementById("progress-text");
         const resultsPanel = document.getElementById("results-panel");
         const resultsList = document.getElementById("results-list");
         const saveBtn = document.getElementById("save-btn");
+        const retryBtn = document.getElementById("retry-btn");
 
-        const TARGET_KEY = " ";
-        const TOTAL_TRIALS = 6;
+        const GAME_KEYS = ["W", "A", "S", "D", "E", "R", "Q", "F", "1", "2", "3", "4"];
+        const RIGHT_KEYS = ["Space", "Enter", "Numpad1", "Numpad2", "Numpad5", "NumpadEnter"];
+        const TOTAL_TRIALS = 8;
+
+        const KEY_TO_CODE = {
+          "W": ["KeyW", "w"], "A": ["KeyA", "a"], "S": ["KeyS", "s"], "D": ["KeyD", "d"],
+          "E": ["KeyE", "e"], "R": ["KeyR", "r"], "Q": ["KeyQ", "q"], "F": ["KeyF", "f"],
+          "1": ["Digit1", "1"], "2": ["Digit2", "2"], "3": ["Digit3", "3"], "4": ["Digit4", "4"],
+          "Space": ["Space", " "],
+          "Enter": ["Enter"],
+          "Numpad1": ["Numpad1"], "Numpad2": ["Numpad2"], "Numpad5": ["Numpad5"],
+          "NumpadEnter": ["NumpadEnter"]
+        };
+
+        const DISPLAY_NAMES = {
+          "Numpad1": "1", "Numpad2": "2", "Numpad5": "5",
+          "NumpadEnter": "Num Enter"
+        };
+
+        function shuffle(arr) {
+          const a = arr.slice();
+          for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+          }
+          return a;
+        }
+
+        function buildTrialSequence() {
+          const game = shuffle(GAME_KEYS).slice(0, 4);
+          const right = shuffle(RIGHT_KEYS).slice(0, 4);
+          return shuffle(game.concat(right));
+        }
+
+        function keyMatches(keyName, e) {
+          const codes = KEY_TO_CODE[keyName];
+          if (!codes) return false;
+          return codes.some(function(c) {
+            return e.code === c || e.key === c || (c.length === 1 && e.key.toLowerCase() === c.toLowerCase());
+          });
+        }
+
+        function getPressedKeyName(e) {
+          const map = { Space: "Space", Enter: "Enter", NumpadEnter: "NumpadEnter",
+            Numpad1: "Numpad1", Numpad2: "Numpad2", Numpad5: "Numpad5" };
+          if (map[e.code]) return map[e.code];
+          if (e.code && e.code.startsWith("Key")) return e.key ? e.key.toUpperCase() : e.code.slice(-1).toUpperCase();
+          if (e.code && e.code.startsWith("Digit")) return e.key || e.code.slice(-1);
+          return e.key || e.code || "?";
+        }
+
+        let trialKeys = [];
         let trials = [];
         let currentTrial = 0;
         let clickTime = 0;
         let keyHandler = null;
+        let hasRecordedThisTrial = false;
 
         function removeKeyHandler() {
           if (keyHandler) {
@@ -170,73 +354,180 @@
           }
         }
 
+        function showInstruction() {
+          instructionScreen.style.display = "block";
+          testArea.style.display = "none";
+          resultsPanel.style.display = "none";
+        }
+
+        function startTest() {
+          instructionScreen.style.display = "none";
+          testArea.style.display = "flex";
+          trialKeys = buildTrialSequence();
+          trials = [];
+          currentTrial = 0;
+          startTrial();
+        }
+
         function startTrial() {
           if (currentTrial >= TOTAL_TRIALS) {
             showResults();
             return;
           }
-          testArea.className = "test-area waiting";
-          testArea.style.cursor = "pointer";
-          keyHint.style.display = "none";
-          testMessage.textContent = "이 영역을 마우스로 클릭하세요";
-          testSub.textContent = (currentTrial + 1) + "/" + TOTAL_TRIALS + "회차";
+          hasRecordedThisTrial = false;
+          phaseMouse.classList.add("active");
+          phaseMouse.classList.remove("done");
+          phaseKey.classList.remove("active", "done");
+          keyDisplay.style.display = "none";
+          feedbackMsg.textContent = "";
+          feedbackMsg.className = "feedback-msg";
+          promptMsg.textContent = "이 영역을 마우스로 클릭하세요";
+          progressText.textContent = (currentTrial + 1) + "/" + TOTAL_TRIALS + " 회차";
 
           testArea.onclick = function (e) {
             if (e.button !== 0) return;
             clickTime = Date.now();
             testArea.onclick = null;
-            testArea.style.cursor = "default";
-            testArea.className = "test-area prompt-key";
-            testMessage.textContent = "지금 아래 키를 누르세요!";
-            keyHint.textContent = "[ Space ]";
-            keyHint.style.display = "block";
+            phaseMouse.classList.remove("active");
+            phaseMouse.classList.add("done");
+            phaseKey.classList.add("active");
+
+            const targetKey = trialKeys[currentTrial];
+            const displayName = DISPLAY_NAMES[targetKey] || targetKey;
+            promptMsg.textContent = "지금 아래 키를 누르세요!";
+            keyDisplay.textContent = displayName;
+            keyDisplay.style.display = "block";
 
             keyHandler = function (ev) {
-              if (ev.code === "Space" || ev.key === " ") {
-                ev.preventDefault();
+              ev.preventDefault();
+              const pressed = getPressedKeyName(ev);
+              const isCorrect = keyMatches(targetKey, ev);
+
+              if (isCorrect) {
+                if (hasRecordedThisTrial) {
+                  feedbackMsg.textContent = "중복 입력";
+                  feedbackMsg.className = "feedback-msg dup";
+                  trials[trials.length - 1].duplicateInput = true;
+                  setTimeout(function() {
+                    removeKeyHandler();
+                    phaseKey.classList.remove("active");
+                    phaseKey.classList.add("done");
+                    currentTrial++;
+                    keyDisplay.style.display = "none";
+                    startTrial();
+                  }, 800);
+                } else {
+                  hasRecordedThisTrial = true;
+                  const latency = Date.now() - clickTime;
+                  const keyGroup = RIGHT_KEYS.includes(targetKey) ? "right" : "game";
+                  trials.push({
+                    round: currentTrial + 1,
+                    expectedKey: targetKey,
+                    latency: latency,
+                    status: "Hit",
+                    keyGroup: keyGroup,
+                    duplicateInput: false
+                  });
+                  feedbackMsg.textContent = latency + " ms";
+                  feedbackMsg.className = "feedback-msg hit";
+                  removeKeyHandler();
+                  phaseKey.classList.remove("active");
+                  phaseKey.classList.add("done");
+                  currentTrial++;
+                  keyDisplay.style.display = "none";
+                  setTimeout(startTrial, 1000);
+                }
+              } else {
+                const keyGroup = RIGHT_KEYS.includes(targetKey) ? "right" : "game";
+                trials.push({
+                  round: currentTrial + 1,
+                  expectedKey: targetKey,
+                  pressedKey: pressed,
+                  status: "Miss",
+                  keyGroup: keyGroup
+                });
+                feedbackMsg.textContent = "Miss (입력: " + pressed + ")";
+                feedbackMsg.className = "feedback-msg miss";
                 removeKeyHandler();
-                const latency = Date.now() - clickTime;
-                trials.push(latency);
+                phaseKey.classList.remove("active");
+                phaseKey.classList.add("done");
                 currentTrial++;
-                testArea.className = "test-area done";
-                testMessage.textContent = latency + " ms";
-                keyHint.style.display = "none";
-                setTimeout(function () {
-                  startTrial();
-                }, 800);
+                keyDisplay.style.display = "none";
+                setTimeout(startTrial, 1500);
               }
             };
             document.addEventListener("keydown", keyHandler);
           };
         }
 
+        function resetTest() {
+          removeKeyHandler();
+          testArea.style.display = "flex";
+          resultsPanel.style.display = "none";
+          showInstruction();
+        }
+
         function showResults() {
           testArea.style.display = "none";
           resultsPanel.style.display = "block";
-          const avg = trials.reduce((a, b) => a + b, 0) / trials.length;
-          const min = Math.min.apply(null, trials);
-          const max = Math.max.apply(null, trials);
-          let html = "";
-          trials.forEach(function (t, i) {
-            html += '<div class="result-item"><span>' + (i + 1) + "회차</span><span>" + t + " ms</span></div>";
+
+          const hitTrials = trials.filter(function(t) { return t.status === "Hit"; });
+          const missTrials = trials.filter(function(t) { return t.status === "Miss"; });
+          const dupCount = trials.filter(function(t) { return t.duplicateInput; }).length;
+          const latencies = hitTrials.map(function(t) { return t.latency; });
+          const avg = latencies.length ? Math.round(latencies.reduce(function(a,b){return a+b;},0) / latencies.length) : 0;
+          const min = latencies.length ? Math.min.apply(null, latencies) : 0;
+          const max = latencies.length ? Math.max.apply(null, latencies) : 0;
+
+          let html = '<div class="result-item"><span>성공 (Hit)</span><span>' + hitTrials.length + ' 회</span></div>';
+          html += '<div class="result-item"><span>실패 (Miss)</span><span>' + missTrials.length + ' 회</span></div>';
+          if (dupCount > 0) html += '<div class="result-item"><span>중복 입력 발생</span><span>' + dupCount + ' 회</span></div>';
+          html += '<div class="result-item section">지연 시간 (Hit만)</div>';
+          html += '<div class="result-item"><span>평균</span><span>' + avg + ' ms</span></div>';
+          html += '<div class="result-item"><span>최소</span><span>' + min + ' ms</span></div>';
+          html += '<div class="result-item"><span>최대</span><span>' + max + ' ms</span></div>';
+          html += '<div class="result-item section">회차별 상세</div>';
+          trials.forEach(function(t) {
+            let desc = "마우스→" + (DISPLAY_NAMES[t.expectedKey] || t.expectedKey);
+            if (t.status === "Hit") desc += ": " + t.latency + "ms" + (t.duplicateInput ? " (중복)" : "");
+            else desc += ": Miss (입력: " + (t.pressedKey || "-") + ")";
+            html += '<div class="result-item" style="font-size: 12px;"><span>' + t.round + '회차</span><span>' + desc + '</span></div>';
           });
-          html += '<div class="result-item"><span>평균</span><span>' + Math.round(avg) + " ms</span></div>";
-          html += '<div class="result-item"><span>최소</span><span>' + min + " ms</span></div>";
-          html += '<div class="result-item"><span>최대</span><span>' + max + " ms</span></div>";
           resultsList.innerHTML = html;
         }
 
+        document.getElementById("start-btn").addEventListener("click", startTest);
+
+        retryBtn.addEventListener("click", resetTest);
         saveBtn.addEventListener("click", function () {
-          if (trials.length < TOTAL_TRIALS) return;
-          const avg = trials.reduce((a, b) => a + b, 0) / trials.length;
+          const hitTrials = trials.filter(function(t) { return t.status === "Hit"; });
+          const latencies = hitTrials.map(function(t) { return t.latency; });
+          const avg = latencies.length ? Math.round(latencies.reduce(function(a,b){return a+b;},0) / latencies.length) : null;
+
+          const trialDetails = trials.map(function(t) {
+            const r = {
+              round: t.round,
+              expectedKey: t.expectedKey,
+              status: t.status,
+              keyGroup: t.keyGroup
+            };
+            if (t.status === "Hit") r.latencyMs = t.latency;
+            if (t.status === "Miss") r.pressedKey = t.pressedKey;
+            if (t.duplicateInput) r.duplicateInput = true;
+            return r;
+          });
+
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
           const motor = session.user_data.motor_results || {};
           motor.switching_latency = {
-            trials: trials,
-            average: Math.round(avg),
-            min: Math.min.apply(null, trials),
-            max: Math.max.apply(null, trials),
+            trials: trialDetails,
+            hitCount: hitTrials.length,
+            missCount: trials.filter(function(t) { return t.status === "Miss"; }).length,
+            duplicateCount: trials.filter(function(t) { return t.duplicateInput; }).length,
+            average: avg,
+            min: latencies.length ? Math.min.apply(null, latencies) : null,
+            max: latencies.length ? Math.max.apply(null, latencies) : null,
             unit: "ms",
             recordedAt: new Date().toISOString()
           };
@@ -246,7 +537,7 @@
           window.location.href = "motor_hub.html";
         });
 
-        startTrial();
+        showInstruction();
       })();
     </script>
   </body>

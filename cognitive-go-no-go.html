@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style.css">
-    <title>Go/No-Go Test · 인지 측정</title>
+    <title>반응 통제 테스트 · 인지 측정</title>
     <style>
       :root {
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
         --wait: #fbbf24;
@@ -88,6 +88,23 @@
         opacity: 0;
         pointer-events: none;
       }
+      .intro-panel {
+        width: 100%;
+        padding: 24px;
+        background: rgba(2, 6, 23, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        margin-bottom: 24px;
+      }
+      .intro-body {
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .intro-body p { margin: 0 0 10px 0; }
+      .intro-body strong { color: var(--text-main); }
       .info-panel {
         text-align: center;
         font-size: 20px;
@@ -153,13 +170,20 @@
   <body>
     <header>
       <a href="cognitive_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">Go/No-Go Test</div>
+      <div style="font-size: 12px; color: var(--text-muted);">반응 통제 테스트</div>
     </header>
 
     <div class="test-container">
-      <div class="instruction" id="instruction">초록색 원이 나오면 클릭하세요. 빨간색 원이 나오면 클릭하지 마세요.</div>
+      <div class="intro-panel" id="intro-panel">
+        <div class="intro-body">
+          <p><strong>초록색 원</strong>이 나오면 클릭하고, <strong>빨간색 원</strong>이 나오면 클릭하지 마세요.</p>
+          <p>반응 억제와 적응력을 측정하는 테스트입니다. 준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
+        </div>
+        <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>
+      </div>
+      <div class="instruction" id="instruction" style="display: none;"></div>
       
-      <div class="circle-container">
+      <div class="circle-container" id="circle-container" style="display: none;">
         <div class="circle hidden" id="circle"></div>
       </div>
 
@@ -176,7 +200,10 @@
     <script src="ga-storage.js"></script>
     <script>
       (function () {
+        const introPanel = document.getElementById("intro-panel");
+        const readyBtn = document.getElementById("ready-btn");
         const instruction = document.getElementById("instruction");
+        const circleContainer = document.getElementById("circle-container");
         const circle = document.getElementById("circle");
         const infoPanel = document.getElementById("info-panel");
         const resultsPanel = document.getElementById("results-panel");
@@ -184,8 +211,8 @@
         const saveBtn = document.getElementById("save-btn");
         const retryBtn = document.getElementById("retry-btn");
 
-        const TOTAL_TRIALS = 30;
-        const GO_PROBABILITY = 0.7; // 70% 초록색, 30% 빨간색
+        const TOTAL_TRIALS = 35;
+        const GO_PROBABILITY = 0.55; // 55% 초록색, 45% 빨간색 (No-Go 많아질수록 억제 난이도 상승)
 
         let currentTrial = 0;
         let trials = [];
@@ -195,7 +222,7 @@
         let timeoutId = null;
 
         function getRandomDelay() {
-          return 1000 + Math.random() * 2000; // 1-3초
+          return 800 + Math.random() * 1200; // 0.8~2초 (간격 단축으로 예측 어려움)
         }
 
         function showStimulus() {
@@ -218,7 +245,7 @@
               recordTrial(false, null);
             }
             hideStimulus();
-          }, 1500);
+          }, 1100);
         }
 
         function hideStimulus() {
@@ -270,12 +297,16 @@
         });
 
         function startTest() {
+          introPanel.style.display = "none";
+          circleContainer.style.display = "flex";
+          instruction.style.display = "block";
+          infoPanel.style.display = "block";
+          instruction.textContent = "초록색 원 → 클릭, 빨간색 원 → 클릭하지 마세요";
           testActive = true;
           currentTrial = 0;
           trials = [];
-          instruction.textContent = "초록색 원이 나오면 클릭하세요. 빨간색 원이 나오면 클릭하지 마세요.";
           infoPanel.textContent = "";
-          setTimeout(showStimulus, 1000);
+          setTimeout(showStimulus, 800);
         }
 
         function endTest() {
@@ -317,9 +348,10 @@
           trials = [];
           currentStimulus = null;
           
-          instruction.style.display = "block";
-          instruction.textContent = "초록색 원이 나오면 클릭하세요. 빨간색 원이 나오면 클릭하지 마세요.";
-          infoPanel.style.display = "block";
+          introPanel.style.display = "block";
+          circleContainer.style.display = "none";
+          instruction.style.display = "none";
+          infoPanel.style.display = "none";
           infoPanel.textContent = "";
           circle.classList.add("hidden");
           resultsPanel.style.display = "none";
@@ -369,9 +401,7 @@
 
         retryBtn.addEventListener("click", resetTest);
 
-        window.startTest = startTest;
-
-        instruction.innerHTML = '<button class="btn-primary" onclick="window.startTest()" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>';
+        readyBtn.addEventListener("click", startTest);
       })();
     </script>
   </body>

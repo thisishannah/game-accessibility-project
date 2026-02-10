@@ -13,10 +13,10 @@
   --accent-tertiary: #8b5cf6;
   --accent-soft: rgba(124, 58, 237, 0.15);
   --accent-strong: rgba(124, 58, 237, 0.35);
-  --text-primary: #f1f5f9;
-  --text-secondary: #e5e7eb;
-  --text-muted: #94a3b8;
-  --text-disabled: #64748b;
+  --text-primary: #f8fafc;
+  --text-secondary: #eef2f7;
+  --text-muted: #b8c5d6;
+  --text-disabled: #94a3b8;
   --success: #4ade80;
   --success-soft: rgba(74, 222, 128, 0.15);
   --warning: #fbbf24;
@@ -77,6 +77,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+  font-size: 16px;
   color: var(--text-primary);
   background: radial-gradient(ellipse at top, #1e293b 0%, #020617 50%);
   background-attachment: fixed;
@@ -155,7 +156,7 @@ body {
 }
 
 .card-title {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -190,7 +191,7 @@ body {
 }
 
 .panel-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--text-primary);
   display: flex;
@@ -199,8 +200,9 @@ body {
 }
 
 .panel-subtitle {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
   margin-top: var(--spacing-xs);
   line-height: 1.5;
 }
@@ -262,7 +264,7 @@ body {
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
   z-index: 1001;
@@ -276,7 +278,7 @@ body {
   justify-content: center;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-pill);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   border: 1px solid var(--border-subtle);
@@ -320,7 +322,7 @@ body {
   padding: 12px 24px;
   min-height: 48px;
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -401,7 +403,7 @@ body {
 
 .input-label {
   display: block;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--spacing-xs);
@@ -413,8 +415,9 @@ body {
 }
 
 .input-helper {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
   margin-top: var(--spacing-xs);
 }
 
@@ -430,7 +433,7 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 15px;
   font-family: inherit;
   transition: all var(--transition-base);
 }
@@ -454,7 +457,7 @@ body {
 }
 
 .input-error {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--danger);
   margin-top: var(--spacing-xs);
   display: block;
@@ -522,14 +525,15 @@ body {
 }
 
 .brand-title {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .brand-subtitle {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 /* 섹션 */
@@ -538,7 +542,7 @@ body {
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--spacing-md);
@@ -622,8 +626,9 @@ body {
 
 .test-card-desc,
 .measure-desc {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -636,12 +641,13 @@ body {
 }
 
 .progress-label {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .progress-value {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
@@ -686,7 +692,8 @@ body {
 }
 
 .text-muted {
-  color: var(--text-muted);
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .text-success {
@@ -726,11 +733,11 @@ body {
 
 /* 유틸리티 클래스 추가 */
 .text-sm {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .text-xs {
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .mt-sm {
@@ -804,20 +811,22 @@ body {
 
 .test-description {
   text-align: left;
-  font-size: 0.9em;
+  font-size: 15px;
+  font-weight: 500;
   line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 /* 구글 시트 입력 필드 */
 .sheets-input {
   flex: 1;
   min-width: 200px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-medium);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .sheets-input:focus {
@@ -827,12 +836,12 @@ body {
 }
 
 .sheets-button {
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 8px 14px;
+  font-size: 14px;
 }
 
 .sheets-status {
-  font-size: 11px;
+  font-size: 13px;
   margin-top: var(--spacing-sm);
 }
 
@@ -899,8 +908,8 @@ body {
   .test-progress-info {
     top: 6px;
     right: 10px;
-    font-size: 10px;
-    padding: 4px 8px;
+    font-size: 12px;
+    padding: 5px 10px;
   }
   
   .header {
@@ -1144,7 +1153,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-xs) 0;
-  font-size: 13px;
+  font-size: 15px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -1153,9 +1162,9 @@ body {
 }
 
 .summary-report .stat-badge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: var(--radius-pill);
 }
 
@@ -1178,7 +1187,8 @@ body {
 }
 
 .summary-report .expert-opinion-label {
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   color: var(--neon-blue);
@@ -1186,7 +1196,8 @@ body {
 }
 
 .summary-report .expert-opinion-text {
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
   line-height: 1.7;
   color: var(--text-secondary);
   font-style: italic;
@@ -1198,8 +1209,9 @@ body {
   border-radius: var(--radius-lg);
   padding: var(--spacing-2xl);
   text-align: center;
-  color: var(--text-muted);
-  font-size: 13px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .summary-report .sticky-footer {
@@ -1225,7 +1237,7 @@ body {
 
 .summary-report .validation-error {
   color: var(--danger);
-  font-size: 12px;
+  font-size: 14px;
   margin-top: var(--spacing-sm);
 }
 

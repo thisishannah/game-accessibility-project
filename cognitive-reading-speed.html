@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style.css">
-    <title>Reading Speed · 인지 측정</title>
+    <title>핵심 파악 테스트 · 인지 측정</title>
     <style>
       :root {
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
-        --text-muted: #9ca3af;
+        --text-muted: #b8c5d6;
         --ok: #4ade80;
         --danger: #f97373;
         --wait: #fbbf24;
@@ -79,6 +79,23 @@
       .sentence-display.hidden {
         opacity: 0;
       }
+      .intro-panel {
+        width: 100%;
+        padding: 24px;
+        background: rgba(2, 6, 23, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        margin-bottom: 24px;
+      }
+      .intro-body {
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .intro-body p { margin: 0 0 10px 0; }
+      .intro-body strong { color: var(--text-main); }
       .options-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -174,13 +191,20 @@
   <body>
     <header>
       <a href="cognitive_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">Reading Speed</div>
+      <div style="font-size: 12px; color: var(--text-muted);">핵심 파악 테스트</div>
     </header>
 
     <div class="test-container">
-      <div class="instruction" id="instruction">2초간 문장을 읽고 핵심 키워드를 선택하세요</div>
+      <div class="intro-panel" id="intro-panel">
+        <div class="intro-body">
+          <p>처음에 <strong>2초간</strong> 보여주는 문장을 기억했다가, 그 다음에 나오는 <strong>핵심 키워드</strong> 중에서 문장과 연관 있는 것을 골라 주세요.</p>
+          <p>각 문장마다 4개의 키워드가 제시되며, 그중 하나만 정답입니다. 준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
+        </div>
+        <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>
+      </div>
+      <div class="instruction" id="instruction" style="display: none;"></div>
       
-      <div class="sentence-display" id="sentence-display"></div>
+      <div class="sentence-display" id="sentence-display" style="display: none;"></div>
 
       <div class="options-container" id="options-container"></div>
 
@@ -197,6 +221,8 @@
     <script src="ga-storage.js"></script>
     <script>
       (function () {
+        const introPanel = document.getElementById("intro-panel");
+        const readyBtn = document.getElementById("ready-btn");
         const instruction = document.getElementById("instruction");
         const sentenceDisplay = document.getElementById("sentence-display");
         const optionsContainer = document.getElementById("options-container");
@@ -319,10 +345,13 @@
         }
 
         function startTest() {
+          introPanel.style.display = "none";
+          sentenceDisplay.style.display = "flex";
+          instruction.style.display = "block";
+          instruction.textContent = "2초간 문장을 기억한 뒤, 연관 키워드를 선택하세요";
           testActive = true;
           currentTrial = 0;
           trials = [];
-          instruction.textContent = "2초간 문장을 읽고 핵심 키워드를 선택하세요";
           showSentence();
         }
 
@@ -359,9 +388,9 @@
           currentSentence = null;
           optionsVisible = false;
           
-          instruction.style.display = "block";
-          instruction.textContent = "2초간 문장을 읽고 핵심 키워드를 선택하세요";
-          sentenceDisplay.style.display = "flex";
+          introPanel.style.display = "block";
+          instruction.style.display = "none";
+          sentenceDisplay.style.display = "none";
           sentenceDisplay.textContent = "";
           sentenceDisplay.classList.remove("hidden");
           optionsContainer.style.display = "grid";
@@ -408,9 +437,7 @@
 
         retryBtn.addEventListener("click", resetTest);
 
-        window.startTest = startTest;
-
-        instruction.innerHTML = '<button class="btn-primary" onclick="window.startTest()" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>';
+        readyBtn.addEventListener("click", startTest);
       })();
     </script>
   </body>
