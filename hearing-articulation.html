@@ -17,14 +17,14 @@
     .intro-panel { padding: 24px; background: rgba(2,6,23,0.9); border-radius: 16px; border: 1px solid rgba(51,65,85,0.9); margin-bottom: 24px; }
     .intro-body { font-size: 14px; line-height: 1.7; color: var(--text-muted); margin-bottom: 20px; text-align: center; }
     .intro-body p { margin: 0 0 10px 0; }
-    .instruction { text-align: center; font-size: 48px; font-weight: 600; margin-bottom: 16px; color: var(--text-main); min-height: 100px; display: flex; align-items: center; justify-content: center; }
+    .instruction { text-align: center; font-size: 24px; font-weight: 600; margin-bottom: 16px; color: var(--text-main); min-height: 100px; display: flex; align-items: center; justify-content: center; }
     .volume-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding: 12px; background: rgba(15,23,42,0.6); border-radius: 12px; }
     .volume-bar { flex: 1; height: 12px; background: rgba(51,65,85,0.9); border-radius: 999px; overflow: hidden; }
     .volume-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#22c55e,#4ade80); border-radius: 999px; transition: width 0.05s; }
     .volume-label { font-size: 12px; color: var(--text-muted); min-width: 80px; }
     .sentence-box { padding: 24px; background: #1a1a1a; border-radius: 16px; border: 2px solid rgba(148,163,184,0.6);
-      font-size: 60px; line-height: 1.6; text-align: center; margin-bottom: 20px; min-height: 200px; display: flex; align-items: center; justify-content: center; white-space: pre-line; }
-    .speak-cta { font-size: 54px; font-weight: 700; color: #4ade80; margin-bottom: 16px; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+      font-size: 30px; line-height: 1.6; text-align: center; margin-bottom: 20px; min-height: 200px; display: flex; align-items: center; justify-content: center; white-space: pre-line; }
+    .speak-cta { font-size: 27px; font-weight: 700; color: #4ade80; margin-bottom: 16px; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; }
     .record-btn { padding: 14px 28px; border-radius: 999px; border: none; background: #ef4444; color: white; font-weight: 600; font-size: 16px; cursor: pointer; display: block; margin: 0 auto 12px; }
     .record-btn.recording { background: #dc2626; animation: pulse 1s infinite; }
     @keyframes pulse { 50% { opacity: 0.8; } }
@@ -36,7 +36,7 @@
     .btn-primary { margin-top: 20px; padding: 10px 20px; border-radius: 999px; border: none; background: linear-gradient(120deg,#4f46e5,#7c3aed,#22c55e); color: white; font-weight: 550; cursor: pointer; font-size: 14px; width: 100%; }
     .btn-primary:hover { filter: brightness(1.1); }
     .audio-play { margin: 16px 0; }
-    .progress-indicator { text-align: center; font-size: 42px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; }
+    .progress-indicator { text-align: center; font-size: 21px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; }
     .observer-item { margin-bottom: 24px; padding: 16px; background: rgba(15,23,42,0.6); border-radius: 12px; border: 1px solid rgba(51,65,85,0.5); }
     .observer-item .item-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
     .observer-item .item-sentence { font-size: 15px; color: var(--text-main); margin-bottom: 12px; line-height: 1.5; white-space: pre-line; }
@@ -89,7 +89,7 @@
   <script>
     (function () {
       const SENTENCES = [
-        "이번 라운드 잘했어요, 다음에도 화이팅 해요.",
+        "이번 라운드 잘했어요, 다음에도 파이팅 해요.",
         "탱크는 앞에 서주시고, 딜러는 뒤에서 공격해 주세요.",
         "미드 부족한데 누가 가실 수 있을까요?",
         "저 템 하나만 가져가도 될까요? 감사합니다.",
@@ -134,9 +134,7 @@
 
       function formatSentenceWithLineBreaks(s) {
         if (!s || typeof s !== "string") return s;
-        return s
-          .replace(/,\s+/g, ",\n")
-          .replace(/([.?!])\s+/g, "$1\n");
+        return s.replace(/([.?!])\s+/g, "$1\n");
       }
 
       function similarity(a, b) {

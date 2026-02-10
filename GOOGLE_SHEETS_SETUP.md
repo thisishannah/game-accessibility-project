@@ -5,21 +5,28 @@ summary.html의 "구글 시트 전송" 기능을 사용하려면 Google Apps Scr
 ## 1. Google 스프레드시트 생성
 
 1. [sheets.new](https://sheets.new)에서 새 스프레드시트 생성
-2. 첫 행에 헤더 입력 (예: userId, gender, disabilityType, ... 또는 JSON 전체를 한 열에 저장)
+2. 첫 행에 아래 **헤더 순서**와 동일하게 입력 (순서가 틀리면 열이 밀립니다)
 
-## 2. Apps Script 작성
+## 2. 전송 payload 구조 (summary.html 기준)
+
+**키 순서 (SHEETS_HEADER_ORDER):**
+```
+timestamp | user_id | age | gender | monitor_inch | resolution | viewing_distance | disability_type |
+vision_rt_avg | vision_aim_avg | fov_blind_rate | readable_font_size | readable_font_size_mm |
+motor_rt_avg | motor_aim_avg | motor_switch_latency | key_reach_score | burst_speed_peak | fatigue_index | motor_precision_error_mm |
+seq_memory_score | go_nogo_accuracy | hearing_intelligibility |
+input_device | assistive_device |
+calibration_mm_per_px |
+raw_vision_data | raw_motor_data | raw_cognitive_data | raw_hearing_data | observer_report
+```
+
+- **요약 필드**: vision_rt_avg, motor_rt_avg 등 수치
+- **raw_*_data**: 시각/운동/인지/청각 전체 객체 (JSON 문자열로 저장 권장)
+- **observer_report**: 관찰자 리포트 객체 (JSON 문자열로 저장 권장)
+
+## 3. Apps Script 작성
 
 스프레드시트에서 **확장 프로그램 > Apps Script** 열기
-
-**전송 payload 구조 (Summary + Raw 분리)**
-
-- **프로필**: `userId`, `gender`, `ageRange`, `disabilityType`, `platform`, `inputDevice`, `recordedAt`
-- **summary**: 요약 값 객체
-  - `vision_rt_avg`, `fov_blind_rate`, `vision_font_min_px`, `vision_aim_avg_ms`
-  - `motor_rt_avg`, `motor_aim_avg_ms`, `motor_precision_avg_error`, `motor_fatigue_index`
-  - `cognitive_sequence_max_level`, `cognitive_go_nogo_success_rate`, `cognitive_divided_star_rate`, `cognitive_reading_success_rate`
-  - `hearing_overall_db`, `hearing_speech_clarity_pct`, `hearing_speech_rating`
-- **raw_vision_data**, **raw_motor_data**, **raw_cognitive_data**, **raw_hearing_data**: 차수별 상세 객체(JSON)
 
 ```javascript
 function doPost(e) {
@@ -42,7 +49,7 @@ function doPost(e) {
 }
 ```
 
-## 3. 배포
+## 4. 배포
 
 1. **배포 > 새 배포**
 2. 유형: **웹 앱**
@@ -50,8 +57,8 @@ function doPost(e) {
 4. 액세스: **모든 사용자** (익명 접근 허용)
 5. **배포** 클릭 후 Web App URL 복사
 
-## 4. summary.html에 URL 입력
+## 5. summary.html 사용
 
-복사한 URL을 summary.html의 "구글 시트 전송" 입력란에 붙여넣고 **구글 시트로 전송** 버튼 클릭.
+summary.html의 **전송** 버튼을 누르면 지정된 Web App URL로 POST 전송됩니다. URL은 코드 내 `DEPLOYED_SHEETS_URL` 상수로 고정되어 있습니다.
 
 > CORS 오류가 발생하면 Apps Script에서 `doPost`가 `ContentService.MimeType.JSON`을 반환하는지, 배포 액세스가 "모든 사용자"인지 확인하세요.

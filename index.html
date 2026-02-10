@@ -2164,7 +2164,11 @@
             return;
           }
           if (typeof GAStorage !== "undefined") {
-            GAStorage.writeSession(userData);
+            // 새 세션 저장 시 이전 측정 결과(user_data.*_results)를 초기화하여 허브 진척도가 0에서 시작되도록 함
+            GAStorage.writeSession({
+              user_data: {},
+              ...userData,
+            });
           }
           statSession.textContent = "Saved";
           location.href = "hub.html";

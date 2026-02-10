@@ -120,10 +120,9 @@
         <div class="panel mt-md">
           <div class="section-title mb-sm">구글 시트 전송</div>
           <p class="text-xs text-muted mb-sm">
-            전송 버튼을 누르면 지정된 구글 시트에 데이터가 추가되고, 성공 시 세션이 비워지며 메인 페이지로 이동합니다.
+            전송 버튼을 누르면 모든 테스트 결과(요약 수치 및 raw JSON)가 구글 시트에 추가됩니다. 성공 시 세션이 비워지며 메인 페이지로 이동합니다.
           </p>
           <div class="flex gap-md flex-wrap items-center">
-            <input type="text" id="sheets-url" placeholder="Web App URL" class="sheets-input" />
             <button type="button" class="btn-primary sheets-button" id="send-to-sheets">전송</button>
           </div>
           <p id="sheets-status" class="sheets-status"></p>
@@ -461,13 +460,19 @@
           return factor != null ? Math.round(Number(px) * factor * 100) / 100 : null;
         }
 
+        /** 구글 시트 헤더 순서 (이 순서와 시트 첫 행 헤더가 일치해야 함) */
+        const SHEETS_HEADER_ORDER = [
+          "timestamp", "user_id", "age", "gender", "monitor_inch", "resolution", "viewing_distance", "disability_type",
+          "vision_rt_avg", "vision_aim_avg", "fov_blind_rate", "readable_font_size", "readable_font_size_mm",
+          "motor_rt_avg", "motor_aim_avg", "motor_switch_latency", "key_reach_score", "burst_speed_peak", "fatigue_index", "motor_precision_error_mm",
+          "seq_memory_score", "go_nogo_accuracy", "hearing_intelligibility",
+          "input_device", "assistive_device",
+          "calibration_mm_per_px",
+          "raw_vision_data", "raw_motor_data", "raw_cognitive_data", "raw_hearing_data", "observer_report"
+        ];
+
         /**
-         * 구글 시트 헤더 순서에 맞춘 전송용 객체 생성. (순서가 틀리면 시트 열이 밀리므로 유지)
-         * 키 순서: timestamp, user_id, age, gender, monitor_inch, resolution, viewing_distance, disability_type,
-         * vision_rt_avg, vision_aim_avg, fov_blind_rate, readable_font_size, readable_font_size_mm, motor_rt_avg, motor_aim_avg,
-         * motor_switch_latency, key_reach_score, burst_speed_peak, fatigue_index, motor_precision_error_mm,
-         * seq_memory_score, go_nogo_accuracy, hearing_intelligibility, input_device, assistive_device,
-         * calibration_mm_per_px, raw_vision_data, raw_motor_data, raw_cognitive_data, observer_report
+         * 구글 시트 헤더 순서에 맞춘 전송용 객체 생성. SHEETS_HEADER_ORDER와 시트 첫 행 헤더가 일치해야 함.
          */
         function buildSheetsRowPayload(session) {
           const ud = session.user_data || {};
@@ -578,11 +583,12 @@
           }
           const raw_motor_data = motorWithMeta;
           const raw_cognitive_data = cognitive && Object.keys(cognitive).length ? cognitive : null;
+          const raw_hearing_data = hearing && Object.keys(hearing).length ? hearing : null;
           const observer_report = session.observer_report && typeof session.observer_report === "object"
             ? session.observer_report
             : null;
 
-          return {
+          const raw = {
             timestamp: new Date().toISOString(),
             user_id: session.userId || session.id || "",
             age: session.ageRange != null ? session.ageRange : "",
@@ -614,8 +620,17 @@
             raw_vision_data,
             raw_motor_data,
             raw_cognitive_data,
+            raw_hearing_data,
             observer_report,
           };
+          const ordered = {};
+          SHEETS_HEADER_ORDER.forEach(function (k) {
+            if (k in raw) ordered[k] = raw[k];
+          });
+          Object.keys(raw).forEach(function (k) {
+            if (!(k in ordered)) ordered[k] = raw[k];
+          });
+          return ordered;
         }
 
         /** 세션 저장소 비우기 (전송 완료 후 호출) */
@@ -671,17 +686,11 @@
         });
 
         const DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyrcvpXF6Fiso80SrWpPFcHg3MEcZmIKs0cM0N6AEmvNLna2OSVM0PFfpMCledzo7xm/exec";
-        const sheetsUrlEl = document.getElementById("sheets-url");
         const sendToSheetsBtn = document.getElementById("send-to-sheets");
         const sheetsStatusEl = document.getElementById("sheets-status");
-        try {
-          const savedUrl = localStorage.getItem("ga_sheets_url");
-          sheetsUrlEl.value = (savedUrl && savedUrl.trim()) || DEPLOYED_SHEETS_URL;
-        } catch (e) {
-          sheetsUrlEl.value = DEPLOYED_SHEETS_URL;
-        }
+        const sendBtnOriginalText = sendToSheetsBtn ? sendToSheetsBtn.textContent : "전송";
+
         sendToSheetsBtn.addEventListener("click", function () {
-          const url = (sheetsUrlEl && sheetsUrlEl.value.trim()) || DEPLOYED_SHEETS_URL;
           const session = readSession();
           const errs = validateSession(session);
           if (errs.length > 0) {
@@ -690,30 +699,31 @@
             return;
           }
           sendToSheetsBtn.disabled = true;
-          sheetsStatusEl.textContent = "전송 중...";
+          sendToSheetsBtn.textContent = "전송 중...";
+          sheetsStatusEl.textContent = "";
           sheetsStatusEl.style.color = "inherit";
-          try { localStorage.setItem("ga_sheets_url", url); } catch (e) {}
+
           const payload = buildSheetsRowPayload(session);
-          fetch(url, {
+          fetch(DEPLOYED_SHEETS_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           }).then(function (r) {
             if (r.ok) {
-              sheetsStatusEl.textContent = "전송되었습니다.";
-              sheetsStatusEl.style.color = "#4ade80";
               clearSessionStorage();
-              alert("구글 시트로 전송되었습니다. 메인 페이지로 이동합니다.");
+              alert("데이터가 저장되었습니다");
               window.location.href = "index.html";
             } else {
               sheetsStatusEl.textContent = "전송 실패 (HTTP " + r.status + ").";
               sheetsStatusEl.style.color = "#f97373";
               sendToSheetsBtn.disabled = false;
+              sendToSheetsBtn.textContent = sendBtnOriginalText;
             }
           }).catch(function (err) {
             sheetsStatusEl.textContent = "전송 실패: " + (err.message || "네트워크 오류");
             sheetsStatusEl.style.color = "#f97373";
             sendToSheetsBtn.disabled = false;
+            sendToSheetsBtn.textContent = sendBtnOriginalText;
           });
         });
 
