@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style.css">
-    <title>반응속도 테스트 · 운동 측정</title>
+    <title>반응속도 테스트 · 청각언어 측정</title>
     <style>
       :root {
         --bg: #020617;
         --accent: #7c3aed;
         --text-main: #e5e7eb;
         --text-muted: #b8c5d6;
-        /* 색각이상 고려: 파랑(대기) vs 주황(클릭) - 대비·밝기 차이로 구분 */
         --ready-bg: #1e40af;
         --click-bg: #f59e0b;
         --danger: #dc2626;
+        --ok: #4ade80;
       }
       * { box-sizing: border-box; }
       body {
@@ -126,7 +126,7 @@
   </head>
   <body>
     <header>
-      <a href="motor_hub.html" class="back-btn">← 허브로</a>
+      <a href="hearing_hub.html" class="back-btn">← 허브로</a>
       <div style="font-size: 12px; color: var(--text-muted);">반응속도 테스트</div>
     </header>
 
@@ -152,7 +152,7 @@
         const resultsList = document.getElementById("results-list");
         const saveBtn = document.getElementById("save-btn");
 
-        let state = "waiting"; // waiting, ready, click, too-early
+        let state = "waiting";
         let trials = [];
         let currentTrial = 0;
         let startTime = 0;
@@ -160,7 +160,7 @@
         const TOTAL_TRIALS = 4;
 
         function getRandomDelay() {
-          return 2000 + Math.random() * 3000; // 2-5초
+          return 2000 + Math.random() * 3000;
         }
 
         function goToReady() {
@@ -203,9 +203,7 @@
             currentTrial++;
             testMessage.textContent = reactionTime + " ms";
             if (currentTrial < TOTAL_TRIALS) {
-              setTimeout(function () {
-                startTrial();
-              }, 2000);
+              setTimeout(function () { startTrial(); }, 2000);
             } else {
               setTimeout(function () { showResults(); }, 2000);
             }
@@ -214,9 +212,7 @@
             state = "too-early";
             testArea.className = "test-area too-early";
             testMessage.textContent = "너무 빨랐습니다. 다시 시도합니다.";
-            setTimeout(function () {
-              goToReady();
-            }, 1500);
+            setTimeout(function () { goToReady(); }, 1500);
           }
         });
 
@@ -246,16 +242,16 @@
           const avg = trials.reduce((a, b) => a + b, 0) / trials.length;
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
-          const motor = session.user_data.motor_results || {};
-          motor.reactionTime = {
+          const hearing = session.user_data.hearing_results || {};
+          hearing.reactionTime = {
             trials: trials,
             average: Math.round(avg),
             recordedAt: new Date().toISOString()
           };
           if (typeof GAStorage !== "undefined") {
-            GAStorage.writeSession({ motor: motor });
+            GAStorage.writeSession({ hearing: hearing });
           }
-          window.location.href = "motor_hub.html";
+          window.location.href = "hearing_hub.html";
         });
 
         startTrial();

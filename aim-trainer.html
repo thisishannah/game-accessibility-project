@@ -190,7 +190,8 @@
           const targetX = parseFloat(target.style.left);
           const targetY = parseFloat(target.style.top);
           const dist = Math.sqrt(Math.pow(clickX - targetX, 2) + Math.pow(clickY - targetY, 2));
-          if (dist <= 40) {
+          const TARGET_RADIUS = 20;
+          if (dist <= TARGET_RADIUS) {
             const now = Date.now();
             const timeSinceLast = currentTarget === 0 ? 0 : now - lastClickTime;
             targets.push({

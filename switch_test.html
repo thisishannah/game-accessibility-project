@@ -74,34 +74,35 @@
         color: var(--text-muted);
         margin: 0 0 24px;
         white-space: pre-line;
+        text-align: left;
       }
       .step-row {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 16px;
+        justify-content: flex-start;
+        gap: 20px;
         margin: 20px 0;
         padding: 20px;
         background: rgba(0,0,0,0.3);
         border-radius: 12px;
       }
       .device-icon {
-        width: 56px;
-        height: 56px;
+        width: 64px;
+        height: 64px;
         flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(148, 163, 184, 0.15);
-        border: 2px solid rgba(148, 163, 184, 0.5);
-        border-radius: 12px;
-        color: var(--text-muted);
+        background: rgba(124, 58, 237, 0.25);
+        border: 2px solid var(--accent);
+        border-radius: 14px;
+        color: var(--accent);
       }
       .device-icon svg {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
       }
-      .step-text { text-align: left; font-size: 16px; font-weight: 650; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text-main); line-height: 1.4; white-space: pre-line; }
+      .step-text { text-align: left; font-size: 16px; font-weight: 650; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text-main); line-height: 1.4; white-space: pre-line; flex: 1; min-width: 0; }
       .step-text p { margin: 0 0 0.6em 0; line-height: 1.6; }
       .step-text p:last-child { margin-bottom: 0; }
       .step-text strong { color: var(--ok); }
@@ -116,6 +117,7 @@
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--ok);
         cursor: pointer;
+        text-align: center;
       }
       .start-hint:hover { background: rgba(74, 222, 128, 0.2); }
 
@@ -219,10 +221,28 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 6px;
         width: 100%;
         max-width: 280px;
+        min-height: 180px;
       }
+      .key-single {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 120px;
+        min-height: 100px;
+        padding: 20px 32px;
+        font-size: 42px;
+        font-weight: 700;
+        background: rgba(251, 191, 36, 0.25);
+        border: 3px solid var(--wait);
+        border-radius: 12px;
+        color: var(--wait);
+      }
+      .key-single.space-style { font-size: 20px; }
+      .key-single.enter-style { font-size: 28px; }
       .keyboard-row {
         display: flex;
         gap: 4px;
@@ -248,8 +268,22 @@
         font-size: 42px;
         transform: scale(1.1);
       }
-      .key-cap.space { width: 100px; }
-      .key-cap.enter { width: 44px; }
+      .key-cap.space {
+        width: 100px;
+        font-size: 14px;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .key-cap.space.target { font-size: 16px; transform: scale(1.05); }
+      .key-cap.enter {
+        width: 44px;
+        font-size: 11px;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .key-cap.enter.target { font-size: 13px; transform: scale(1.05); }
       .keyboard-numpad {
         display: flex;
         gap: 4px;
@@ -328,13 +362,27 @@
         <p>게임에서 자주 사용하는 키와 숫자패드·우측 키를 번갈아 측정합니다.</p>
         <div class="step-row">
           <div class="device-icon mouse" aria-hidden="true">
-            <svg viewBox="0 0 24 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="12" cy="24" rx="8" ry="14" fill="currentColor" opacity="0.9"/><rect x="10" y="14" width="4" height="2" rx="0.5" fill="currentColor" opacity="0.6"/><rect x="9" y="10" width="2.5" height="5" rx="0.5" fill="currentColor" opacity="0.8"/><rect x="12.5" y="10" width="2.5" height="5" rx="0.5" fill="currentColor" opacity="0.8"/><ellipse cx="12" cy="18" rx="1.5" ry="1" fill="currentColor" opacity="0.5"/></svg>
+            <svg viewBox="0 0 24 36" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="12" cy="14" rx="7" ry="10"/>
+              <rect x="10" y="24" width="4" height="2" rx="1"/>
+              <rect x="8" y="4" width="2.5" height="6" rx="1"/>
+              <rect x="13.5" y="4" width="2.5" height="6" rx="1"/>
+            </svg>
           </div>
           <div class="step-text"><strong>1단계</strong> 아래 영역을 <strong>마우스로 클릭</strong>하세요.</div>
         </div>
         <div class="step-row">
           <div class="device-icon keyboard" aria-hidden="true">
-            <svg viewBox="0 0 40 24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="6" width="38" height="16" rx="2" fill="currentColor" opacity="0.9"/><rect x="4" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="9" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="14" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="19" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="24" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="29" y="9" width="4" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="34" y="9" width="2" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="6" y="14" width="6" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="13" y="14" width="6" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="20" y="14" width="6" height="3" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="27" y="14" width="10" height="3" rx="0.4" fill="currentColor" opacity="0.5"/></svg>
+            <svg viewBox="0 0 40 26" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="5" width="38" height="18" rx="3"/>
+              <rect x="5" y="9" width="5" height="4" rx="1"/>
+              <rect x="12" y="9" width="5" height="4" rx="1"/>
+              <rect x="19" y="9" width="5" height="4" rx="1"/>
+              <rect x="26" y="9" width="5" height="4" rx="1"/>
+              <rect x="33" y="9" width="4" height="4" rx="1"/>
+              <rect x="6" y="15" width="12" height="4" rx="1"/>
+              <rect x="20" y="15" width="18" height="4" rx="1"/>
+            </svg>
           </div>
           <div class="step-text"><p><strong>2단계</strong> 화면 중앙에 표시된 <strong>키를 최대한 빠르게</strong> 누르세요.</p><p>잘못된 키를 누르면 Miss, 같은 키를 여러 번 누르면 중복으로 기록됩니다.</p></div>
         </div>
@@ -349,11 +397,11 @@
         <div class="direction-area">
           <div class="direction-panel mouse-panel" id="mouse-panel">
             <div class="panel-label">마우스</div>
-            <div class="panel-instruction" id="mouse-instruction">아래 영역을 클릭하세요</div>
+            <div class="panel-instruction" id="mouse-instruction">이 영역을 클릭하세요</div>
           </div>
           <div class="direction-panel keyboard-panel" id="keyboard-panel">
             <div class="panel-label">키보드</div>
-            <div class="panel-instruction keyboard-instruction" id="keyboard-instruction">아래 표시된 키를 누르세요</div>
+            <div class="panel-instruction keyboard-instruction" id="keyboard-instruction">표시된 키를 누르세요 (숫자패드·상단키 모두 가능)</div>
             <div class="keyboard-visual" id="keyboard-visual"></div>
           </div>
         </div>
@@ -394,51 +442,35 @@
         const RIGHT_KEYS = ["Space", "Enter", "Numpad1", "Numpad2", "Numpad5", "NumpadEnter"];
         const TOTAL_TRIALS = 8;
 
+        /* 숫자·엔터: 숫자패드/상단키 모두 인식 */
         const KEY_TO_CODE = {
           "W": ["KeyW", "w"], "A": ["KeyA", "a"], "S": ["KeyS", "s"], "D": ["KeyD", "d"],
           "E": ["KeyE", "e"], "R": ["KeyR", "r"], "Q": ["KeyQ", "q"], "F": ["KeyF", "f"],
-          "1": ["Digit1", "1"], "2": ["Digit2", "2"], "3": ["Digit3", "3"], "4": ["Digit4", "4"],
+          "1": ["Digit1", "Numpad1", "1"], "2": ["Digit2", "Numpad2", "2"],
+          "3": ["Digit3", "Numpad3", "3"], "4": ["Digit4", "Numpad4", "4"],
+          "5": ["Digit5", "Numpad5", "5"],
           "Space": ["Space", " "],
-          "Enter": ["Enter"],
-          "Numpad1": ["Numpad1"], "Numpad2": ["Numpad2"], "Numpad5": ["Numpad5"],
-          "NumpadEnter": ["NumpadEnter"]
+          "Enter": ["Enter", "NumpadEnter"],
+          "Numpad1": ["Digit1", "Numpad1", "1"], "Numpad2": ["Digit2", "Numpad2", "2"],
+          "Numpad5": ["Digit5", "Numpad5", "5"],
+          "NumpadEnter": ["Enter", "NumpadEnter"]
         };
 
         const DISPLAY_NAMES = {
           "Numpad1": "1", "Numpad2": "2", "Numpad5": "5",
-          "NumpadEnter": "Num Enter"
+          "NumpadEnter": "↵"
         };
 
-        function buildKeyboardHTML(targetKey) {
-          let html = '<div class="keyboard-row">';
-          ["1","2","3","4"].forEach(function(k) {
-            const t = targetKey === k ? " target" : "";
-            html += '<span class="key-cap' + t + '" data-key="' + k + '">' + k + '</span>';
-          });
-          html += '</div><div class="keyboard-row">';
-          ["Q","W","E","R"].forEach(function(k) {
-            const t = targetKey === k ? " target" : "";
-            html += '<span class="key-cap' + t + '" data-key="' + k + '">' + k + '</span>';
-          });
-          html += '</div><div class="keyboard-row">';
-          ["A","S","D","F"].forEach(function(k) {
-            const t = targetKey === k ? " target" : "";
-            html += '<span class="key-cap' + t + '" data-key="' + k + '">' + k + '</span>';
-          });
-          html += '</div><div class="keyboard-row">';
-          const spaceT = targetKey === "Space" ? " target" : "";
-          const enterT = targetKey === "Enter" ? " target" : "";
-          html += '<span class="key-cap space' + spaceT + '" data-key="Space">Space</span>';
-          html += '<span class="key-cap enter' + enterT + '" data-key="Enter">Enter</span>';
-          html += '</div>';
-          html += '<div class="keyboard-numpad">';
-          const npKeys = [{ id: "Numpad1", label: "1" }, { id: "Numpad2", label: "2" }, { id: "Numpad5", label: "5" }, { id: "NumpadEnter", label: "↵" }];
-          npKeys.forEach(function(k) {
-            const t = targetKey === k.id ? " target" : "";
-            html += '<span class="key-cap' + t + '" data-key="' + k.id + '">' + k.label + '</span>';
-          });
-          html += '</div>';
-          return html;
+        function getKeyDisplayLabel(keyId) {
+          return DISPLAY_NAMES[keyId] || keyId;
+        }
+
+        function buildSingleKeyHTML(targetKey) {
+          const label = getKeyDisplayLabel(targetKey);
+          let extraClass = "";
+          if (targetKey === "Space") extraClass = " space-style";
+          else if (targetKey === "Enter" || targetKey === "NumpadEnter") extraClass = " enter-style";
+          return '<div class="key-single' + extraClass + '" data-key="' + targetKey + '">' + label + '</div>';
         }
 
         function shuffle(arr) {
@@ -539,7 +571,7 @@
 
             const targetKey = trialKeys[currentTrial];
             keyboardInstruction.style.display = "block";
-            keyboardVisual.innerHTML = buildKeyboardHTML(targetKey);
+            keyboardVisual.innerHTML = buildSingleKeyHTML(targetKey);
 
             keyHandler = function (ev) {
               ev.preventDefault();

@@ -226,7 +226,8 @@
             const cp = focusPoints[currentPIdx];
             if (currentAngleIdx >= cp.angles.length) {
                 currentAngleIdx = 0; currentPIdx++;
-                setTimeout(nextStep, 1500); return;
+                setTimeout(nextStep, 600);
+                return;
             }
 
             draw();
@@ -254,7 +255,7 @@
                     ctx.fill();
                     if (stimulus.dist <= 0) recordPoint(true);
                 }, 120);
-            }, 1200); 
+            }, 300); 
         }
 
         function recordPoint(failed = false) {
@@ -265,7 +266,7 @@
             stimulus.active = false;
             currentAngleIdx++;
             draw();
-            setTimeout(nextStep, 500);
+            setTimeout(nextStep, 250);
         }
 
         window.addEventListener('keydown', (e) => {

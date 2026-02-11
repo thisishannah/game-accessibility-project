@@ -64,7 +64,9 @@ function doPost(e) {
 
 summary.html의 **전송** 버튼을 누르면 지정된 Web App URL로 POST 전송됩니다. URL은 코드 내 `DEPLOYED_SHEETS_URL` 상수로 고정되어 있습니다.
 
-> CORS 오류가 발생하면 Apps Script에서 `doPost`가 `ContentService.MimeType.JSON`을 반환하는지, 배포 액세스가 "모든 사용자"인지 확인하세요.
+- **전송 형식**: `Content-Type: text/plain`으로 JSON 문자열 전송 (CORS preflight 없이 동작하여 가장 안정적)
+- `mode: 'no-cors'` 또는 `credentials` 옵션은 사용하지 마세요 (응답을 읽을 수 없음)
+- CORS 오류 시: Apps Script에서 `doPost`가 `ContentService.MimeType.JSON`을 반환하는지, 배포 액세스가 "모든 사용자"인지 확인하세요.
 
 ## 6. "Failed to fetch" / 전송 실패가 날 때
 

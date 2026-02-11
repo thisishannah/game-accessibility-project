@@ -58,6 +58,7 @@
         font-size: 16px;
         font-weight: 650;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        white-space: pre-line;
         font-weight: 600;
         margin-bottom: 20px;
         min-height: 80px;
@@ -95,6 +96,13 @@
       .key-combination.failed {
         border-color: var(--danger);
         background: rgba(249, 115, 115, 0.1);
+      }
+      .key-combination.mouse-target {
+        outline: 2px dashed rgba(148, 163, 184, 0.5);
+        outline-offset: 4px;
+      }
+      .key-combination.mouse-target:hover {
+        outline-color: var(--accent);
       }
       .key-display {
         display: inline-block;
@@ -228,46 +236,49 @@
         const saveBtn = document.getElementById("save-btn");
         const retryBtn = document.getElementById("retry-btn");
 
-        const KEYS = ["`", "Q", "W", "E", "R", "A", "S", "D", "F", "G", "Z", "X", "C", "V", "Shift", "Ctrl", "Space"];
+        const KEYS = ["`", "Q", "W", "E", "R", "A", "S", "D", "F", "G", "Z", "X", "C", "V", "F3", "Shift", "Ctrl", "Space"];
+        const MOUSE_KEY = "Mouse";
         const KEY_CODE_MAP = {
           "Backquote": "`", "KeyQ": "Q", "KeyW": "W", "KeyE": "E", "KeyR": "R",
           "KeyA": "A", "KeyS": "S", "KeyD": "D", "KeyF": "F", "KeyG": "G",
           "KeyZ": "Z", "KeyX": "X", "KeyC": "C", "KeyV": "V",
+          "F3": "F3",
           "ShiftLeft": "Shift", "ShiftRight": "Shift",
           "ControlLeft": "Ctrl", "ControlRight": "Ctrl",
           "Space": "Space"
         };
+        /* 2~3키: 키보드만. 4키: 마우스+3키. Ctrl+W(탭닫기), Ctrl+R(새로고침), Ctrl+Q(종료), Ctrl+A(전체선택) 등 위험 조합 회피 */
         const TEST_SEQUENCE = [
-          { keys: 2, combinations: [
-            ["Q", "W"],
-            ["Shift", "R"],
-            ["`", "Space"],
-            ["A", "D"],
-            ["Ctrl", "C"],
-            ["Ctrl", "G"],
-            ["E", "R"],
-            ["Shift", "W"],
-            ["Q", "E"]
+          { keys: 2, mouseIncluded: false, combinations: [
+            ["F3", "Space"],
+            ["Shift", "C"],
+            ["`", "R"],
+            ["Ctrl", "E"],
+            ["F3", "`"],
+            ["Shift", "Space"],
+            ["Ctrl", "Z"],
+            ["`", "G"]
           ]},
-          { keys: 3, combinations: [
-            ["W", "A", "D"],
-            ["Shift", "W", "E"],
-            ["Q", "W", "E"],
-            ["Ctrl", "Shift", "C"],
-            ["W", "Space", "Shift"],
-            ["A", "S", "D"]
+          { keys: 3, mouseIncluded: false, combinations: [
+            ["F3", "Shift", "Space"],
+            ["Ctrl", "F", "X"],
+            ["`", "E", "V"],
+            ["F3", "Ctrl", "C"],
+            ["Shift", "Space", "R"],
+            ["`", "G", "X"]
           ]},
-          { keys: 4, combinations: [
-            ["W", "A", "S", "D"],
-            ["Shift", "W", "A", "D"],
-            ["Q", "W", "E", "R"],
-            ["Ctrl", "W", "A", "D"]
+          { keys: 4, mouseIncluded: true, combinations: [
+            ["Mouse", "Shift", "Space", "R"],
+            ["Mouse", "F3", "Ctrl", "C"],
+            ["Mouse", "`", "E", "Space"],
+            ["Mouse", "Shift", "V", "F3"]
           ]}
         ];
 
         let currentTestIndex = 0;
         let currentCombinationIndex = 0;
         let pressedKeys = new Set();
+        let mousePressed = false;
         let successfulCombinations = [];
         let failedCombinations = [];
         let allAttempts = [];
@@ -283,19 +294,28 @@
           return null;
         }
 
-        const DISPLAY_LABELS = { "`": "~", "Space": "Space" };
+        const DISPLAY_LABELS = { "`": "~", "Space": "Space", "Mouse": "🖱 좌클릭", "F3": "F3" };
         function updateKeyDisplay() {
           const currentTest = TEST_SEQUENCE[currentTestIndex];
           const currentCombo = currentTest.combinations[currentCombinationIndex];
           keyCombination.innerHTML = "";
           keyCombination.className = "key-combination";
-          
+          if (currentTest.mouseIncluded) {
+            keyCombination.classList.add("mouse-target");
+            keyCombination.style.cursor = "pointer";
+            keyCombination.title = "이 영역을 마우스 좌클릭으로 누른 채 3개 키를 동시에 누르세요";
+          } else {
+            keyCombination.classList.remove("mouse-target");
+            keyCombination.style.cursor = "";
+            keyCombination.title = "";
+          }
           currentCombo.forEach(function(key, index) {
             const keyDisplay = document.createElement("span");
             keyDisplay.className = "key-display required";
             keyDisplay.id = "key-display-" + (index + 1);
             keyDisplay.textContent = DISPLAY_LABELS[key] || key;
-            if (pressedKeys.has(key)) {
+            const isPressed = key === "Mouse" ? mousePressed : pressedKeys.has(key);
+            if (isPressed) {
               keyDisplay.classList.add("pressed");
             }
             keyCombination.appendChild(keyDisplay);
@@ -310,6 +330,7 @@
 
         function handleKeyPress(key) {
           if (testCompleted) return;
+          if (key === "Mouse") return;
           if (!KEYS.includes(key)) return;
           pressedKeys.add(key);
           updateKeyDisplay();
@@ -317,7 +338,24 @@
         }
 
         function handleKeyRelease(key) {
+          if (key === "Mouse") return;
           pressedKeys.delete(key);
+          updateKeyDisplay();
+        }
+
+        function handleMouseDown(e) {
+          if (testCompleted || e.button !== 0) return;
+          const currentTest = TEST_SEQUENCE[currentTestIndex];
+          if (!currentTest.mouseIncluded) return;
+          e.preventDefault();
+          mousePressed = true;
+          updateKeyDisplay();
+          checkCombination();
+        }
+
+        function handleMouseUp(e) {
+          if (e.button !== 0) return;
+          mousePressed = false;
           updateKeyDisplay();
         }
 
@@ -325,9 +363,12 @@
           const currentTest = TEST_SEQUENCE[currentTestIndex];
           const currentCombo = currentTest.combinations[currentCombinationIndex];
           const requiredKeys = new Set(currentCombo);
-          const allPressed = currentCombo.every(function(key) { return pressedKeys.has(key); });
+          const allPressed = currentCombo.every(function(key) {
+            return key === "Mouse" ? mousePressed : pressedKeys.has(key);
+          });
           const extraKeys = Array.from(pressedKeys).filter(function(key) { return !requiredKeys.has(key); });
-          const pressedKeysArray = Array.from(pressedKeys).sort();
+          let pressedKeysArray = Array.from(pressedKeys).sort();
+          if (mousePressed && requiredKeys.has("Mouse")) pressedKeysArray = ["Mouse"].concat(pressedKeysArray);
 
           const attempt = {
             requiredKeys: currentCombo.slice(),
@@ -372,7 +413,9 @@
               resetCurrentCombination();
             }, 1500);
           } else if (!allPressed) {
-            const missingKeys = currentCombo.filter(function(key) { return !pressedKeys.has(key); });
+            const missingKeys = currentCombo.filter(function(key) {
+              return key === "Mouse" ? !mousePressed : !pressedKeys.has(key);
+            });
             keyCombination.classList.add("failed");
             statusMessage.textContent = "모든 키를 동시에 누르세요";
             statusMessage.className = "status-message failed";
@@ -393,6 +436,7 @@
 
         function resetCurrentCombination() {
           pressedKeys.clear();
+          mousePressed = false;
           updateKeyDisplay();
           keyCombination.classList.remove("success", "failed");
           statusMessage.textContent = "";
@@ -414,7 +458,12 @@
           }
           
           resetCurrentCombination();
-          instruction.textContent = TEST_SEQUENCE[currentTestIndex].keys + "개 키를\n동시에 누르세요";
+          const nextTest = TEST_SEQUENCE[currentTestIndex];
+          if (nextTest.mouseIncluded) {
+            instruction.textContent = "마우스 좌클릭 유지 +\n3개 키를 동시에 누르세요";
+          } else {
+            instruction.textContent = nextTest.keys + "개 키를\n동시에 누르세요";
+          }
         }
 
         function completeTest() {
@@ -455,6 +504,7 @@
           currentTestIndex = 0;
           currentCombinationIndex = 0;
           pressedKeys.clear();
+          mousePressed = false;
           successfulCombinations = [];
           failedCombinations = [];
           allAttempts = [];
@@ -462,7 +512,9 @@
           testCompleted = false;
           
           instruction.style.display = "block";
-          instruction.textContent = "지시된 키 조합을\n동시에 누르세요";
+          instruction.textContent = TEST_SEQUENCE[0].mouseIncluded
+            ? "마우스 좌클릭 유지 +\n3개 키를 동시에 누르세요"
+            : TEST_SEQUENCE[0].keys + "개 키를\n동시에 누르세요";
           keyCombination.style.display = "flex";
           statusMessage.style.display = "block";
           resultsPanel.style.display = "none";
@@ -487,6 +539,9 @@
           }
         });
 
+        keyCombination.addEventListener("mousedown", handleMouseDown);
+        document.addEventListener("mouseup", handleMouseUp);
+
         saveBtn.addEventListener("click", function () {
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
@@ -510,7 +565,10 @@
         retryBtn.addEventListener("click", resetTest);
 
         updateKeyDisplay();
-        instruction.textContent = TEST_SEQUENCE[0].keys + "개 키를\n동시에 누르세요";
+        const firstTest = TEST_SEQUENCE[0];
+        instruction.textContent = firstTest.mouseIncluded
+          ? "마우스 좌클릭 유지 +\n3개 키를 동시에 누르세요"
+          : firstTest.keys + "개 키를\n동시에 누르세요";
       })();
     </script>
   </body>

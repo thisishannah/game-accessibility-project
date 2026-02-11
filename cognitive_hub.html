@@ -279,11 +279,20 @@
               <span class="section-title-pill">Cognitive Tests</span>
             </div>
             <p class="section-subtitle">
-              아래 4개의 테스트를 모두 완료해야 인지 측정이 완료됩니다. 각 테스트는 이후 분석을 위한
+              아래 5개의 테스트를 모두 완료해야 인지 측정이 완료됩니다. 각 테스트는 이후 분석을 위한
               기준 데이터로 활용됩니다.
             </p>
 
             <div class="test-grid" id="test-grid">
+              <article class="test-card" data-test="reaction-time" tabindex="0">
+                <div class="test-card-head">
+                  <div class="test-card-title">반응속도 테스트</div>
+                  <span class="test-card-badge" data-progress="reaction-time" data-done="false">0/1</span>
+                </div>
+                <div class="test-card-desc">
+                  화면이 주황색으로 바뀌면 클릭. 총 4회 실시 후 평균 반응 시간을 측정합니다.
+                </div>
+              </article>
               <article class="test-card" data-test="sequence-memory" tabindex="0">
                 <div class="test-card-head">
                   <div class="test-card-title">순서 기억 테스트</div>
@@ -344,8 +353,9 @@
               <span class="section-title-pill">Progress</span>
             </div>
             <div class="right-body">
-              <p>인지 측정은 다음 4개 테스트로 구성됩니다.</p>
+              <p>인지 측정은 다음 5개 테스트로 구성됩니다.</p>
               <ul>
+                <li><strong>반응속도 테스트</strong>: 화면 변화에 대한 클릭 반응 시간</li>
                 <li><strong>순서 기억 테스트</strong>: 격자판 불빛 순서 기억력</li>
                 <li><strong>반응 통제 테스트</strong>: 반응 억제 및 적응력</li>
                 <li><strong>동시 처리 테스트</strong>: 동시 처리 능력</li>
@@ -353,6 +363,10 @@
               </ul>
             </div>
             <div class="progress-summary">
+              <div class="progress-row">
+                <span class="progress-label">반응속도 테스트</span>
+                <span class="progress-value" id="progress-reaction">0/1</span>
+              </div>
               <div class="progress-row">
                 <span class="progress-label">순서 기억 테스트</span>
                 <span class="progress-value" id="progress-sequence">0/1</span>
@@ -371,7 +385,7 @@
               </div>
               <div class="progress-row divider-solid">
                 <span class="progress-label">전체</span>
-                <span class="progress-value" id="progress-total">0/4</span>
+                <span class="progress-value" id="progress-total">0/5</span>
               </div>
             </div>
             <div class="mt-md text-xs">
@@ -400,6 +414,7 @@
         const finalHint = document.getElementById("final-hint");
 
         const TEST_CONFIG = {
+          "reaction-time": { url: "cognitive-reaction-time.html", label: "반응속도 테스트", total: 1 },
           "sequence-memory": { url: "cognitive-sequence-memory.html", label: "순서 기억 테스트", total: 1 },
           "go-no-go": { url: "cognitive-go-no-go.html", label: "반응 통제 테스트", total: 1 },
           "divided-attention": { url: "cognitive-divided-attention.html", label: "동시 처리 테스트", total: 1 },
@@ -435,6 +450,9 @@
         function checkTestCompletion(testKey) {
           const session = readSession();
           const cognitive = (session.user_data && session.user_data.cognitive_results) || {};
+          if (testKey === "reaction-time") {
+            return cognitive.reactionTime && cognitive.reactionTime.trials && cognitive.reactionTime.trials.length >= 4;
+          }
           if (testKey === "sequence-memory") {
             return cognitive.sequenceMemory && cognitive.sequenceMemory.averageReactionTime !== undefined;
           } else if (testKey === "go-no-go") {
@@ -466,19 +484,20 @@
             if (isComplete) totalComplete++;
           });
 
+          document.getElementById("progress-reaction").textContent = (checkTestCompletion("reaction-time") ? 1 : 0) + "/1";
           document.getElementById("progress-sequence").textContent = (checkTestCompletion("sequence-memory") ? 1 : 0) + "/1";
           document.getElementById("progress-go-no-go").textContent = (checkTestCompletion("go-no-go") ? 1 : 0) + "/1";
           document.getElementById("progress-divided").textContent = (checkTestCompletion("divided-attention") ? 1 : 0) + "/1";
           document.getElementById("progress-reading").textContent = (checkTestCompletion("reading-speed") ? 1 : 0) + "/1";
-          document.getElementById("progress-total").textContent = totalComplete + "/4";
+          document.getElementById("progress-total").textContent = totalComplete + "/5";
 
-          if (totalComplete >= 4) {
+          if (totalComplete >= 5) {
             finalHint.innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong> 허브로 돌아가면 인지 측정이 완료로 표시됩니다.";
             if (typeof GAStorage !== "undefined") {
               GAStorage.writeProgress("cognitive", {
-                label: "순서 기억 테스트 + 반응 통제 테스트 + 동시 처리 테스트 + 핵심 파악 테스트",
-                current: 4,
-                total: 4,
+                label: "반응속도 + 순서 기억 + 반응 통제 + 동시 처리 + 핵심 파악 테스트",
+                current: 5,
+                total: 5,
                 completedAt: new Date().toISOString()
               });
             }

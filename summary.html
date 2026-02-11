@@ -708,12 +708,19 @@
           }
         });
 
-        const DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx0qlJtN4_z1h3YPhUQFog8Pa_j0qB8zRM8Pgub3xBm9PnMTTuV_ydHtdP2UFb8GVg4/exec";
+        const DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxpzl0a9g-zJJ_vH0MghogtE6DNts036TudVKGzIETHjeek4z2WycCZL_Gj35j6qwsE/exec";
         const sendToSheetsBtn = document.getElementById("send-to-sheets");
         const sheetsStatusEl = document.getElementById("sheets-status");
         const sendBtnOriginalText = sendToSheetsBtn ? sendToSheetsBtn.textContent : "전송";
 
         function doSheetsSubmit() {
+          if (window.location.protocol === "file:") {
+            if (sheetsStatusEl) {
+              sheetsStatusEl.textContent = "파일 직접 열기(file://)에서는 전송이 불가합니다. 터미널에서 'python3 -m http.server 8080' 후 localhost:8080 으로 접속해 주세요.";
+              sheetsStatusEl.style.color = "#f97373";
+            }
+            return;
+          }
           const session = readSession();
           const errs = validateSession(session);
           if (errs.length > 0) {
@@ -735,7 +742,7 @@
           const payload = buildSheetsRowPayload(session);
           fetch(DEPLOYED_SHEETS_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "text/plain" },
             body: JSON.stringify(payload),
           }).then(function (r) {
             if (r.ok) {
@@ -765,7 +772,10 @@
               if (sendToSheetsBtn) { sendToSheetsBtn.disabled = false; sendToSheetsBtn.textContent = sendBtnOriginalText; }
             }
           }).catch(function (err) {
-            const errMsg = "전송 실패: " + (err.name || "Error") + " - " + (err.message || "네트워크 오류") + (err.cause ? " (원인: " + String(err.cause) + ")" : "");
+            let errMsg = "전송 실패: " + (err.name || "Error") + " - " + (err.message || "네트워크 오류") + (err.cause ? " (원인: " + String(err.cause) + ")" : "");
+            if (err.message && err.message.toLowerCase().includes("fetch")) {
+              errMsg += " 파일 직접 열기(file://)라면 웹 서버(localhost)로 접속 후 다시 시도해 주세요.";
+            }
             if (sheetsStatusEl) {
               sheetsStatusEl.textContent = errMsg;
               sheetsStatusEl.style.color = "#f97373";

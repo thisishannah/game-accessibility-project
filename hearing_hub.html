@@ -107,10 +107,19 @@
             <span class="section-title-pill">Audio · Speech</span>
           </div>
           <p class="section-subtitle">
-            아래 3개의 항목을 진행해 주세요. Mimi 등 외부 앱 결과 입력, 수음 명료도, 발화 명료도를 측정합니다.
+            아래 4개의 항목을 진행해 주세요. 반응속도, Mimi 등 외부 앱 결과 입력, 수음 명료도, 발화 명료도를 측정합니다.
           </p>
 
           <div class="test-grid" id="test-grid">
+            <article class="test-card" data-test="reaction-time" tabindex="0">
+              <div class="test-card-head">
+                <div class="test-card-title">반응속도 테스트</div>
+                <span class="test-card-badge" data-progress="reaction-time" data-done="false">0/1</span>
+              </div>
+              <div class="test-card-desc">
+                화면이 주황색으로 바뀌면 클릭. 총 4회 실시 후 평균 반응 시간을 측정합니다.
+              </div>
+            </article>
             <article class="test-card" data-test="hearing-input" tabindex="0">
               <div class="test-card-head">
                 <div class="test-card-title">청력 측정 결과 입력</div>
@@ -159,14 +168,19 @@
             <span class="section-title-pill">Progress</span>
           </div>
           <div class="right-body">
-            <p>청각언어 측정은 다음 3개 항목으로 구성됩니다.</p>
+            <p>청각언어 측정은 다음 4개 항목으로 구성됩니다.</p>
             <ul>
+              <li><strong>반응속도</strong>: 화면 변화에 대한 클릭 반응 시간</li>
               <li><strong>청력 측정 결과</strong>: 외부 앱(Mimi 등) dB/주파수별 수치 입력</li>
               <li><strong>언어 명료도</strong>: 단어 듣고 입력 (수음 명료도)</li>
               <li><strong>발화 명료도</strong>: 문장 읽기 녹음 + 인식 일치도</li>
             </ul>
           </div>
           <div class="progress-summary">
+            <div class="progress-row">
+              <span class="progress-label">반응속도</span>
+              <span class="progress-value" id="progress-reaction-time">0/1</span>
+            </div>
             <div class="progress-row">
               <span class="progress-label">청력 측정 결과</span>
               <span class="progress-value" id="progress-hearing-input">0/1</span>
@@ -208,6 +222,7 @@
         const finalHint = document.getElementById("final-hint");
 
         const TEST_CONFIG = {
+          "reaction-time": { url: "hearing-reaction-time.html", label: "반응속도", total: 1 },
           "hearing-input": { url: "hearing-input.html", label: "청력 측정 결과", total: 1 },
           "speech-clarity": { url: "hearing-speech-clarity.html", label: "언어 명료도", total: 1 },
           "articulation": { url: "hearing-articulation.html", label: "발화 명료도", total: 1 }
@@ -239,6 +254,9 @@
         function checkTestCompletion(testKey) {
           const session = readSession();
           const hearing = (session.user_data && session.user_data.hearing_results) || {};
+          if (testKey === "reaction-time") {
+            return hearing.reactionTime && hearing.reactionTime.trials && hearing.reactionTime.trials.length >= 4;
+          }
           if (testKey === "hearing-input") {
             // 결과를 hearing-input 페이지에서 저장했을 때만 완료로 인정 (hearingInputSaved는 폼 제출 시에만 설정됨)
             return Boolean(hearing.hearingInputSaved && hearing.source) && typeof hearing.overallDb === "number" && !isNaN(hearing.overallDb);
@@ -266,9 +284,9 @@
             if (done) doneCount++;
           });
           const totalEl = document.getElementById("progress-total");
-          if (totalEl) totalEl.textContent = doneCount + "/3";
+          if (totalEl) totalEl.textContent = doneCount + "/4";
           if (finalHint) {
-            if (doneCount >= 3) {
+            if (doneCount >= 4) {
               finalHint.innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong> 허브로 돌아가면 청각언어 측정이 완료로 표시됩니다.";
             } else {
               finalHint.textContent = "모든 항목을 완료하면 측정 허브에서 청각언어 측정이 완료로 표시됩니다.";
