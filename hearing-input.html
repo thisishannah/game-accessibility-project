@@ -18,8 +18,11 @@
       .field-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
       .field-group label { font-size: 13px; font-weight: 550; color: #e5e7eb; display: block; margin-bottom: 4px; }
       .label-required { color: #fbbf24; font-size: 11px; }
-      .field-group input[type="text"], .field-group input[type="number"] { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid rgba(51,65,85,0.9); background: #020617; color: #e5e7eb; font-size: 13px; }
+      .field-group input[type="text"], .field-group input[type="number"], .field-group select { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid rgba(51,65,85,0.9); background: #020617; color: #e5e7eb; font-size: 13px; }
       .error-text { font-size: 11px; color: #f97373; margin-top: 4px; min-height: 14px; }
+      .mimi-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+      .mimi-grid-2 label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+      .mimi-grid-2 span { font-size: 11px; color: #94a3b8; }
       .freq-fieldset { border: 1px solid rgba(51,65,85,0.9); border-radius: 12px; padding: 16px; margin-bottom: 20px; overflow: hidden; }
       .freq-fieldset legend { font-size: 12px; color: #b8c5d6; padding: 0 8px; }
       .freq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -47,74 +50,99 @@
 
       <section class="hearing-input-panel">
         <div class="section-title">
-          <span>외부 앱(Mimi) 측정값 입력</span>
-          <span class="section-title-pill">Mimi · Import</span>
+          <span>외부 측정값 입력</span>
+          <span class="section-title-pill">청력 · Import</span>
         </div>
         <p class="section-subtitle">
-          Mimi 앱 결과 화면과 동일한 형식으로 입력하세요. 측정 출처, 전체 청력(dB), 좌·우 귀별 주파수(Hz) 대역 수치를 기록합니다.
+          측정 출처를 선택한 뒤, Mimi 앱 결과 화면과 동일한 형식으로 입력하세요. 히어링 넘버, 청각 수용력, 주파수별 청력 민감도를 기록합니다.
         </p>
 
         <div class="mimi-hint">
-          <strong>Mimi 앱 결과 참고</strong>: Hearing Number, 좌/우 귀 Hearing Capacity(%), 250~8000Hz 대역별 dB 값을 해당 입력란에 맞춰 입력해 주세요.
+          <strong>Mimi 앱 결과 참고</strong>: 히어링 넘버(dB), 청각 수용력(%), 250~8000Hz 청력 민감도(dB HL)는 그래프에서 5단위(-10, -5, 0, 5, …, 120)로 맞춰 입력하세요. 중간값은 가까운 5단위로 선택합니다.
         </div>
 
         <form id="hearing-form" novalidate>
           <div class="field-group">
             <div>
               <label for="source">측정 출처 <span class="label-required">필수</span></label>
-              <input type="text" id="source" name="source" placeholder="예: Mimi, Mimi + 병원 청력검사" />
+              <select id="source" name="source">
+                <option value="Mimi">Mimi (모바일 앱)</option>
+                <option value="Other">Mimi 외 (병원·보청기 회사 등)</option>
+              </select>
               <p id="source-error" class="error-text"></p>
             </div>
+          </div>
+
+          <div class="field-group" id="mimi-fields">
             <div>
-              <label for="overall-db">전체 청력 요약 (dB) <span class="label-required">필수</span></label>
-              <input type="number" id="overall-db" name="overallDb" step="0.1" placeholder="예: 25 (dB HL)" />
-              <p id="overall-db-error" class="error-text"></p>
+              <label>히어링 넘버 (dB) <span class="label-required">필수</span></label>
+              <div class="mimi-grid-2">
+                <label><span>좌(L)</span><input type="number" name="hearingNumberLeft" min="0" max="120" step="1" placeholder="예: 25" /></label>
+                <label><span>우(R)</span><input type="number" name="hearingNumberRight" min="0" max="120" step="1" placeholder="예: 22" /></label>
+              </div>
+              <p id="hearing-number-error" class="error-text"></p>
+            </div>
+            <div>
+              <label>청각 수용력 (%) <span class="label-required">필수</span></label>
+              <div class="mimi-grid-2">
+                <label><span>좌(L)</span><input type="number" name="hearingCapacityLeft" min="0" max="100" step="1" placeholder="예: 85" /></label>
+                <label><span>우(R)</span><input type="number" name="hearingCapacityRight" min="0" max="100" step="1" placeholder="예: 90" /></label>
+              </div>
+              <p id="hearing-capacity-error" class="error-text"></p>
+            </div>
+          </div>
+
+          <div class="field-group" id="other-fields" style="display: none;">
+            <div>
+              <label for="overall-db-other">전체 청력 요약 (dB) <span class="label-required">필수</span></label>
+              <input type="number" id="overall-db-other" name="overallDbOther" min="-10" max="120" step="1" placeholder="예: 25" />
+              <p id="overall-db-other-error" class="error-text"></p>
             </div>
           </div>
 
           <fieldset class="freq-fieldset">
-            <legend>Hz 대역별 수치 (dB HL) — Mimi 주파수 그래프 참고</legend>
+            <legend>청력 민감도 — 주파수별 수치 (dB HL)</legend>
             <div class="freq-grid">
               <div class="freq-cell">
                 <div class="freq-label">250 Hz</div>
                 <div class="freq-inputs">
-                  <label><span>좌(L)</span><input type="number" name="hz250Left" placeholder="dB" /></label>
-                  <label><span>우(R)</span><input type="number" name="hz250Right" placeholder="dB" /></label>
+                  <label><span>좌(L)</span><input type="number" name="hz250Left" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz250Right" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
                 </div>
               </div>
               <div class="freq-cell">
                 <div class="freq-label">500 Hz</div>
                 <div class="freq-inputs">
-                  <label><span>좌(L)</span><input type="number" name="hz500Left" placeholder="dB" /></label>
-                  <label><span>우(R)</span><input type="number" name="hz500Right" placeholder="dB" /></label>
+                  <label><span>좌(L)</span><input type="number" name="hz500Left" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz500Right" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
                 </div>
               </div>
               <div class="freq-cell">
                 <div class="freq-label">1 kHz</div>
                 <div class="freq-inputs">
-                  <label><span>좌(L)</span><input type="number" name="hz1000Left" placeholder="dB" /></label>
-                  <label><span>우(R)</span><input type="number" name="hz1000Right" placeholder="dB" /></label>
+                  <label><span>좌(L)</span><input type="number" name="hz1000Left" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz1000Right" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
                 </div>
               </div>
               <div class="freq-cell">
                 <div class="freq-label">2 kHz</div>
                 <div class="freq-inputs">
-                  <label><span>좌(L)</span><input type="number" name="hz2000Left" placeholder="dB" /></label>
-                  <label><span>우(R)</span><input type="number" name="hz2000Right" placeholder="dB" /></label>
+                  <label><span>좌(L)</span><input type="number" name="hz2000Left" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz2000Right" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
                 </div>
               </div>
               <div class="freq-cell">
                 <div class="freq-label">4 kHz</div>
                 <div class="freq-inputs">
-                  <label><span>좌(L)</span><input type="number" name="hz4000Left" placeholder="dB" /></label>
-                  <label><span>우(R)</span><input type="number" name="hz4000Right" placeholder="dB" /></label>
+                  <label><span>좌(L)</span><input type="number" name="hz4000Left" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz4000Right" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
                 </div>
               </div>
               <div class="freq-cell">
                 <div class="freq-label">8 kHz</div>
                 <div class="freq-inputs">
-                  <label><span>좌(L)</span><input type="number" name="hz8000Left" placeholder="dB" /></label>
-                  <label><span>우(R)</span><input type="number" name="hz8000Right" placeholder="dB" /></label>
+                  <label><span>좌(L)</span><input type="number" name="hz8000Left" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
+                  <label><span>우(R)</span><input type="number" name="hz8000Right" placeholder="dB (5단위)" min="-10" max="120" step="5" /></label>
                 </div>
               </div>
             </div>
@@ -134,6 +162,15 @@
       (function () {
         const form = document.getElementById("hearing-form");
         const statusText = document.getElementById("status-text");
+        const sourceSelect = document.getElementById("source");
+        const mimiFields = document.getElementById("mimi-fields");
+        const otherFields = document.getElementById("other-fields");
+
+        sourceSelect.addEventListener("change", function () {
+          const isMimi = sourceSelect.value === "Mimi";
+          mimiFields.style.display = isMimi ? "flex" : "none";
+          otherFields.style.display = isMimi ? "none" : "block";
+        });
 
         function readSession() {
           return (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
@@ -149,14 +186,30 @@
           statusText.className = "status-text";
           let valid = true;
           const source = document.getElementById("source");
-          const overallDb = document.getElementById("overall-db");
-          if (!source.value.trim()) {
-            document.getElementById("source-error").textContent = "측정 출처를 입력해 주세요.";
+          if (!source.value) {
+            document.getElementById("source-error").textContent = "측정 출처를 선택해 주세요.";
             valid = false;
           }
-          if (!overallDb.value.trim()) {
-            document.getElementById("overall-db-error").textContent = "전체 청력(dB)을 입력해 주세요.";
-            valid = false;
+          const isMimi = source.value === "Mimi";
+          if (isMimi) {
+            const hnL = form.elements["hearingNumberLeft"].value.trim();
+            const hnR = form.elements["hearingNumberRight"].value.trim();
+            if (!hnL && !hnR) {
+              document.getElementById("hearing-number-error").textContent = "히어링 넘버를 좌/우 중 최소 1개 이상 입력해 주세요.";
+              valid = false;
+            }
+            const hcL = form.elements["hearingCapacityLeft"].value.trim();
+            const hcR = form.elements["hearingCapacityRight"].value.trim();
+            if (!hcL && !hcR) {
+              document.getElementById("hearing-capacity-error").textContent = "청각 수용력을 좌/우 중 최소 1개 이상 입력해 주세요.";
+              valid = false;
+            }
+          } else {
+            const overallOther = (form.elements["overallDbOther"] && form.elements["overallDbOther"].value.trim()) || "";
+            if (!overallOther) {
+              document.getElementById("overall-db-other-error").textContent = "전체 청력(dB)을 입력해 주세요.";
+              valid = false;
+            }
           }
           return valid;
         }
@@ -168,6 +221,12 @@
             const s = String(v).trim();
             if (s !== "") obj[k] = s;
           });
+          const isMimi = (obj.source || "Mimi") === "Mimi";
+          const hearingNumberLeft = obj.hearingNumberLeft ? Number(obj.hearingNumberLeft) : null;
+          const hearingNumberRight = obj.hearingNumberRight ? Number(obj.hearingNumberRight) : null;
+          const hearingCapacityLeft = obj.hearingCapacityLeft ? Number(obj.hearingCapacityLeft) : null;
+          const hearingCapacityRight = obj.hearingCapacityRight ? Number(obj.hearingCapacityRight) : null;
+
           const freqs = [250, 500, 1000, 2000, 4000, 8000];
           const band = {};
           freqs.forEach(function (hz) {
@@ -180,9 +239,21 @@
               };
             }
           });
+
+          let overallDb = obj.overallDb ? Number(obj.overallDb) : null;
+          if (overallDb == null && obj.overallDbOther) overallDb = Number(obj.overallDbOther);
+          if (overallDb == null && isMimi && (hearingNumberLeft != null || hearingNumberRight != null)) {
+            const nums = [];
+            if (hearingNumberLeft != null) nums.push(hearingNumberLeft);
+            if (hearingNumberRight != null) nums.push(hearingNumberRight);
+            overallDb = nums.length ? Math.round(nums.reduce(function (a, b) { return a + b; }, 0) / nums.length) : null;
+          }
+
           return {
             source: obj.source || "Mimi",
-            overallDb: obj.overallDb ? Number(obj.overallDb) : null,
+            hearingNumber: { left: hearingNumberLeft, right: hearingNumberRight },
+            hearingCapacity: { left: hearingCapacityLeft, right: hearingCapacityRight },
+            overallDb: overallDb,
             bands: Object.keys(band).length > 0 ? band : undefined,
             recordedAt: new Date().toISOString(),
             hearingInputSaved: true,

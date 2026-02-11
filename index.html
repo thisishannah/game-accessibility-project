@@ -232,10 +232,12 @@
 
       .field-label-row {
         display: flex;
-        align-items: baseline;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 8px;
         margin-bottom: 4px;
+        flex-wrap: wrap;
+        row-gap: 2px;
       }
 
       label {
@@ -257,6 +259,18 @@
         font-size: 14px;
         font-weight: 500;
         color: var(--text-secondary);
+      }
+
+      /* 장애 상세 설명: 제목과 설명을 세로로 분리해 시인성 개선 */
+      #disability-detail-container .field-label-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      #disability-detail-container .label-helper {
+        font-size: 13px;
+        line-height: 1.5;
       }
 
       .field-label-stacked {
