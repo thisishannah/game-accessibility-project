@@ -1337,7 +1337,18 @@ body {
   }
 }
 
-/* 테스트 페이지 공통: 안내/설명 30pt, 문장부호/의미단위 줄바꿈 */
+/* 테스트 페이지 공통: 시각 허브와 동일한 글씨체·크기(16px, system-ui) */
 .ga-test-intro-body,
-.ga-test-intro-body p { font-size: 30px; line-height: 1.6; white-space: pre-line; }
-.ga-test-instruction { font-size: 30px !important; white-space: pre-line; }
+.ga-test-intro-body p {
+  font-size: 16px;
+  font-weight: 650;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+.ga-test-instruction {
+  font-size: 16px !important;
+  font-weight: 650 !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  white-space: pre-line;
+}

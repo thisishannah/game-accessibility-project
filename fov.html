@@ -104,8 +104,20 @@
             border: 1px solid rgba(148, 163, 184, 0.5);
             border-radius: 8px;
         }
-        .accent-title { font-size: 30px; }
-        .test-description { font-size: 30px; line-height: 1.6; white-space: pre-line; margin-bottom: 16px; }
+        .accent-title {
+          font-size: 16px;
+          font-weight: 650;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          color: #e5e7eb;
+        }
+        .test-description {
+          font-size: 16px;
+          font-weight: 650;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          line-height: 1.4;
+          white-space: pre-line;
+          margin-bottom: 16px;
+        }
     </style>
 </head>
 <body>
@@ -133,7 +145,7 @@
     <div class="popup-overlay" id="popup-overlay">
         <div class="popup-content">
             <button class="popup-close" onclick="closePopup()">×</button>
-            <h2 class="accent-title">시야각 시각화</h2>
+            <h2 class="accent-title" style="color:#e5e7eb;">시야각 시각화</h2>
             <p class="text-sm text-muted mb-md">
                 각 포인트에서 측정된 시야 한계를 시각화한 결과입니다. 색상이 진할수록 시야가 더 넓습니다.
             </p>
@@ -223,7 +235,7 @@
                 stimulus.active = true;
                 if (moveTimer) clearInterval(moveTimer);
                 moveTimer = setInterval(() => {
-                    stimulus.dist -= 5;
+                    stimulus.dist -= 10;
                     const angleRad = cp.angles[currentAngleIdx] * (Math.PI / 180);
                     stimulus.x = Math.round((width * cp.x/100) + Math.cos(angleRad) * stimulus.dist);
                     stimulus.y = Math.round((height * cp.y/100) - Math.sin(angleRad) * stimulus.dist);

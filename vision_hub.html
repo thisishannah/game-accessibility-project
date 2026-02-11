@@ -485,6 +485,14 @@
             }
           } else {
             finalHint.textContent = "모든 테스트를 완료하면 허브에서 시각 측정이 완료로 표시됩니다.";
+            if (typeof GAStorage !== "undefined") {
+              GAStorage.writeProgress("visual", {
+                label: "반응속도 + 폰트 + 에임 + FOV",
+                current: totalComplete,
+                total: 4,
+                completedAt: totalComplete >= 4 ? new Date().toISOString() : undefined
+              });
+            }
           }
         }
 
