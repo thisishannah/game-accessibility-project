@@ -131,7 +131,7 @@
         <div class="btn-row" style="margin-top: 24px;">
           <button type="button" class="btn-secondary" id="back-to-observer">
             <span class="btn-icon" aria-hidden="true">◀</span>
-            <span>관찰자 리포트로 돌아가기</span>
+            <span>관찰자 리포트 작성하기</span>
           </button>
         </div>
       </div>
@@ -366,7 +366,18 @@
             return;
           }
           let html = "";
-          if (hearing.overallDb != null) html += statRow("전체 청력(dB)", hearing.overallDb, null);
+          const hn = hearing.hearingNumber;
+          if (hn && (hn.left != null || hn.right != null)) {
+            if (hn.left != null) html += statRow("히어링 넘버(dB) 좌(L)", hn.left, null);
+            if (hn.right != null) html += statRow("히어링 넘버(dB) 우(R)", hn.right, null);
+          } else if (hearing.overallDb != null) {
+            html += statRow("전체 청력(dB)", hearing.overallDb, null);
+          }
+          const cap = hearing.hearingCapacity;
+          if (cap && (cap.left != null || cap.right != null)) {
+            if (cap.left != null) html += statRow("청각 수용력(%) 좌(L)", cap.left, null);
+            if (cap.right != null) html += statRow("청각 수용력(%) 우(R)", cap.right, null);
+          }
           if (hearing.speechClarityPercent != null) html += statRow("수음 명료도", hearing.speechClarityPercent.toFixed(0) + "%", null);
           if (hearing.articulationTest && hearing.articulationTest.matchRate != null) html += statRow("발화 인식 일치도", hearing.articulationTest.matchRate + "%", null);
           if (hearing.speechClarityRating != null) html += statRow("관찰자 발화 명료도", hearing.speechClarityRating + "/5", null);
@@ -465,7 +476,9 @@
           "timestamp", "user_id", "age", "gender", "monitor_inch", "resolution", "viewing_distance", "disability_type",
           "vision_rt_avg", "vision_aim_avg", "fov_blind_rate", "readable_font_size", "readable_font_size_mm",
           "motor_rt_avg", "motor_aim_avg", "motor_switch_latency", "key_reach_score", "burst_speed_peak", "fatigue_index", "motor_precision_error_mm",
-          "seq_memory_score", "go_nogo_accuracy", "hearing_intelligibility",
+          "seq_memory_score", "go_nogo_accuracy",
+          "hearing_hearing_number_left", "hearing_hearing_number_right", "hearing_capacity_left", "hearing_capacity_right",
+          "hearing_speech_clarity_percent", "hearing_articulation_match_rate", "hearing_observer_clarity_rating",
           "input_device", "assistive_device",
           "calibration_mm_per_px",
           "raw_vision_data", "raw_motor_data", "raw_cognitive_data", "raw_hearing_data", "observer_report"
@@ -544,9 +557,13 @@
             ? cognitive.goNoGo.successRate
             : null;
 
-          const hearing_intelligibility = hearing.speechClarityPercent != null
-            ? hearing.speechClarityPercent
-            : (hearing.speechClarityRating != null ? hearing.speechClarityRating : null);
+          const hearing_hearing_number_left = hearing.hearingNumber && hearing.hearingNumber.left != null ? hearing.hearingNumber.left : null;
+          const hearing_hearing_number_right = hearing.hearingNumber && hearing.hearingNumber.right != null ? hearing.hearingNumber.right : null;
+          const hearing_capacity_left = hearing.hearingCapacity && hearing.hearingCapacity.left != null ? hearing.hearingCapacity.left : null;
+          const hearing_capacity_right = hearing.hearingCapacity && hearing.hearingCapacity.right != null ? hearing.hearingCapacity.right : null;
+          const hearing_speech_clarity_percent = hearing.speechClarityPercent != null ? hearing.speechClarityPercent : null;
+          const hearing_articulation_match_rate = hearing.articulationTest && hearing.articulationTest.matchRate != null ? hearing.articulationTest.matchRate : null;
+          const hearing_observer_clarity_rating = hearing.speechClarityRating != null ? hearing.speechClarityRating : null;
 
           let raw_vision_data = vision && Object.keys(vision).length ? vision : null;
           if (raw_vision_data && mmPerPx != null) {
@@ -613,7 +630,13 @@
             motor_precision_error_mm,
             seq_memory_score,
             go_nogo_accuracy,
-            hearing_intelligibility,
+            hearing_hearing_number_left,
+            hearing_hearing_number_right,
+            hearing_capacity_left,
+            hearing_capacity_right,
+            hearing_speech_clarity_percent,
+            hearing_articulation_match_rate,
+            hearing_observer_clarity_rating,
             input_device: session.inputDevice != null ? session.inputDevice : "",
             assistive_device: session.assistiveDevice != null ? session.assistiveDevice : "",
             calibration_mm_per_px: mmPerPx != null ? Math.round(mmPerPx * 10000) / 10000 : null,
@@ -685,7 +708,7 @@
           }
         });
 
-        const DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyrcvpXF6Fiso80SrWpPFcHg3MEcZmIKs0cM0N6AEmvNLna2OSVM0PFfpMCledzo7xm/exec";
+        const DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx0qlJtN4_z1h3YPhUQFog8Pa_j0qB8zRM8Pgub3xBm9PnMTTuV_ydHtdP2UFb8GVg4/exec";
         const sendToSheetsBtn = document.getElementById("send-to-sheets");
         const sheetsStatusEl = document.getElementById("sheets-status");
         const sendBtnOriginalText = sendToSheetsBtn ? sendToSheetsBtn.textContent : "전송";

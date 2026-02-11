@@ -55,14 +55,15 @@
       }
       .instruction {
         text-align: center;
-        font-size: 54px;
+        font-size: 30px;
         font-weight: 600;
-        margin-bottom: 30px;
-        min-height: 120px;
+        margin-bottom: 20px;
+        min-height: 80px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: var(--text-main);
+        white-space: pre-line;
       }
       .key-combination {
         text-align: center;
@@ -411,7 +412,7 @@
           }
           
           resetCurrentCombination();
-          instruction.textContent = TEST_SEQUENCE[currentTestIndex].keys + "개 키를 동시에 누르세요";
+          instruction.textContent = TEST_SEQUENCE[currentTestIndex].keys + "개 키를\n동시에 누르세요";
         }
 
         function completeTest() {
@@ -459,7 +460,7 @@
           testCompleted = false;
           
           instruction.style.display = "block";
-          instruction.textContent = "지시된 키 조합을 동시에 누르세요";
+          instruction.textContent = "지시된 키 조합을\n동시에 누르세요";
           keyCombination.style.display = "flex";
           statusMessage.style.display = "block";
           resultsPanel.style.display = "none";
@@ -507,7 +508,7 @@
         retryBtn.addEventListener("click", resetTest);
 
         updateKeyDisplay();
-        instruction.textContent = TEST_SEQUENCE[0].keys + "개 키를 동시에 누르세요";
+        instruction.textContent = TEST_SEQUENCE[0].keys + "개 키를\n동시에 누르세요";
       })();
     </script>
   </body>

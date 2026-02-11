@@ -55,11 +55,12 @@
       }
       .instruction {
         text-align: center;
-        font-size: 54px;
+        font-size: 30px;
         font-weight: 600;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         color: var(--text-main);
-        min-height: 120px;
+        min-height: 80px;
+        white-space: pre-line;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -92,13 +93,14 @@
         margin-bottom: 24px;
       }
       .intro-body {
-        font-size: 14px;
-        line-height: 1.7;
+        font-size: 30px;
+        line-height: 1.6;
         color: var(--text-muted);
         margin-bottom: 20px;
         text-align: center;
+        white-space: pre-line;
       }
-      .intro-body p { margin: 0 0 10px 0; }
+      .intro-body p { margin: 0 0 12px 0; }
       .intro-body strong { color: var(--text-main); }
       .options-container {
         display: grid;
@@ -201,8 +203,10 @@
     <div class="test-container">
       <div class="intro-panel" id="intro-panel">
         <div class="intro-body">
-          <p>처음에 <strong>2초간</strong> 보여주는 문장을 기억했다가, 그 다음에 나오는 <strong>핵심 키워드</strong> 중에서 문장과 연관 있는 것을 골라 주세요.</p>
-          <p>각 문장마다 4개의 키워드가 제시되며, 그중 하나만 정답입니다.</p>
+          <p>처음에 <strong>2초간</strong> 보여주는 문장을 기억했다가,
+그 다음에 나오는 <strong>핵심 키워드</strong> 중에서 문장과 연관 있는 것을 골라 주세요.</p>
+          <p>각 문장마다 4개의 키워드가 제시되며,
+그중 하나만 정답입니다.</p>
           <p>준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
         </div>
         <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>
@@ -353,7 +357,7 @@
           introPanel.style.display = "none";
           sentenceDisplay.style.display = "flex";
           instruction.style.display = "block";
-          instruction.textContent = "2초간 문장을 기억한 뒤, 연관 키워드를 선택하세요";
+          instruction.textContent = "2초간 문장을 기억한 뒤,\n연관 키워드를 선택하세요";
           testActive = true;
           currentTrial = 0;
           trials = [];

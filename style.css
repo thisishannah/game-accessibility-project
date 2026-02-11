@@ -1336,3 +1336,8 @@ body {
     margin: 1.5cm;
   }
 }
+
+/* 테스트 페이지 공통: 안내/설명 30pt, 문장부호/의미단위 줄바꿈 */
+.ga-test-intro-body,
+.ga-test-intro-body p { font-size: 30px; line-height: 1.6; white-space: pre-line; }
+.ga-test-instruction { font-size: 30px !important; white-space: pre-line; }

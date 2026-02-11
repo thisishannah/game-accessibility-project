@@ -442,7 +442,8 @@
           } else if (testKey === "aim-trainer") {
             return vision.aimTrainer && vision.aimTrainer.targets && vision.aimTrainer.targets.length >= 30;
           } else if (testKey === "fov") {
-            return vision.fovResults && Array.isArray(vision.fovResults) && vision.fovResults.length > 0;
+            if (Array.isArray(vision.fovResults) && vision.fovResults.length > 0) return true;
+            return vision.fovResults && typeof vision.fovResults === "object" && Object.keys(vision.fovResults).length > 0;
           }
           return false;
         }

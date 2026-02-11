@@ -55,14 +55,15 @@
       }
       .instruction {
         text-align: center;
-        font-size: 54px;
+        font-size: 30px;
         font-weight: 600;
         margin-bottom: 16px;
-        min-height: 120px;
+        min-height: 80px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: var(--text-main);
+        white-space: pre-line;
       }
       .precision-progress {
         text-align: center;
@@ -244,7 +245,8 @@
     </header>
 
     <div class="test-container">
-      <div class="instruction" id="instruction">바둑판 교차점에 나타나는 타겟의 정중앙을 클릭하세요 (총 20회)</div>
+      <div class="instruction" id="instruction">바둑판 교차점에 나타나는 타겟의 정중앙을 클릭하세요.
+(총 20회)</div>
       <div class="precision-progress" id="precision-progress">
         <div class="info-panel" id="info-panel">클릭: 0/20</div>
       </div>

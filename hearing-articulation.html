@@ -15,9 +15,9 @@
       color: var(--text-main); text-decoration: none; font-size: 12px; }
     .test-container { width: 100%; max-width: 640px; margin-top: 60px; }
     .intro-panel { padding: 24px; background: rgba(2,6,23,0.9); border-radius: 16px; border: 1px solid rgba(51,65,85,0.9); margin-bottom: 24px; }
-    .intro-body { font-size: 14px; line-height: 1.7; color: var(--text-muted); margin-bottom: 20px; text-align: center; }
-    .intro-body p { margin: 0 0 10px 0; }
-    .instruction { text-align: center; font-size: 24px; font-weight: 600; margin-bottom: 16px; color: var(--text-main); min-height: 100px; display: flex; align-items: center; justify-content: center; }
+    .intro-body { font-size: 30px; line-height: 1.6; color: var(--text-muted); margin-bottom: 20px; text-align: center; white-space: pre-line; }
+    .intro-body p { margin: 0 0 12px 0; }
+    .instruction { text-align: center; font-size: 30px; font-weight: 600; margin-bottom: 16px; color: var(--text-main); min-height: 80px; display: flex; align-items: center; justify-content: center; white-space: pre-line; }
     .volume-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding: 12px; background: rgba(15,23,42,0.6); border-radius: 12px; }
     .volume-bar { flex: 1; height: 12px; background: rgba(51,65,85,0.9); border-radius: 999px; overflow: hidden; }
     .volume-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#22c55e,#4ade80); border-radius: 999px; transition: width 0.05s; }
@@ -56,30 +56,33 @@
     <div class="intro-panel" id="intro-panel">
       <div class="intro-body">
         <p>화면에 나오는 문장을 <strong>그대로 읽어 주세요.</strong></p>
-        <p>총 <strong>3개 문장</strong>을 순서대로 녹음한 뒤, 마지막에 관리자님이 각 문장별로 명료도를 평가합니다.</p>
+        <p>총 <strong>3개 문장</strong>을 순서대로 녹음한 뒤,
+마지막에 관리자님이 각 문장별로 명료도를 평가합니다.</p>
         <p>마이크가 잘 연결되었는지 볼륨 표시로 확인할 수 있습니다.</p>
-        <p>「지금 말하세요」 안내가 나오면 녹음이 시작됩니다. 읽기를 마치면 녹음 완료 버튼을 눌러 주세요.</p>
+        <p>「지금 말하세요」 안내가 나오면 녹음이 시작됩니다.
+읽기를 마치면 녹음 완료 버튼을 눌러 주세요.</p>
         <p>준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
       </div>
       <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>
     </div>
 
     <div id="test-area" style="display: none;">
-      <div class="instruction">마이크 입력 확인</div>
+      <div class="instruction" style="margin-bottom: 12px;">마이크 입력 확인</div>
       <div class="volume-wrap">
         <span class="volume-label" id="volume-label">입력 대기 중...</span>
         <div class="volume-bar"><div class="volume-fill" id="volume-fill"></div></div>
       </div>
       <div class="progress-indicator" id="progress-indicator">1/3</div>
-      <div class="instruction">아래 문장을 읽어 주세요</div>
+      <div class="instruction" style="margin-bottom: 12px;">아래 문장을 읽어 주세요</div>
       <div class="sentence-box" id="sentence-box"></div>
       <div class="speak-cta" id="speak-cta" style="display: none;">지금 말하세요</div>
       <button type="button" class="record-btn" id="record-btn" disabled>녹음 시작 (준비 중)</button>
     </div>
 
     <div id="observer-area" style="display: none;">
-      <div class="instruction">녹음 재생 및 관찰자 평가</div>
-      <p class="intro-body" style="margin-bottom: 16px;">3개 문장 녹음을 모두 들어 보시고, <strong>각 문장마다</strong> 발화 명료도를 1~5점으로 평가해 주세요.</p>
+      <div class="instruction" style="margin-bottom: 12px;">녹음 재생 및 관찰자 평가</div>
+      <p class="intro-body" style="margin-bottom: 16px; font-size: 30px;">3개 문장 녹음을 모두 들어 보시고,
+<strong>각 문장마다</strong> 발화 명료도를 1~5점으로 평가해 주세요.</p>
       <div id="observer-items"></div>
       <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
     </div>
@@ -223,27 +226,33 @@
         progressIndicator.textContent = (currentIndex + 1) + "/" + TOTAL_ITEMS;
       }
 
+      function finishRecordingAndContinue() {
+        const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+        recordings.push({ sentence: currentSentence, transcript: transcript, blob: blob });
+        currentIndex++;
+        if (currentIndex < TOTAL_ITEMS) {
+          stopVolume(false);
+          recordBtn.classList.remove("recording");
+          showCurrentSentence();
+          recordBtn.textContent = "지금 말하세요 (녹음 시작)";
+          transcript = "";
+          drawVolume();
+        } else {
+          stopVolume(true);
+          recordBtn.classList.remove("recording");
+          testArea.style.display = "none";
+          observerArea.style.display = "block";
+          buildObserverItems();
+        }
+      }
+
       recordBtn.addEventListener("click", function () {
         if (recordBtn.classList.contains("recording")) {
-          mediaRecorder.stop();
           if (recognition) recognition.stop();
-          const blob = new Blob(recordedChunks, { type: "audio/webm" });
-          recordings.push({ sentence: currentSentence, transcript: transcript, blob: blob });
-          currentIndex++;
-          if (currentIndex < TOTAL_ITEMS) {
-            stopVolume(false);
-            recordBtn.classList.remove("recording");
-            showCurrentSentence();
-            recordBtn.textContent = "지금 말하세요 (녹음 시작)";
-            transcript = "";
-            drawVolume();
-          } else {
-            stopVolume(true);
-            recordBtn.classList.remove("recording");
-            testArea.style.display = "none";
-            observerArea.style.display = "block";
-            buildObserverItems();
-          }
+          mediaRecorder.onstop = function () {
+            finishRecordingAndContinue();
+          };
+          mediaRecorder.stop();
           return;
         }
         speakCta.style.display = "block";
@@ -251,7 +260,11 @@
         recognition = startRecognition();
         if (recognition) recognition.start();
         recordedChunks = [];
-        mediaRecorder = new MediaRecorder(stream);
+        const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus"
+          : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
+          : MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4"
+          : "";
+        mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType: mimeType } : {});
         mediaRecorder.ondataavailable = function (e) { if (e.data.size > 0) recordedChunks.push(e.data); };
         mediaRecorder.start();
         recordBtn.classList.add("recording");

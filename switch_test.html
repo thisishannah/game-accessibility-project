@@ -59,16 +59,17 @@
         text-align: left;
       }
       .instruction-screen h2 {
-        font-size: 20px;
+        font-size: 30px;
         margin: 0 0 24px;
         color: var(--text-main);
         text-align: center;
       }
       .instruction-screen p {
-        font-size: 15px;
-        line-height: 1.7;
+        font-size: 30px;
+        line-height: 1.6;
         color: var(--text-muted);
         margin: 0 0 24px;
+        white-space: pre-line;
       }
       .step-row {
         display: flex;
@@ -96,7 +97,7 @@
         width: 36px;
         height: 36px;
       }
-      .step-text { text-align: left; font-size: 16px; color: var(--text-main); }
+      .step-text { text-align: left; font-size: 30px; color: var(--text-main); line-height: 1.6; white-space: pre-line; }
       .step-text p { margin: 0 0 0.6em 0; line-height: 1.6; }
       .step-text p:last-child { margin-bottom: 0; }
       .step-text strong { color: var(--ok); }
@@ -106,7 +107,7 @@
         background: rgba(74, 222, 128, 0.1);
         border: 1px solid var(--ok);
         border-radius: 12px;
-        font-size: 15px;
+        font-size: 30px;
         color: var(--ok);
         cursor: pointer;
       }
@@ -199,7 +200,7 @@
       }
       .direction-panel.active .panel-label { color: var(--wait); }
       .direction-panel .panel-instruction {
-        font-size: 48px;
+        font-size: 30px;
         font-weight: 600;
         color: var(--text-main);
         text-align: center;
@@ -315,7 +316,8 @@
     <div class="test-container">
       <div class="instruction-screen" id="instruction-screen">
         <h2>디바이스 전환 속도 테스트</h2>
-        <p>마우스 클릭 후 키보드 입력까지의 반응 속도를 측정합니다.</p><p>게임에서 자주 사용하는 키와 숫자패드·우측 키를 번갈아 측정합니다.</p>
+        <p>마우스 클릭 후 키보드 입력까지의 반응 속도를 측정합니다.</p>
+        <p>게임에서 자주 사용하는 키와 숫자패드·우측 키를 번갈아 측정합니다.</p>
         <div class="step-row">
           <div class="device-icon mouse" aria-hidden="true">
             <svg viewBox="0 0 24 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="12" cy="24" rx="8" ry="14" fill="currentColor" opacity="0.9"/><rect x="10" y="14" width="4" height="2" rx="0.5" fill="currentColor" opacity="0.6"/><rect x="9" y="10" width="2.5" height="5" rx="0.5" fill="currentColor" opacity="0.8"/><rect x="12.5" y="10" width="2.5" height="5" rx="0.5" fill="currentColor" opacity="0.8"/><ellipse cx="12" cy="18" rx="1.5" ry="1" fill="currentColor" opacity="0.5"/></svg>
