@@ -312,7 +312,7 @@
                   <span class="test-card-badge" data-progress="aim-trainer" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
-                  30개 타겟을 순차적으로 클릭. 소요 시간, 구간별 시간, 클릭 실패 횟수, 타겟 위치 데이터 저장.
+                  15개 타겟을 순차적으로 클릭. 소요 시간, 구간별 시간, 클릭 실패 횟수, 타겟 위치 데이터 저장.
                 </div>
               </article>
 
@@ -508,7 +508,7 @@
           if (testKey === "reaction-time") {
             return motor.reactionTime && motor.reactionTime.trials && motor.reactionTime.trials.length >= 4;
           } else if (testKey === "aim-trainer") {
-            return motor.aimTrainer && motor.aimTrainer.targets && motor.aimTrainer.targets.length >= 30;
+            return motor.aimTrainer && motor.aimTrainer.targets && motor.aimTrainer.targets.length >= 15;
           } else if (testKey === "hold-duration") {
             return motor.holdDuration && motor.holdDuration.keyboard && motor.holdDuration.mouse;
           } else if (testKey === "simultaneous-input") {

@@ -310,7 +310,7 @@
                   <span class="test-card-badge" data-progress="aim-trainer" data-done="false">0/1</span>
                 </div>
                 <div class="test-card-desc">
-                  30개 타겟을 순차적으로 클릭. 소요 시간, 구간별 시간, 타겟 위치 데이터 저장.
+                  15개 타겟을 순차적으로 클릭. 소요 시간, 구간별 시간, 타겟 위치 데이터 저장.
                 </div>
               </article>
 
@@ -440,7 +440,7 @@
           } else if (testKey === "font") {
             return vision.fontReadability && vision.fontReadability.minFontSize;
           } else if (testKey === "aim-trainer") {
-            return vision.aimTrainer && vision.aimTrainer.targets && vision.aimTrainer.targets.length >= 30;
+            return vision.aimTrainer && vision.aimTrainer.targets && vision.aimTrainer.targets.length >= 15;
           } else if (testKey === "fov") {
             if (Array.isArray(vision.fovResults) && vision.fovResults.length > 0) return true;
             return vision.fovResults && typeof vision.fovResults === "object" && Object.keys(vision.fovResults).length > 0;

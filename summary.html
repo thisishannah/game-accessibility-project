@@ -742,46 +742,13 @@
           const payload = buildSheetsRowPayload(session);
           fetch(DEPLOYED_SHEETS_URL, {
             method: "POST",
-            headers: { "Content-Type": "text/plain" },
+            mode: "no-cors",
+            headers: {},
             body: JSON.stringify(payload),
-          }).then(function (r) {
-            if (r.ok) {
-              clearSessionStorage();
-              alert("데이터가 저장되었습니다");
-              window.location.href = "index.html";
-            } else {
-              r.text().then(function (body) {
-                let errMsg = "전송 실패 (HTTP " + r.status + " " + (r.statusText || "") + ")";
-                try {
-                  const parsed = JSON.parse(body);
-                  if (parsed && parsed.error) errMsg += ". 서버: " + String(parsed.error);
-                  else if (body && body.length < 200) errMsg += ". " + body;
-                } catch (_) {
-                  if (body && body.length > 0 && body.length < 300) errMsg += ". " + body;
-                }
-                if (sheetsStatusEl) {
-                  sheetsStatusEl.textContent = errMsg;
-                  sheetsStatusEl.style.color = "#f97373";
-                }
-              }).catch(function () {
-                if (sheetsStatusEl) {
-                  sheetsStatusEl.textContent = "전송 실패 (HTTP " + r.status + "). 응답 본문 읽기 실패.";
-                  sheetsStatusEl.style.color = "#f97373";
-                }
-              });
-              if (sendToSheetsBtn) { sendToSheetsBtn.disabled = false; sendToSheetsBtn.textContent = sendBtnOriginalText; }
-            }
-          }).catch(function (err) {
-            let errMsg = "전송 실패: " + (err.name || "Error") + " - " + (err.message || "네트워크 오류") + (err.cause ? " (원인: " + String(err.cause) + ")" : "");
-            if (err.message && err.message.toLowerCase().includes("fetch")) {
-              errMsg += " 파일 직접 열기(file://)라면 웹 서버(localhost)로 접속 후 다시 시도해 주세요.";
-            }
-            if (sheetsStatusEl) {
-              sheetsStatusEl.textContent = errMsg;
-              sheetsStatusEl.style.color = "#f97373";
-            }
-            if (sendToSheetsBtn) { sendToSheetsBtn.disabled = false; sendToSheetsBtn.textContent = sendBtnOriginalText; }
           });
+          clearSessionStorage();
+          alert("전송 시도 완료");
+          window.location.href = "index.html";
         }
 
         if (sendToSheetsBtn) {

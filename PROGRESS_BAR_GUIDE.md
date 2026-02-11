@@ -39,8 +39,8 @@ function updateProgress() {
 
 - reaction-time.html: 4회
 - motor-reaction-time.html: 4회
-- aim-trainer.html: 30개 타겟
-- motor-aim-trainer.html: 30개 타겟
+- aim-trainer.html: 15개 타겟
+- motor-aim-trainer.html: 15개 타겟
 - font.html: 1회 (진행바 불필요하거나 0/1로 표시)
 - fov.html: 4회 (라운드별)
 - motor-precision.html: 20회 클릭
