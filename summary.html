@@ -713,18 +713,24 @@
         const sheetsStatusEl = document.getElementById("sheets-status");
         const sendBtnOriginalText = sendToSheetsBtn ? sendToSheetsBtn.textContent : "전송";
 
-        sendToSheetsBtn.addEventListener("click", function () {
+        function doSheetsSubmit() {
           const session = readSession();
           const errs = validateSession(session);
           if (errs.length > 0) {
-            sheetsStatusEl.textContent = "유효성 검사 실패: " + errs.join(" ");
-            sheetsStatusEl.style.color = "#f97373";
+            if (sheetsStatusEl) {
+              sheetsStatusEl.textContent = "유효성 검사 실패: " + errs.join(" ");
+              sheetsStatusEl.style.color = "#f97373";
+            }
             return;
           }
-          sendToSheetsBtn.disabled = true;
-          sendToSheetsBtn.textContent = "전송 중...";
-          sheetsStatusEl.textContent = "";
-          sheetsStatusEl.style.color = "inherit";
+          if (sendToSheetsBtn) {
+            sendToSheetsBtn.disabled = true;
+            sendToSheetsBtn.textContent = "전송 중...";
+          }
+          if (sheetsStatusEl) {
+            sheetsStatusEl.textContent = "";
+            sheetsStatusEl.style.color = "inherit";
+          }
 
           const payload = buildSheetsRowPayload(session);
           fetch(DEPLOYED_SHEETS_URL, {
@@ -737,18 +743,40 @@
               alert("데이터가 저장되었습니다");
               window.location.href = "index.html";
             } else {
-              sheetsStatusEl.textContent = "전송 실패 (HTTP " + r.status + ").";
-              sheetsStatusEl.style.color = "#f97373";
-              sendToSheetsBtn.disabled = false;
-              sendToSheetsBtn.textContent = sendBtnOriginalText;
+              r.text().then(function (body) {
+                let errMsg = "전송 실패 (HTTP " + r.status + " " + (r.statusText || "") + ")";
+                try {
+                  const parsed = JSON.parse(body);
+                  if (parsed && parsed.error) errMsg += ". 서버: " + String(parsed.error);
+                  else if (body && body.length < 200) errMsg += ". " + body;
+                } catch (_) {
+                  if (body && body.length > 0 && body.length < 300) errMsg += ". " + body;
+                }
+                if (sheetsStatusEl) {
+                  sheetsStatusEl.textContent = errMsg;
+                  sheetsStatusEl.style.color = "#f97373";
+                }
+              }).catch(function () {
+                if (sheetsStatusEl) {
+                  sheetsStatusEl.textContent = "전송 실패 (HTTP " + r.status + "). 응답 본문 읽기 실패.";
+                  sheetsStatusEl.style.color = "#f97373";
+                }
+              });
+              if (sendToSheetsBtn) { sendToSheetsBtn.disabled = false; sendToSheetsBtn.textContent = sendBtnOriginalText; }
             }
           }).catch(function (err) {
-            sheetsStatusEl.textContent = "전송 실패: " + (err.message || "네트워크 오류");
-            sheetsStatusEl.style.color = "#f97373";
-            sendToSheetsBtn.disabled = false;
-            sendToSheetsBtn.textContent = sendBtnOriginalText;
+            const errMsg = "전송 실패: " + (err.name || "Error") + " - " + (err.message || "네트워크 오류") + (err.cause ? " (원인: " + String(err.cause) + ")" : "");
+            if (sheetsStatusEl) {
+              sheetsStatusEl.textContent = errMsg;
+              sheetsStatusEl.style.color = "#f97373";
+            }
+            if (sendToSheetsBtn) { sendToSheetsBtn.disabled = false; sendToSheetsBtn.textContent = sendBtnOriginalText; }
           });
-        });
+        }
+
+        if (sendToSheetsBtn) {
+          sendToSheetsBtn.addEventListener("click", doSheetsSubmit);
+        }
 
         document.getElementById("back-to-observer").addEventListener("click", () => {
           window.location.href = "observer_report.html";

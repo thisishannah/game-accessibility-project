@@ -1207,14 +1207,6 @@
                         <span class="label-required">필수</span>
                         <button type="button" class="guide-trigger" data-guide="resolution" aria-label="찾는 방법">?</button>
                       </label>
-                      <button
-                        type="button"
-                        class="btn-secondary"
-                        id="detect-resolution"
-                        style="padding: 4px 10px; font-size: 11px"
-                      >
-                        현재 해상도 자동 감지
-                      </button>
                     </div>
                     <div class="input-shell">
                       <input
@@ -2048,35 +2040,9 @@
           });
         }
 
-        const detectResolutionButton =
-          document.getElementById("detect-resolution");
-        if (detectResolutionButton) {
-          detectResolutionButton.addEventListener("click", () => {
-            const input = document.getElementById("pc-resolution");
-            if (!input) return;
-
-            try {
-              const w = window.screen && window.screen.width;
-              const h = window.screen && window.screen.height;
-              if (w && h) {
-                input.value = `${w}x${h}`;
-              } else {
-                const iw = window.innerWidth;
-                const ih = window.innerHeight;
-                if (iw && ih) {
-                  input.value = `${iw}x${ih} (창 기준)`;
-                }
-              }
-              updateSummary();
-            } catch (e) {
-              // 감지 실패 시 아무것도 하지 않음
-            }
-          });
-        }
-
         (function initGuidePopover() {
           const GUIDE_CONTENT = {
-            resolution: "<strong>해상도</strong><ol><li>이 페이지의 「현재 해상도 자동 감지」 버튼을 클릭하면 자동 입력됩니다.</li><li>또는 <strong>설정 → 시스템 → 디스플레이</strong> → 디스플레이 해상도에서 확인하세요.</li></ol>",
+            resolution: "<strong>해상도</strong><ol><li><strong>설정 → 시스템 → 디스플레이</strong> → 디스플레이 해상도에서 확인하세요.</li><li>Windows: 표시 해상도(예: 1920×1080). macOS: 디스플레이 설정의 해상도.</li><li>브라우저에서 자동 감지한 값은 배율/논리 해상도라 기기마다 다르게 해석되므로 사용하지 않습니다.</li></ol>",
             dpi: "<strong>윈도우 배율(DPI)</strong><ol><li><strong>설정 → 시스템 → 디스플레이</strong> → 배율 및 레이아웃</li><li>「텍스트, 앱 및 기타 항목의 크기 변경」에서 100%, 125%, 150% 등의 값을 확인하세요.</li></ol>",
             monitor: "<strong>모니터 크기</strong><ol><li>모니터 뒷면 스티커, 또는 제조사 사양서에서 대각선 인치를 확인하세요.</li><li>모델명(예: LG 27GP850)으로 검색해도 됩니다.</li></ol>",
             cpu: "<strong>CPU</strong><ol><li><strong>Ctrl+Shift+Esc</strong>로 작업 관리자 열기 → <strong>성능</strong> 탭 → <strong>CPU</strong> 선택</li><li>상단에 모델명(예: Intel Core i5-12400)이 표시됩니다.</li><li>또는 <strong>설정 → 시스템 → 정보</strong>에서 프로세서 확인.</li></ol>",
