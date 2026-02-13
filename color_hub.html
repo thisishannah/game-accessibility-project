@@ -247,11 +247,11 @@
           if (totalComplete >= 3) {
             document.getElementById("final-hint").innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong>";
             if (typeof GAStorage !== "undefined") {
-              GAStorage.writeProgress("color", { label: "반응속도 + Ishihara + 심층 색상 식별", current: 3, total: 3, completedAt: new Date().toISOString() });
+              GAStorage.writeProgress("color", { label: "Ishihara 색약, 그외 2개 테스트", current: 3, total: 3, completedAt: new Date().toISOString() });
             }
           } else {
             if (typeof GAStorage !== "undefined") {
-              GAStorage.writeProgress("color", { label: "반응속도 + Ishihara + 심층 색상 식별", current: totalComplete, total: 3 });
+              GAStorage.writeProgress("color", { label: "Ishihara 색약, 그외 2개 테스트", current: totalComplete, total: 3 });
             }
           }
         }

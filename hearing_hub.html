@@ -293,6 +293,14 @@
               finalHint.textContent = "모든 항목을 완료하면 측정 허브에서 청각언어 측정이 완료로 표시됩니다.";
             }
           }
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeProgress("audio", {
+              label: "언어 명료도, 그외 3개 테스트",
+              current: doneCount,
+              total: 4,
+              completedAt: doneCount >= 4 ? new Date().toISOString() : undefined
+            });
+          }
         }
 
         testGrid.addEventListener("click", function (e) {

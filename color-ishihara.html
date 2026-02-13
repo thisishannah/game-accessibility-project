@@ -42,7 +42,7 @@
       <canvas id="plate-canvas" width="280" height="280" aria-label="색약 검사 판정 이미지"></canvas>
     </div>
 
-    <p class="progress-text" id="progress-text" aria-live="polite">1 / 6</p>
+    <p class="progress-text" id="progress-text" aria-live="polite">1 / 10</p>
     <div class="input-row" role="group" aria-labelledby="answer-label">
       <label id="answer-label" for="answer-input" class="sr-only">원형 이미지에 보이는 숫자 입력. 보이지 않으면 0 입력</label>
       <input type="text" id="answer-input" placeholder="숫자 입력" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-describedby="progress-text" />
@@ -59,16 +59,21 @@
     <script>
       (function () {
         const SIZE = 280;
-        const DOT_R = 8;
-        const GAP = 14;
+        const DOT_R = 6;
+        const GAP = 10;
 
+        /** 배경: 8~10개 유사 색상 (이시하라식 다색·혼동용). fig: 숫자 색. type: RG-red/RG-green */
         const PLATES = [
-          { expected: "12", bg: [195, 145, 130], fig: [90, 140, 95], type: "RG-green" },
-          { expected: "8", bg: [190, 150, 125], fig: [175, 95, 90], type: "RG-red" },
-          { expected: "6", bg: [188, 142, 128], fig: [85, 135, 90], type: "RG-green" },
-          { expected: "5", bg: [192, 148, 132], fig: [170, 92, 88], type: "RG-red" },
-          { expected: "29", bg: [185, 140, 125], fig: [88, 138, 92], type: "RG-green" },
-          { expected: "15", bg: [190, 145, 128], fig: [172, 90, 85], type: "RG-red" }
+          { expected: "12", bgPalette: [[198,148,133],[192,145,128],[188,150,125],[195,142,130],[190,146,135],[185,152,120],[193,143,131],[187,149,127],[196,141,129],[184,153,119]], fig: [82,138,88], type: "RG-green" },
+          { expected: "8", bgPalette: [[188,152,122],[192,148,128],[186,155,118],[190,150,124],[194,145,132],[189,151,126],[191,147,130],[185,153,120],[193,146,125],[187,154,116]], fig: [178,88,85], type: "RG-red" },
+          { expected: "6", bgPalette: [[185,140,125],[190,138,130],[188,144,122],[192,142,128],[186,146,120],[191,140,126],[189,139,129],[184,147,118],[193,137,132],[187,145,121]], fig: [80,135,85], type: "RG-green" },
+          { expected: "5", bgPalette: [[190,150,128],[195,145,132],[188,152,122],[192,148,130],[186,155,118],[191,146,126],[189,151,125],[194,144,134],[187,153,121],[193,147,129]], fig: [168,88,82], type: "RG-red" },
+          { expected: "29", bgPalette: [[182,142,122],[187,138,128],[184,145,118],[189,141,124],[181,148,115],[186,144,120],[183,143,125],[188,137,130],[185,146,117],[180,149,113]], fig: [85,140,90], type: "RG-green" },
+          { expected: "15", bgPalette: [[188,146,125],[192,142,130],[186,150,120],[190,144,128],[184,152,118],[191,148,122],[187,145,127],[193,141,132],[185,151,119],[189,143,126]], fig: [170,85,80], type: "RG-red" },
+          { expected: "74", bgPalette: [[195,138,128],[189,144,122],[192,140,126],[187,146,118],[194,137,130],[190,143,124],[191,139,129],[186,145,120],[193,136,131],[188,142,125]], fig: [88,142,92], type: "RG-green" },
+          { expected: "2", bgPalette: [[186,152,118],[191,147,125],[188,150,122],[184,155,112],[190,148,120],[187,151,116],[185,153,114],[192,146,127],[189,149,121],[183,154,110]], fig: [175,92,88], type: "RG-red" },
+          { expected: "16", bgPalette: [[183,141,120],[188,137,126],[185,144,115],[190,140,122],[181,147,110],[186,143,118],[184,142,124],[189,136,128],[182,146,113],[187,139,120]], fig: [82,138,86], type: "RG-green" },
+          { expected: "8", bgPalette: [[192,136,130],[187,142,120],[190,138,126],[185,145,116],[191,137,128],[188,141,122],[189,135,131],[186,143,118],[193,134,132],[184,144,114]], fig: [172,86,82], type: "RG-red" }
         ];
 
         function getNumberMask(numStr) {
@@ -101,28 +106,72 @@
           return { w: 7, h: 7, grid: [] };
         }
 
+        function lerp(a, b, t) {
+          return a + (b - a) * t;
+        }
+
         function drawPlate(ctx, plate) {
-          const { bg, fig, expected } = plate;
+          const { bgPalette, fig, expected } = plate;
           const mask = getNumberMask(expected);
           const cols = mask.grid[0] ? mask.grid[0].length : 10;
           const rows = mask.grid.length || 10;
           const ox = (SIZE - (cols * GAP)) / 2 + GAP / 2;
           const oy = (SIZE - (rows * GAP)) / 2 + GAP / 2;
 
-          for (let r = 0; r < rows + 4; r++) {
-            for (let c = 0; c < cols + 6; c++) {
-              const mx = c - 2;
-              const my = r - 2;
+          const jitter = () => (Math.random() - 0.5) * 16;
+
+          for (let r = 0; r < rows + 8; r++) {
+            for (let c = 0; c < cols + 12; c++) {
+              const mx = c - 4;
+              const my = r - 4;
               const inFigure = my >= 0 && my < rows && mx >= 0 && mx < cols && mask.grid[my] && mask.grid[my][mx] === 1;
-              const [rx, ry, gx, gy, bx, by] = inFigure ? fig : bg;
-              const jitter = () => (Math.random() - 0.5) * 20;
-              const rv = Math.max(0, Math.min(255, (inFigure ? fig[0] : bg[0]) + jitter()));
-              const gv = Math.max(0, Math.min(255, (inFigure ? fig[1] : bg[1]) + jitter()));
-              const bv = Math.max(0, Math.min(255, (inFigure ? fig[2] : bg[2]) + jitter()));
-              ctx.fillStyle = "rgb(" + Math.round(rv) + "," + Math.round(gv) + "," + Math.round(bv) + ")";
-              const x = ox + c * GAP + (Math.random() - 0.5) * 4;
-              const y = oy + r * GAP + (Math.random() - 0.5) * 4;
-              const rad = DOT_R + (Math.random() - 0.5) * 2;
+
+              let distToEdge = 3;
+              for (let dy = -2; dy <= 2; dy++)
+                for (let dx = -2; dx <= 2; dx++)
+                  if (dx !== 0 || dy !== 0) {
+                    const ny = my + dy, nx = mx + dx;
+                    const neighborFig = ny >= 0 && ny < rows && nx >= 0 && nx < cols && mask.grid[ny] && mask.grid[ny][nx] === 1;
+                    if (inFigure !== neighborFig) {
+                      const d = Math.max(Math.abs(dx), Math.abs(dy));
+                      distToEdge = Math.min(distToEdge, d);
+                    }
+                  }
+
+              const pal = bgPalette[Math.floor(Math.random() * bgPalette.length)];
+              const confusionNoise = Math.random() < 0.38 ? (Math.random() * 0.45 + 0.08) : 0;
+              const edgeBlend = distToEdge <= 2 ? (2.5 - distToEdge) * 0.28 : 0;
+              const blend = Math.min(0.75, confusionNoise + edgeBlend);
+
+              const trapDecoy = !inFigure && Math.random() < 0.06;
+              const trapDecoyAmount = trapDecoy ? (Math.random() * 0.35 + 0.15) : 0;
+
+              let R, G, B;
+              if (blend >= 0.12 || trapDecoyAmount > 0) {
+                const t = Math.min(0.7, blend + trapDecoyAmount);
+                if (inFigure) {
+                  R = lerp(fig[0], pal[0], t) + jitter();
+                  G = lerp(fig[1], pal[1], t) + jitter();
+                  B = lerp(fig[2], pal[2], t) + jitter();
+                } else {
+                  R = lerp(pal[0], fig[0], t * 0.55) + jitter();
+                  G = lerp(pal[1], fig[1], t * 0.55) + jitter();
+                  B = lerp(pal[2], fig[2], t * 0.55) + jitter();
+                }
+              } else {
+                R = (inFigure ? fig[0] : pal[0]) + jitter();
+                G = (inFigure ? fig[1] : pal[1]) + jitter();
+                B = (inFigure ? fig[2] : pal[2]) + jitter();
+              }
+
+              R = Math.max(0, Math.min(255, R));
+              G = Math.max(0, Math.min(255, G));
+              B = Math.max(0, Math.min(255, B));
+
+              ctx.fillStyle = "rgb(" + Math.round(R) + "," + Math.round(G) + "," + Math.round(B) + ")";
+              const x = ox + (c - 3) * GAP + (Math.random() - 0.5) * 3;
+              const y = oy + (r - 3) * GAP + (Math.random() - 0.5) * 3;
+              const rad = DOT_R + (Math.random() - 0.5) * 1.5;
               ctx.beginPath();
               ctx.arc(x, y, rad, 0, Math.PI * 2);
               ctx.fill();
@@ -190,7 +239,7 @@
           if (currentIdx >= PLATES.length) {
             showResults();
           } else {
-            progressText.textContent = (currentIdx + 1) + " / 6";
+            progressText.textContent = (currentIdx + 1) + " / " + PLATES.length;
             renderPlate();
             input.focus();
           }

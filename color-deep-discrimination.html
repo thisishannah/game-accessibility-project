@@ -70,7 +70,7 @@
     </div>
 
     <div id="phase1" class="test-section">
-      <p class="phase-badge">로직 1 — 명도 일치 경계선 (Canvas RGB/HSV 기반 생성)</p>
+      <p class="phase-badge">로직 1 — 명도 일치 경계선 (동일 sRGB 명도의 적·녹 세로 줄무늬, WCAG 2.1 상대 명도)</p>
       <h3>경계선의 세로 무늬가 보이나요?</h3>
       <div class="canvas-container" id="luminance-canvas-wrap">
         <canvas id="luminance-canvas" width="560" height="140" role="img" aria-label="적녹색 명도 경계선 검사 이미지"></canvas>
@@ -102,9 +102,9 @@
     <script src="ga-storage.js"></script>
     <script>
       (function () {
-        /** RGB → sRGB 명도 (0~255) */
+        /** RGB → sRGB 상대 명도 (WCAG 2.1: 0.2126*R + 0.7152*G + 0.0722*B, 0~255 스케일) */
         function rgbToLuminance(r, g, b) {
-          return 0.299 * r + 0.587 * g + 0.114 * b;
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
         }
 
         /** RGB → HSV 변환 */
@@ -136,36 +136,40 @@
           };
         }
 
-        /** 목표 명도(L)에 맞춘 적색 생성: R 높음, G=B로 고정 */
+        /** 목표 명도(L)에 맞춘 적색 생성: R 높음, G=B. L=0.2126*R+0.7152*G+0.0722*B */
         function redAtLuminance(L) {
-          const r = 175;
-          const gb = (L - 0.299 * r) / (0.587 + 0.114);
-          const g = Math.round(Math.max(0, Math.min(255, gb)));
-          return { r, g, b: g };
+          const r = 200;
+          const g = (L - 0.2126 * r) / 0.7874;
+          const gb = Math.round(Math.max(0, Math.min(255, g)));
+          return { r, g: gb, b: gb };
         }
 
-        /** 목표 명도(L)에 맞춘 녹색 생성: G 높음, R=B로 고정 */
+        /** 목표 명도(L)에 맞춘 녹색 생성: G 높음, R=B */
         function greenAtLuminance(L) {
-          const g = 140;
-          const rb = (L - 0.587 * g) / (0.299 + 0.114);
-          const r = Math.round(Math.max(0, Math.min(255, rb)));
-          return { r, g, b: r };
+          const g = 100;
+          const r = (L - 0.7152 * g) / 0.2848;
+          const rb = Math.round(Math.max(0, Math.min(255, r)));
+          return { r: rb, g, b: rb };
         }
 
-        /** 명도 일치 경계선 Canvas 그리기 */
+        /** 명도 일치 경계선 Canvas 그리기
+         *  원리: 적·녹을 동일 sRGB 명도로 맞추면 적록색맹/색약은 구분 불가(경계·무늬 안 보임).
+         *  정안은 색상(휘)으로 구분 가능 → 세로 줄무늬가 보임.
+         *  출처: NEI, MedlinePlus Genetics, NBK217820(CHAPTER 2 CLASSIFICATION OF COLOR VISION DEFECTS)
+         */
         function drawLuminanceCanvas() {
           const canvas = document.getElementById("luminance-canvas");
           if (!canvas) return;
           const ctx = canvas.getContext("2d");
           const w = canvas.width, h = canvas.height;
-          const targetL = 88;
+          const targetL = 85;
 
           const red = redAtLuminance(targetL);
           const green = greenAtLuminance(targetL);
 
-          const leftW = Math.floor(w * 0.45);
-          const rightW = w - leftW - 50;
-          const boundaryW = 50;
+          const leftW = Math.floor(w * 0.40);
+          const boundaryW = 70;
+          const rightW = w - leftW - boundaryW;
 
           ctx.fillStyle = "rgb(" + red.r + "," + red.g + "," + red.b + ")";
           ctx.fillRect(0, 0, leftW, h);
@@ -173,12 +177,15 @@
           ctx.fillStyle = "rgb(" + green.r + "," + green.g + "," + green.b + ")";
           ctx.fillRect(leftW + boundaryW, 0, rightW, h);
 
+          const stripeW = 5;
           ctx.save();
           ctx.translate(leftW, 0);
-          for (let i = 0; i < h; i += 6) {
-            const shade = 60 + (i % 12) * 4;
-            ctx.fillStyle = "rgb(" + shade + "," + shade + 8 + "," + shade + 16 + ")";
-            ctx.fillRect(0, i, boundaryW, 4);
+          for (let x = 0; x < boundaryW; x += stripeW) {
+            const useRed = Math.floor(x / stripeW) % 2 === 0;
+            ctx.fillStyle = useRed
+              ? "rgb(" + red.r + "," + red.g + "," + red.b + ")"
+              : "rgb(" + green.r + "," + green.g + "," + green.b + ")";
+            ctx.fillRect(x, 0, Math.min(stripeW, boundaryW - x), h);
           }
           ctx.restore();
         }

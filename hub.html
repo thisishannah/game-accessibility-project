@@ -606,7 +606,7 @@
                 data-disability-type="시각"
                 tabindex="0"
                 role="button"
-                aria-label="시각 측정: 대비, 색 의존도, 텍스트 가독성. 클릭하면 시각 측정 허브로 이동합니다. 진행률 0/5"
+                aria-label="시각 측정: 폰트 가독성, 그외 4개 테스트. 클릭하면 시각 측정 허브로 이동합니다."
               >
                 <div class="measure-head">
                   <div class="measure-main">
@@ -624,7 +624,7 @@
                     class="measure-progress-label"
                     data-progress-label="visual"
                   >
-                    UI & 텍스트 가시성
+                    폰트 가독성, 그외 4개 테스트
                   </span>
                   <span
                     class="measure-progress-value"
@@ -649,7 +649,7 @@
                 data-disability-type="운동"
                 tabindex="0"
                 role="button"
-                aria-label="운동 측정: 입력 난이도, 동시 입력, 피로도. 클릭하면 운동 측정 허브로 이동합니다. 진행률 0/9"
+                aria-label="운동 측정: 에임 트레이너, 그외 7개 테스트. 클릭하면 운동 측정 허브로 이동합니다."
               >
                 <div class="measure-head">
                   <div class="measure-main">
@@ -667,13 +667,13 @@
                     class="measure-progress-label"
                     data-progress-label="motor"
                   >
-                    FOV & 입력 동시성
+                    에임 트레이너, 그외 7개 테스트
                   </span>
                   <span
                     class="measure-progress-value"
                     data-progress-value="motor"
                   >
-                    0/4
+                    0/8
                   </span>
                 </div>
                 <div class="measure-progress-bar" aria-hidden="true">
@@ -692,7 +692,7 @@
                 data-disability-type="청각언어장애"
                 tabindex="0"
                 role="button"
-                aria-label="청각언어장애 측정: 자막, 시각적 피드백, 소리 의존도. 클릭하면 청각 측정 허브로 이동합니다. 진행률 0/3"
+                aria-label="청각언어장애 측정: 언어 명료도, 그외 3개 테스트. 클릭하면 청각 측정 허브로 이동합니다."
               >
                 <div class="measure-head">
                   <div class="measure-main">
@@ -710,13 +710,13 @@
                     class="measure-progress-label"
                     data-progress-label="audio"
                   >
-                    자막·알림 피드백
+                    언어 명료도, 그외 3개 테스트
                   </span>
                   <span
                     class="measure-progress-value"
                     data-progress-value="audio"
                   >
-                    0/3
+                    0/4
                   </span>
                 </div>
                 <div class="measure-progress-bar" aria-hidden="true">
@@ -735,7 +735,7 @@
                 data-disability-type="색각"
                 tabindex="0"
                 role="button"
-                aria-label="색각·색채 측정: Ishihara 색약 검사, 심층 색상 식별. 클릭하면 색각 측정 허브로 이동합니다. 진행률 0/3"
+                aria-label="색각·색채 측정: Ishihara 색약, 그외 2개 테스트. 클릭하면 색각 측정 허브로 이동합니다."
               >
                 <div class="measure-head">
                   <div class="measure-main">
@@ -753,7 +753,7 @@
                     class="measure-progress-label"
                     data-progress-label="color"
                   >
-                    색약·색채 혼동
+                    Ishihara 색약, 그외 2개 테스트
                   </span>
                   <span
                     class="measure-progress-value"
@@ -778,7 +778,7 @@
                 data-disability-type="인지"
                 tabindex="0"
                 role="button"
-                aria-label="인지 측정: 정보량, 튜토리얼, UI 복잡도. 클릭하면 인지 측정 허브로 이동합니다. 진행률 0/4"
+                aria-label="인지 측정: 순서 기억, 그외 4개 테스트. 클릭하면 인지 측정 허브로 이동합니다."
               >
                 <div class="measure-head">
                   <div class="measure-main">
@@ -796,13 +796,13 @@
                     class="measure-progress-label"
                     data-progress-label="cognitive"
                   >
-                    정보 처리 난이도
+                    순서 기억, 그외 4개 테스트
                   </span>
                   <span
                     class="measure-progress-value"
                     data-progress-value="cognitive"
                   >
-                    0/3
+                    0/5
                   </span>
                 </div>
                 <div class="measure-progress-bar" aria-hidden="true">
@@ -924,11 +924,11 @@
         const measureGrid = document.getElementById("measure-grid");
 
         const PROGRESS_DEFAULTS = {
-          visual: { label: "반응속도 + 폰트 + 에임 + FOV", current: 0, total: 5 },
-          motor: { label: "9개 테스트", current: 0, total: 9 },
-          audio: { label: "자막·알림 피드백", current: 0, total: 3 },
-          color: { label: "반응속도 + Ishihara + 심층 색상 식별", current: 0, total: 3 },
-          cognitive: { label: "4개 테스트", current: 0, total: 4 },
+          visual: { label: "폰트 가독성, 그외 4개 테스트", current: 0, total: 5 },
+          motor: { label: "에임 트레이너, 그외 7개 테스트", current: 0, total: 8 },
+          audio: { label: "언어 명료도, 그외 3개 테스트", current: 0, total: 4 },
+          color: { label: "Ishihara 색약, 그외 2개 테스트", current: 0, total: 3 },
+          cognitive: { label: "순서 기억, 그외 4개 테스트", current: 0, total: 5 },
         };
 
         function readSession() {

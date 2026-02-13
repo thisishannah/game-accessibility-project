@@ -496,7 +496,7 @@
             finalHint.innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong> 허브로 돌아가면 인지 측정이 완료로 표시됩니다.";
             if (typeof GAStorage !== "undefined") {
               GAStorage.writeProgress("cognitive", {
-                label: "반응속도 + 순서 기억 + 반응 통제 + 동시 처리 + 핵심 파악 테스트",
+                label: "순서 기억, 그외 4개 테스트",
                 current: 5,
                 total: 5,
                 completedAt: new Date().toISOString()
@@ -504,6 +504,13 @@
             }
           } else {
             finalHint.textContent = "모든 테스트를 완료하면 허브에서 인지 측정이 완료로 표시됩니다.";
+            if (typeof GAStorage !== "undefined") {
+              GAStorage.writeProgress("cognitive", {
+                label: "순서 기억, 그외 4개 테스트",
+                current: totalComplete,
+                total: 5
+              });
+            }
           }
         }
 

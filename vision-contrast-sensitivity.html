@@ -125,10 +125,10 @@
     </header>
 
     <div class="instruction">
-      회색 배경 위에 나타나는 원형 타겟을 찾아 클릭하세요.<br>
-      성공할수록 타겟이 배경과 비슷해져 난이도가 올라갑니다.<br>
-      보이지 않으면 <strong>보이지 않습니다</strong> 버튼을 누르세요.<br>
-      <span style="color: var(--text-muted); font-size: 12px; margin-top: 8px; display: block;">※ 이 테스트는 모니터 밝기 100% 환경에서 권장됩니다.</span>
+      회색 배경 위에 여러 개의 원이 나타납니다. <strong>가장 어두운 원</strong>을 찾아 클릭하세요.<br>
+      성공할수록 모든 원이 배경에 가까워져 난이도가 올라갑니다.<br>
+      잘 모르겠으면 <strong>보이지 않습니다</strong> 버튼을 누르세요.<br>
+      <span style="color: var(--text-muted); font-size: 12px; margin-top: 8px; display: block;">※ 모니터 밝기 100%, 어두운 환경에서 권장됩니다.</span>
     </div>
 
     <div class="test-area" id="test-area"></div>
@@ -145,12 +145,14 @@
     <script>
       (function () {
         const BG_RGB = { r: 107, g: 114, b: 128 };
-        const TARGET_RADIUS = 40;
-        const PADDING = 60;
+        const TARGET_RADIUS = 26;
+        const PADDING = 50;
+        const DECOY_COUNT = 6;
 
         const CONTRAST_LEVELS = [
-          1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3,
-          0.25, 0.22, 0.2, 0.18, 0.16, 0.14, 0.12, 0.1, 0.08, 0.06, 0.05, 0.04, 0.03, 0.02
+          0.55, 0.48, 0.42, 0.36, 0.32, 0.28, 0.24, 0.2, 0.18, 0.16,
+          0.14, 0.12, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.045, 0.04,
+          0.035, 0.03, 0.025, 0.02, 0.018, 0.016, 0.014, 0.012, 0.01, 0.008
         ];
 
         const testArea = document.getElementById("test-area");
@@ -183,29 +185,54 @@
           };
         }
 
+        function isOverlapping(pos, others, minDist) {
+          for (let i = 0; i < others.length; i++) {
+            const d = Math.sqrt(Math.pow(pos.x - others[i].x, 2) + Math.pow(pos.y - others[i].y, 2));
+            if (d < minDist) return true;
+          }
+          return false;
+        }
+
         function spawnTarget() {
           if (testDone || currentLevelIdx >= CONTRAST_LEVELS.length) {
             endTest(null);
             return;
           }
           const level = CONTRAST_LEVELS[currentLevelIdx];
-          const pos = getRandomPosition();
-          targetX = pos.x;
-          targetY = pos.y;
+          const positions = [];
+          const targetIdx = Math.floor(Math.random() * (DECOY_COUNT + 1));
+          const minDist = TARGET_RADIUS * 3.5;
+
+          for (let i = 0; i <= DECOY_COUNT; i++) {
+            let pos;
+            let tries = 0;
+            do {
+              pos = getRandomPosition();
+              tries++;
+            } while (tries < 30 && isOverlapping(pos, positions, minDist));
+            positions.push(pos);
+          }
+
+          const targetPos = positions[targetIdx];
+          targetX = targetPos.x;
+          targetY = targetPos.y;
 
           testArea.innerHTML = "";
-          targetEl = document.createElement("div");
-          targetEl.className = "target target-hit";
-          targetEl.style.width = TARGET_RADIUS * 2 + "px";
-          targetEl.style.height = TARGET_RADIUS * 2 + "px";
-          targetEl.style.left = (pos.x - TARGET_RADIUS) + "px";
-          targetEl.style.top = (pos.y - TARGET_RADIUS) + "px";
-          targetEl.style.background = rgbFromLevel(level);
-          targetEl.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.1)";
-          testArea.appendChild(targetEl);
+          for (let i = 0; i <= DECOY_COUNT; i++) {
+            const isTarget = i === targetIdx;
+            const el = document.createElement("div");
+            el.className = "target" + (isTarget ? " target-hit" : "");
+            el.style.width = TARGET_RADIUS * 2 + "px";
+            el.style.height = TARGET_RADIUS * 2 + "px";
+            el.style.left = (positions[i].x - TARGET_RADIUS) + "px";
+            el.style.top = (positions[i].y - TARGET_RADIUS) + "px";
+            el.style.background = isTarget ? rgbFromLevel(level) : rgbFromLevel(0.008);
+            testArea.appendChild(el);
+            if (isTarget) targetEl = el;
+          }
 
-          const pct = Math.round(level * 100);
-          levelHint.textContent = "현재 대비: " + pct + "% (클릭 성공 시 더 낮은 대비로)";
+          const pct = (level * 100).toFixed(1);
+          levelHint.textContent = "현재 대비: " + pct + "% · 다중 원 중 더 어두운 것을 찾아 클릭하세요.";
         }
 
         function hitTarget() {
@@ -218,12 +245,11 @@
           if (testDone) return;
           testDone = true;
           const level = CONTRAST_LEVELS[currentLevelIdx];
-          contrastThreshold = Math.round(level * 100);
+          contrastThreshold = parseFloat((level * 100).toFixed(1));
           endTest(reason);
         }
 
         function endTest(reason) {
-          if (targetEl) targetEl.remove();
           targetEl = null;
           testArea.innerHTML = "";
           noSeeBtn.style.display = "none";
@@ -232,13 +258,13 @@
           let thresh = contrastThreshold;
           if (thresh == null) {
             if (currentLevelIdx >= CONTRAST_LEVELS.length) {
-              thresh = Math.round(CONTRAST_LEVELS[CONTRAST_LEVELS.length - 1] * 100);
+              thresh = parseFloat((CONTRAST_LEVELS[CONTRAST_LEVELS.length - 1] * 100).toFixed(1));
             } else if (currentLevelIdx > 0) {
-              thresh = Math.round(CONTRAST_LEVELS[currentLevelIdx - 1] * 100);
+              thresh = parseFloat((CONTRAST_LEVELS[currentLevelIdx - 1] * 100).toFixed(1));
             }
           }
           let html = '<div class="result-item"><span>최소 대비 임계값</span><span>' + (thresh != null ? thresh + '%' : '-') + '</span></div>';
-          html += '<div class="result-item"><span>설명</span><span>이 수치가 낮을수록 미세한 대비까지 구분 가능</span></div>';
+          html += '<div class="result-item"><span>설명</span><span>수치가 낮을수록 미세한 대비까지 구분 가능 (Pelli-Robson 방식)</span></div>';
           if (reason) html += '<div class="result-item"><span>종료 사유</span><span>' + reason + '</span></div>';
           resultsContent.innerHTML = html;
         }
@@ -264,8 +290,8 @@
         saveBtn.addEventListener("click", function () {
           let thresh = contrastThreshold;
           if (thresh == null) {
-            if (currentLevelIdx >= CONTRAST_LEVELS.length) thresh = Math.round(CONTRAST_LEVELS[CONTRAST_LEVELS.length - 1] * 100);
-            else if (currentLevelIdx > 0) thresh = Math.round(CONTRAST_LEVELS[currentLevelIdx - 1] * 100);
+            if (currentLevelIdx >= CONTRAST_LEVELS.length) thresh = parseFloat((CONTRAST_LEVELS[CONTRAST_LEVELS.length - 1] * 100).toFixed(1));
+            else if (currentLevelIdx > 0) thresh = parseFloat((CONTRAST_LEVELS[currentLevelIdx - 1] * 100).toFixed(1));
           }
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};

@@ -45,10 +45,10 @@
 
 ### 2.2 심층 색상 식별 검사 (명도 경계·보색 혼동)
 
-- **명도 일치 경계선**: 적·녹색을 동일 sRGB 명도로 맞춘 후 경계선의 무늬 인지 여부 확인. (Pelli-Robson/대비 검사와는 다른 목적)
+- **명도 일치 경계선**: 적·녹색을 동일 sRGB 상대 명도(WCAG 2.1: L=0.2126R+0.7152G+0.0722B)로 맞춘 후, 경계의 세로 줄무늬(적|녹|적|녹 교대) 인지 여부 확인.
 - **보색 혼동**: 분홍-회색, 보라-파랑 등 혼동 가능 색쌍에서 “붉은 기운” 선택.
-- **출처**: 색각 이상자 혼동 패턴에 대한 일반적인 임상·심리물리학적 관찰 (NEI, MedlinePlus Genetics 등)에 기반한 검사 설계. 단, 공식 표준화된 판정 기준은 없음.
-- **본 프로젝트 구현**: Canvas RGB/HSV 조정을 통한 색상판 생성. 1차 스크리닝용이며 임상 진단을 대체하지 않습니다.
+- **원리·출처**: 적록색맹/색약은 L·M 원뿔 결핍으로 동일 명도의 적-녹을 구분 못함(경계·무늬 안 보임). 정안은 색상으로 구분 가능. NEI, MedlinePlus Genetics, NBK217820, WCAG 2.1 Relative Luminance.
+- **본 프로젝트 구현**: Canvas에서 동일 명도의 적·녹을 세로 5px 줄무늬로 교대 배치(경계 영역만). 1차 스크리닝용이며 임상 진단을 대체하지 않습니다.
 
 ---
 
@@ -66,6 +66,8 @@
 - [국제질병분류 ICD-10] H53.5 Color vision deficiencies
 - [National Eye Institute] Types of Color Vision Deficiency
 - [MedlinePlus Genetics] Color vision deficiency
+- [NCBI NBK217820] CHAPTER 2 Classification of Color Vision Defects (equal luminance, protanopia/deuteranopia)
+- [W3C WCAG 2.1] Relative Luminance (0.2126R+0.7152G+0.0722B)
 - [연세의대 의학백과] 색각이상 [Dyschromatopsia]
 - [위키백과 한국어] 색각 이상
 - Cassin, B. and Solomon, S. *Dictionary of Eye Terminology*. Triad Publishing, 1990.

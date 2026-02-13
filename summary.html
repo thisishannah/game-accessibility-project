@@ -301,7 +301,7 @@
           }
           if (vision.contrastSensitivity && vision.contrastSensitivity.contrast_threshold != null) {
             const th = vision.contrastSensitivity.contrast_threshold;
-            const hint = th <= 5 ? "미세한 대비까지 구분 가능" : th <= 15 ? "보통 수준" : "높은 대비 필요";
+            const hint = th <= 2 ? "미세한 대비까지 구분 가능" : th <= 8 ? "보통 수준" : th <= 25 ? "높은 대비 필요" : "매우 높은 대비 필요";
             html += statRow("대비 감도 임계값", th + "%", null);
             html += '<div class="stat-row stat-row--muted" style="font-size:11px; color:var(--text-muted); margin-top:-4px;">' + escapeHtml(hint) + '</div>';
           }

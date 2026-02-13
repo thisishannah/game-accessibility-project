@@ -559,7 +559,7 @@
             finalHint.innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong> 허브로 돌아가면 운동 측정이 완료로 표시됩니다.";
             if (typeof GAStorage !== "undefined") {
               GAStorage.writeProgress("motor", {
-                label: "반응속도 + 에임 + 홀드 + 동시입력 + 정밀도 + 연타입력 + 피로도 + 디바이스전환",
+                label: "에임 트레이너, 그외 7개 테스트",
                 current: 8,
                 total: 8,
                 completedAt: new Date().toISOString()
@@ -567,6 +567,13 @@
             }
           } else {
             finalHint.textContent = "모든 테스트를 완료하면 허브에서 운동 측정이 완료로 표시됩니다.";
+            if (typeof GAStorage !== "undefined") {
+              GAStorage.writeProgress("motor", {
+                label: "에임 트레이너, 그외 7개 테스트",
+                current: totalComplete,
+                total: 8
+              });
+            }
           }
         }
 
