@@ -49,18 +49,6 @@ textarea:focus-visible,
   outline-offset: var(--focus-ring-offset);
 }
 
-/* WCAG 2.2: 최소 타깃 크기 24x24px */
-button,
-a.btn,
-a.back-btn,
-.test-card,
-.measure-card,
-.chip,
-.guide-trigger {
-  min-height: var(--min-touch-target);
-  min-width: var(--min-touch-target);
-}
-
 /* prefers-reduced-motion: 모션 감소 선호 사용자 */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
