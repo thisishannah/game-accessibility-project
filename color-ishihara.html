@@ -62,31 +62,31 @@
         const DOT_R = 6;
         const GAP = 10;
 
-        /** 배경: 3개 유사 색상 (정안은 구분 용이, 색각이상만 혼동). fig: 숫자 색. type: RG-red/RG-green */
+        /** 배경: 5~6개 유사 색상 (중간 난이도, 정안은 식별 가능하나 약간 혼동). fig: 숫자 색. type: RG-red/RG-green */
         const PLATES = [
-          { expected: "12", bgPalette: [[196,146,130],[192,148,128],[189,150,126]], fig: [78,142,88], type: "RG-green" },
-          { expected: "8", bgPalette: [[190,150,124],[187,152,120],[193,148,126]], fig: [182,85,82], type: "RG-red" },
-          { expected: "6", bgPalette: [[188,142,124],[191,139,128],[185,145,120]], fig: [76,138,82], type: "RG-green" },
-          { expected: "5", bgPalette: [[192,148,126],[188,150,122],[195,146,130]], fig: [172,82,78], type: "RG-red" },
-          { expected: "29", bgPalette: [[185,140,118],[189,136,122],[182,144,114]], fig: [82,145,92], type: "RG-green" },
-          { expected: "15", bgPalette: [[190,144,122],[186,148,118],[193,142,126]], fig: [175,80,76], type: "RG-red" },
-          { expected: "74", bgPalette: [[191,140,124],[187,144,120],[194,138,128]], fig: [85,145,95], type: "RG-green" },
-          { expected: "2", bgPalette: [[188,150,118],[184,154,114],[192,148,122]], fig: [178,88,84], type: "RG-red" },
-          { expected: "16", bgPalette: [[186,138,116],[182,142,112],[189,136,120]], fig: [80,140,84], type: "RG-green" },
-          { expected: "8", bgPalette: [[189,138,124],[185,142,118],[192,136,128]], fig: [175,82,78], type: "RG-red" }
+          { expected: "12", bgPalette: [[196,146,130],[192,148,128],[189,150,126],[194,144,131],[187,151,125]], fig: [78,142,88], type: "RG-green" },
+          { expected: "8", bgPalette: [[190,150,124],[187,152,120],[193,148,126],[188,151,122],[191,149,125]], fig: [182,85,82], type: "RG-red" },
+          { expected: "6", bgPalette: [[188,142,124],[191,139,128],[185,145,120],[189,141,126],[186,143,122]], fig: [76,138,82], type: "RG-green" },
+          { expected: "5", bgPalette: [[192,148,126],[188,150,122],[195,146,130],[190,147,124],[186,151,120]], fig: [172,82,78], type: "RG-red" },
+          { expected: "29", bgPalette: [[185,140,118],[189,136,122],[182,144,114],[187,138,120],[184,142,116]], fig: [82,145,92], type: "RG-green" },
+          { expected: "15", bgPalette: [[190,144,122],[186,148,118],[193,142,126],[188,146,120],[191,140,124]], fig: [175,80,76], type: "RG-red" },
+          { expected: "74", bgPalette: [[191,140,124],[187,144,120],[194,138,128],[189,142,122],[192,136,126]], fig: [85,145,95], type: "RG-green" },
+          { expected: "2", bgPalette: [[188,150,118],[184,154,114],[192,148,122],[186,152,116],[190,149,120]], fig: [178,88,84], type: "RG-red" },
+          { expected: "16", bgPalette: [[186,138,116],[182,142,112],[189,136,120],[184,140,114],[187,134,118]], fig: [80,140,84], type: "RG-green" },
+          { expected: "8", bgPalette: [[189,138,124],[185,142,118],[192,136,128],[187,140,122],[191,134,126]], fig: [175,82,78], type: "RG-red" }
         ];
 
         function getNumberMask(numStr) {
           const masks = {
-            "1": [[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0]],
-            "2": [[0,1,1,1,1,1,0],[0,0,0,0,0,1,0],[0,0,0,0,1,0,0],[0,0,0,1,0,0,0],[0,0,1,0,0,0,0],[0,1,1,1,1,1,0],[0,0,0,0,0,0,0]],
-            "5": [[0,1,1,1,1,0,0],[0,1,0,0,0,0,0],[0,1,1,1,0,0,0],[0,0,0,0,1,0,0],[0,0,0,0,1,0,0],[0,1,1,1,0,0,0],[0,0,0,0,0,0,0]],
-            "6": [[0,0,1,1,1,0,0],[0,1,0,0,0,0,0],[0,1,1,1,1,0,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0],[0,0,0,0,0,0,0]],
-            "8": [[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0]],
-            "9": [[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,0,1,1,1,1,0],[0,0,0,0,0,1,0],[0,0,1,1,1,0,0],[0,0,0,0,0,0,0]]
+            "1": [[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0]],
+            "2": [[0,0,0,1,1,1,1,1,0],[0,0,0,0,0,0,0,1,0],[0,0,0,0,0,0,0,1,0],[0,0,0,0,0,1,1,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,1,1,1,1,1,1,0]],
+            "5": [[0,0,1,1,1,1,1,1,0],[0,0,1,0,0,0,0,0,0],[0,0,1,0,0,0,0,0,0],[0,0,1,1,1,1,1,0,0],[0,0,0,0,0,0,0,1,0],[0,0,0,0,0,0,0,1,0],[0,0,1,1,1,1,1,0,0]],
+            "6": [[0,0,0,0,1,1,1,0,0],[0,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,0,0],[0,0,1,1,1,1,1,0,0],[0,0,1,0,0,0,0,1,0],[0,0,1,0,0,0,0,1,0],[0,0,0,1,1,1,1,0,0]],
+            "8": [[0,0,0,1,1,1,1,0,0],[0,0,1,0,0,0,0,1,0],[0,0,1,0,0,0,0,1,0],[0,0,0,1,1,1,1,0,0],[0,0,1,0,0,0,0,1,0],[0,0,1,0,0,0,0,1,0],[0,0,0,1,1,1,1,0,0]],
+            "9": [[0,0,0,1,1,1,1,0,0],[0,0,1,0,0,0,0,1,0],[0,0,1,0,0,0,0,1,0],[0,0,0,1,1,1,1,1,0],[0,0,0,0,0,0,0,1,0],[0,0,0,0,0,0,1,0,0],[0,0,0,1,1,1,0,0,0]]
           };
           const chars = numStr.split("");
-          if (chars.length === 1) return { w: 7, h: 7, grid: masks[chars[0]] || [] };
+          if (chars.length === 1) return { w: 9, h: 7, grid: masks[chars[0]] || [] };
           if (chars.length === 2) {
             const g1 = masks[chars[0]] || [];
             const g2 = masks[chars[1]] || [];
@@ -103,7 +103,7 @@
             }
             return { w, h, grid };
           }
-          return { w: 7, h: 7, grid: [] };
+          return { w: 9, h: 7, grid: [] };
         }
 
         function lerp(a, b, t) {
@@ -118,11 +118,11 @@
           const ox = (SIZE - (cols * GAP)) / 2 + GAP / 2;
           const oy = (SIZE - (rows * GAP)) / 2 + GAP / 2;
 
-          const jitter = () => (Math.random() - 0.5) * 8;
+          const jitter = () => (Math.random() - 0.5) * 11;
 
           for (let r = 0; r < rows + 8; r++) {
-            for (let c = 0; c < cols + 12; c++) {
-              const mx = c - 4;
+            for (let c = 0; c < cols + 14; c++) {
+              const mx = c - 5;
               const my = r - 4;
               const inFigure = my >= 0 && my < rows && mx >= 0 && mx < cols && mask.grid[my] && mask.grid[my][mx] === 1;
 
@@ -139,24 +139,24 @@
                   }
 
               const pal = bgPalette[Math.floor(Math.random() * bgPalette.length)];
-              const confusionNoise = Math.random() < 0.18 ? (Math.random() * 0.2 + 0.04) : 0;
-              const edgeBlend = distToEdge <= 2 ? (2.5 - distToEdge) * 0.12 : 0;
-              const blend = Math.min(0.4, confusionNoise + edgeBlend);
+              const confusionNoise = Math.random() < 0.26 ? (Math.random() * 0.28 + 0.06) : 0;
+              const edgeBlend = distToEdge <= 2 ? (2.5 - distToEdge) * 0.18 : 0;
+              const blend = Math.min(0.55, confusionNoise + edgeBlend);
 
-              const trapDecoy = !inFigure && Math.random() < 0.02;
-              const trapDecoyAmount = trapDecoy ? (Math.random() * 0.15 + 0.05) : 0;
+              const trapDecoy = !inFigure && Math.random() < 0.04;
+              const trapDecoyAmount = trapDecoy ? (Math.random() * 0.2 + 0.08) : 0;
 
               let R, G, B;
-              if (blend >= 0.08 || trapDecoyAmount > 0) {
-                const t = Math.min(0.35, blend + trapDecoyAmount);
+              if (blend >= 0.1 || trapDecoyAmount > 0) {
+                const t = Math.min(0.5, blend + trapDecoyAmount);
                 if (inFigure) {
                   R = lerp(fig[0], pal[0], t) + jitter();
                   G = lerp(fig[1], pal[1], t) + jitter();
                   B = lerp(fig[2], pal[2], t) + jitter();
                 } else {
-                  R = lerp(pal[0], fig[0], t * 0.3) + jitter();
-                  G = lerp(pal[1], fig[1], t * 0.3) + jitter();
-                  B = lerp(pal[2], fig[2], t * 0.3) + jitter();
+                  R = lerp(pal[0], fig[0], t * 0.4) + jitter();
+                  G = lerp(pal[1], fig[1], t * 0.4) + jitter();
+                  B = lerp(pal[2], fig[2], t * 0.4) + jitter();
                 }
               } else {
                 R = (inFigure ? fig[0] : pal[0]) + jitter();
@@ -169,7 +169,7 @@
               B = Math.max(0, Math.min(255, B));
 
               ctx.fillStyle = "rgb(" + Math.round(R) + "," + Math.round(G) + "," + Math.round(B) + ")";
-              const x = ox + (c - 3) * GAP + (Math.random() - 0.5) * 3;
+              const x = ox + (c - 4) * GAP + (Math.random() - 0.5) * 3;
               const y = oy + (r - 3) * GAP + (Math.random() - 0.5) * 3;
               const rad = DOT_R + (Math.random() - 0.5) * 1.5;
               ctx.beginPath();
