@@ -66,6 +66,10 @@
         next.user_data.hearing_results = Object.assign({}, next.user_data.hearing_results || {}, merge.hearing);
         delete merge.hearing;
       }
+      if (merge.color) {
+        next.user_data.color_results = Object.assign({}, next.user_data.color_results || {}, merge.color);
+        delete merge.color;
+      }
       // 나머지 속성은 그대로 병합 (userId, disabilityType 등)
       next = Object.assign({}, next, merge);
     }

@@ -89,14 +89,15 @@
     </style>
   </head>
   <body>
-    <main class="shell" aria-labelledby="hearing-title">
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <main id="main-content" class="shell" aria-labelledby="hearing-title" role="main">
       <div class="shell-inner" style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 20px;">
         <header class="header" style="grid-column: 1 / -1;">
           <div class="brand" aria-label="청각언어 측정 허브">
             <div class="brand-logo" aria-hidden="true"><div class="brand-logo-inner">GA</div></div>
             <div class="brand-text-main">
               <span>게임 접근성 측정</span>
-              <span id="hearing-title">청각언어 측정 허브</span>
+              <h1 id="hearing-title" style="font-size: inherit; font-weight: inherit; margin: 0;">청각언어 측정 허브</h1>
             </div>
           </div>
           <div class="header-meta" id="user-summary">세션 정보 로딩 중...</div>
@@ -111,7 +112,7 @@
           </p>
 
           <div class="test-grid" id="test-grid">
-            <article class="test-card" data-test="reaction-time" tabindex="0">
+            <article class="test-card" data-test="reaction-time" tabindex="0" role="button" aria-label="반응속도 테스트: 화면이 주황색으로 바뀌면 클릭">
               <div class="test-card-head">
                 <div class="test-card-title">반응속도 테스트</div>
                 <span class="test-card-badge" data-progress="reaction-time" data-done="false">0/1</span>
@@ -120,7 +121,7 @@
                 화면이 주황색으로 바뀌면 클릭. 총 4회 실시 후 평균 반응 시간을 측정합니다.
               </div>
             </article>
-            <article class="test-card" data-test="hearing-input" tabindex="0">
+            <article class="test-card" data-test="hearing-input" tabindex="0" role="button" aria-label="청력 측정 결과 입력: Mimi 등 외부 앱 결과 입력">
               <div class="test-card-head">
                 <div class="test-card-title">청력 측정 결과 입력</div>
                 <span class="test-card-badge" data-progress="hearing-input" data-done="false">0/1</span>
@@ -130,7 +131,7 @@
               </div>
             </article>
 
-            <article class="test-card" data-test="speech-clarity" tabindex="0">
+            <article class="test-card" data-test="speech-clarity" tabindex="0" role="button" aria-label="언어 명료도 테스트: 수음 명료도 측정">
               <div class="test-card-head">
                 <div class="test-card-title">언어 명료도 테스트</div>
                 <span class="test-card-badge" data-progress="speech-clarity" data-done="false">0/1</span>
@@ -140,7 +141,7 @@
               </div>
             </article>
 
-            <article class="test-card" data-test="articulation" tabindex="0">
+            <article class="test-card" data-test="articulation" tabindex="0" role="button" aria-label="발화 명료도 테스트: 발화 인식률 측정">
               <div class="test-card-head">
                 <div class="test-card-title">발화 명료도 테스트</div>
                 <span class="test-card-badge" data-progress="articulation" data-done="false">0/1</span>

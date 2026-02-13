@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>색각/색채 측정 허브 · 게임 접근성</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #7c3aed;
+        --text-main: #e5e7eb;
+        --text-muted: #b8c5d6;
+        --ok: #4ade80;
+        --radius-lg: 20px;
+        --radius-md: 12px;
+        --radius-pill: 999px;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: radial-gradient(circle at top, #111827 0, #020617 52%);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 32px 16px;
+      }
+      .shell {
+        width: 100%;
+        max-width: 1040px;
+        background: radial-gradient(circle at top left, #020617 0, #020617 45%),
+          radial-gradient(circle at bottom right, #020617 0, #020617 60%);
+        border-radius: 26px;
+        border: 1px solid rgba(148, 163, 184, 0.9);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.95);
+        padding: 20px 22px 22px;
+        position: relative;
+      }
+      .panel {
+        background: radial-gradient(circle at top left, #020617 0, #020617 55%),
+          radial-gradient(circle at bottom right, #020617 0, #020617 60%);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        padding: 16px 18px 18px;
+        margin-bottom: 14px;
+      }
+      .section-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+      .section-title-pill { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-muted); border-radius: var(--radius-pill); border: 1px solid rgba(148, 163, 184, 0.6); padding: 2px 9px; }
+      .section-subtitle { font-size: 14px; font-weight: 500; color: var(--text-muted); margin-bottom: 14px; }
+      .test-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      @media (max-width: 640px) { .test-grid { grid-template-columns: minmax(0, 1fr); } }
+      .test-card {
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: radial-gradient(circle at top, #020617 0, #020617 58%);
+        padding: 12px 13px 13px;
+        cursor: pointer;
+        transition: transform 0.08s, border-color 0.15s, box-shadow 0.16s;
+      }
+      .test-card:hover { transform: translateY(-1px); border-color: rgba(148, 163, 184, 0.95); }
+      .test-card[data-complete="true"] { border-color: rgba(74, 222, 128, 0.6); background: radial-gradient(circle at top, rgba(74, 222, 128, 0.08), #020617 60%); }
+      .test-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+      .test-card-title { font-size: 13px; font-weight: 600; }
+      .test-card-badge { font-size: 11px; font-variant-numeric: tabular-nums; border-radius: var(--radius-pill); padding: 2px 8px; border: 1px solid rgba(148, 163, 184, 0.6); }
+      .test-card-badge[data-done="true"] { border-color: rgba(74, 222, 128, 0.8); color: var(--ok); }
+      .test-card-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+      .btn-row { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+      .btn-secondary { border-radius: var(--radius-pill); padding: 7px 13px; border: 1px solid rgba(148, 163, 184, 0.8); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: rgba(209, 213, 219, 0.95); background: radial-gradient(circle at top, #020617, #020617 65%); }
+      .btn-secondary:hover { transform: translateY(-1px); }
+      .btn-icon { width: 18px; height: 18px; border-radius: 999px; background: radial-gradient(circle at 25% 0%, #e5e7eb, #020617 65%); display: flex; align-items: center; justify-content: center; font-size: 11px; }
+      .hint { font-size: 14px; font-weight: 500; color: var(--text-muted); }
+      .progress-summary { margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(51, 65, 85, 0.9); font-size: 12px; }
+      .progress-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+      .progress-label { color: var(--text-muted); font-weight: 500; }
+      .progress-value { font-variant-numeric: tabular-nums; font-weight: 550; }
+      .summary-pill { display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-pill); border: 1px solid rgba(148, 163, 184, 0.8); padding: 3px 8px; font-size: 11px; margin-top: 4px; }
+      .right-body { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+      .right-body ul { margin: 8px 0 0; padding-left: 18px; }
+      .right-body li { margin-bottom: 4px; }
+      header.header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+      .brand { display: flex; align-items: center; gap: 10px; }
+      .brand-logo { width: 32px; height: 32px; border-radius: 18px; background: conic-gradient(from 210deg, #7c3aed, #22d3ee, #f97316, #7c3aed); padding: 3px; }
+      .brand-logo-inner { width: 100%; height: 100%; border-radius: 14px; background: radial-gradient(circle at 30% 15%, #e5e7eb, #020617 70%); display: flex; align-items: center; justify-content: center; color: #020617; font-size: 15px; font-weight: 800; }
+      .brand-text-main span:first-child { font-size: 14px; color: var(--text-muted); }
+      .brand-text-main span:last-child { font-size: 16px; font-weight: 650; }
+    </style>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <main id="main-content" class="shell" aria-labelledby="color-title" role="main">
+      <div class="shell-inner">
+        <header class="header">
+          <div class="brand">
+            <div class="brand-logo"><div class="brand-logo-inner">GA</div></div>
+            <div class="brand-text-main">
+              <span>게임 접근성 측정</span>
+              <h1 id="color-title" style="font-size: inherit; font-weight: inherit; margin: 0;">색각/색채 측정 허브</h1>
+            </div>
+          </div>
+          <div class="header-meta" id="user-summary">세션 정보 로딩 중...</div>
+        </header>
+
+        <section class="panel">
+          <div class="section-title">
+            <span>색각/색채 측정</span>
+            <span class="section-title-pill">Color Vision Tests</span>
+          </div>
+          <p class="section-subtitle">아래 3개의 테스트를 완료하면 색각 측정이 완료됩니다. 반응속도는 모든 측정의 기준선으로 먼저 진행합니다.</p>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: -8px;">용어·판정 기준: 연세의대, NEI, ICD-10 H53.5. 자세한 레퍼런스는 <code>COLOR_VISION_REFERENCES.md</code> 참조.</p>
+
+          <div class="test-grid" id="test-grid">
+            <article class="test-card" data-test="reaction-time" tabindex="0" role="button" aria-label="반응속도 테스트: 화면이 주황색으로 변할 때 클릭, 4회 실시">
+              <div class="test-card-head">
+                <div class="test-card-title">반응속도 테스트</div>
+                <span class="test-card-badge" data-progress="reaction-time" data-done="false">0/1</span>
+              </div>
+              <div class="test-card-desc">화면이 주황색으로 변할 때 클릭. 4회 실시 후 평균 저장. (기준선 측정)</div>
+            </article>
+
+            <article class="test-card" data-test="ishihara" tabindex="0" role="button" aria-label="기본 색약 검사 Ishihara: 원형 이미지에 보이는 숫자 입력">
+              <div class="test-card-head">
+                <div class="test-card-title">기본 색약 검사 (Ishihara Style)</div>
+                <span class="test-card-badge" data-progress="ishihara" data-done="false">0/1</span>
+              </div>
+              <div class="test-card-desc">표준 색약 판정 이미지를 보고 숫자를 입력. 적록색약, 청황색약 등 1차 분류.</div>
+            </article>
+
+            <article class="test-card" data-test="deep-discrimination" tabindex="0" role="button" aria-label="심층 색상 식별 검사: 명도 경계와 보색 혼동 테스트">
+              <div class="test-card-head">
+                <div class="test-card-title">심층 색상 식별 검사</div>
+                <span class="test-card-badge" data-progress="deep-discrimination" data-done="false">0/1</span>
+              </div>
+              <div class="test-card-desc">명도 일치 경계선, 보색 혼동 등으로 정안인이 피험자 혼동을 이해하도록.</div>
+            </article>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn-secondary" id="back-to-hub">
+              <span class="btn-icon">◀</span>
+              <span>허브로 돌아가기</span>
+            </button>
+            <p class="hint" id="final-hint">모든 테스트를 완료하면 허브에서 색각 측정이 완료로 표시됩니다.</p>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <div class="section-title"><span>진행 상황</span><span class="section-title-pill">Progress</span></div>
+          <div class="right-body">
+            <ul>
+              <li><strong>반응속도</strong>: 기준선 측정 (4회 평균)</li>
+              <li><strong>기본 색약 검사</strong>: Ishihara 방식, 1차 분류 (적록/청황 등)</li>
+              <li><strong>심층 색상 식별</strong>: 명도 경계·보색 혼동 파악</li>
+            </ul>
+          </div>
+          <div class="progress-summary">
+            <div class="progress-row">
+              <span class="progress-label">반응속도</span>
+              <span class="progress-value" id="progress-reaction">0/1</span>
+            </div>
+            <div class="progress-row">
+              <span class="progress-label">기본 색약 검사</span>
+              <span class="progress-value" id="progress-ishihara">0/1</span>
+            </div>
+            <div class="progress-row">
+              <span class="progress-label">심층 색상 식별</span>
+              <span class="progress-value" id="progress-deep">0/1</span>
+            </div>
+            <div class="progress-row" style="border-top:1px solid rgba(51,65,85,0.9); padding-top:8px; margin-top:4px;">
+              <span class="progress-label">전체</span>
+              <span class="progress-value" id="progress-total">0/3</span>
+            </div>
+          </div>
+          <div class="summary-pill">
+            <span>ID</span><span id="session-id-text">-</span>
+            <span style="opacity:0.6">·</span>
+            <span>장애</span><span id="session-disability-text">-</span>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const TEST_CONFIG = {
+          "reaction-time": { url: "color-reaction-time.html", label: "반응속도", total: 1 },
+          "ishihara": { url: "color-ishihara.html", label: "기본 색약 검사", total: 1 },
+          "deep-discrimination": { url: "color-deep-discrimination.html", label: "심층 색상 식별", total: 1 }
+        };
+
+        function readSession() {
+          return (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+        }
+
+        function escapeHtml(str) {
+          return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function updateUserSummary() {
+          const session = readSession();
+          const id = session.userId || session.id || "-";
+          const disability = (session.disabilityTypes && session.disabilityTypes.length > 0)
+            ? session.disabilityTypes.join(", ")
+            : (session.disabilityType || "-");
+          document.getElementById("session-id-text").textContent = id || "-";
+          document.getElementById("session-disability-text").textContent = disability || "-";
+          document.getElementById("user-summary").innerHTML = session.disabilityType || session.disabilityTypes
+            ? '세션 <strong>' + escapeHtml(id || "unnamed") + "</strong> · 장애 <strong>" + escapeHtml(disability) + "</strong>"
+            : "세션 정보가 없습니다. 메인 페이지에서 세션을 먼저 생성해 주세요.";
+        }
+
+        function checkTestCompletion(testKey) {
+          const session = readSession();
+          const color = (session.user_data && session.user_data.color_results) || {};
+          const cm = color.color_confusion_matrix || {};
+          if (testKey === "reaction-time") {
+            return color.reactionTime && color.reactionTime.trials && color.reactionTime.trials.length >= 4;
+          }
+          if (testKey === "ishihara") {
+            return cm.ishihara && (cm.ishihara.classification != null || (cm.ishihara.plateResults && cm.ishihara.plateResults.length > 0));
+          }
+          if (testKey === "deep-discrimination") {
+            return cm.deepDiscrimination && (cm.deepDiscrimination.luminanceBoundary != null || cm.deepDiscrimination.complementaryConfusion != null);
+          }
+          return false;
+        }
+
+        function updateProgress() {
+          let totalComplete = 0;
+          Object.keys(TEST_CONFIG).forEach(function (key) {
+            const isComplete = checkTestCompletion(key);
+            const badge = document.querySelector('[data-progress="' + key + '"]');
+            const card = document.querySelector('[data-test="' + key + '"]');
+            if (badge) { badge.textContent = (isComplete ? 1 : 0) + "/1"; badge.dataset.done = isComplete ? "true" : "false"; }
+            if (card) card.dataset.complete = isComplete ? "true" : "false";
+            if (isComplete) totalComplete++;
+          });
+
+          document.getElementById("progress-reaction").textContent = (checkTestCompletion("reaction-time") ? 1 : 0) + "/1";
+          document.getElementById("progress-ishihara").textContent = (checkTestCompletion("ishihara") ? 1 : 0) + "/1";
+          document.getElementById("progress-deep").textContent = (checkTestCompletion("deep-discrimination") ? 1 : 0) + "/1";
+          document.getElementById("progress-total").textContent = totalComplete + "/3";
+
+          if (totalComplete >= 3) {
+            document.getElementById("final-hint").innerHTML = "<strong>모든 테스트가 완료되었습니다.</strong>";
+            if (typeof GAStorage !== "undefined") {
+              GAStorage.writeProgress("color", { label: "반응속도 + Ishihara + 심층 색상 식별", current: 3, total: 3, completedAt: new Date().toISOString() });
+            }
+          } else {
+            if (typeof GAStorage !== "undefined") {
+              GAStorage.writeProgress("color", { label: "반응속도 + Ishihara + 심층 색상 식별", current: totalComplete, total: 3 });
+            }
+          }
+        }
+
+        document.getElementById("test-grid").addEventListener("click", function (e) {
+          const card = e.target.closest(".test-card");
+          if (!card) return;
+          const testKey = card.getAttribute("data-test");
+          const config = TEST_CONFIG[testKey];
+          if (config && config.url) window.location.href = config.url;
+        });
+
+        document.getElementById("test-grid").addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            const card = e.target.closest(".test-card");
+            if (card) { e.preventDefault(); card.click(); }
+          }
+        });
+
+        document.getElementById("back-to-hub").addEventListener("click", function () {
+          window.location.href = "hub.html";
+        });
+
+        updateUserSummary();
+        updateProgress();
+      })();
+    </script>
+  </body>
+</html>

@@ -125,13 +125,15 @@
     </style>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
     <header>
       <a href="hearing_hub.html" class="back-btn">← 허브로</a>
       <div style="font-size: 12px; color: var(--text-muted);">반응속도 테스트</div>
     </header>
 
-    <div class="test-area waiting" id="test-area">
-      <div class="test-message" id="test-message">대기 중... 클릭하면 시작합니다</div>
+    <main id="main-content">
+    <div class="test-area waiting" id="test-area" role="button" tabindex="0" aria-label="반응속도 테스트 영역">
+      <div class="test-message" id="test-message" aria-live="polite" aria-atomic="true">대기 중... 클릭하면 시작합니다</div>
     </div>
 
     <div class="results-panel" id="results-panel" style="display: none;">
@@ -142,6 +144,7 @@
         <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
       </div>
     </div>
+    </main>
 
     <script src="ga-storage.js"></script>
     <script>
@@ -196,6 +199,9 @@
           }
         }
 
+        testArea.addEventListener("keydown", function (e) {
+          if (e.key === " " || e.key === "Enter") { e.preventDefault(); testArea.click(); }
+        });
         testArea.addEventListener("click", function () {
           if (state === "click") {
             const reactionTime = Date.now() - startTime;

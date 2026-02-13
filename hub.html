@@ -569,7 +569,8 @@
     </style>
   </head>
   <body>
-    <main class="shell" aria-labelledby="hub-title">
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <main id="main-content" class="shell" aria-labelledby="hub-title" role="main">
       <div class="shell-inner">
         <header class="header">
           <div class="brand" aria-label="게임 접근성 측정 허브">
@@ -578,7 +579,7 @@
             </div>
             <div class="brand-text-main">
               <span>게임 접근성 측정</span>
-              <span id="hub-title">측정 항목 허브</span>
+              <h1 id="hub-title" style="font-size: inherit; font-weight: inherit; margin: 0;">측정 항목 허브</h1>
             </div>
           </div>
           <div class="header-meta" id="user-summary">
@@ -604,6 +605,8 @@
                 data-measure="visual"
                 data-disability-type="시각"
                 tabindex="0"
+                role="button"
+                aria-label="시각 측정: 대비, 색 의존도, 텍스트 가독성. 클릭하면 시각 측정 허브로 이동합니다. 진행률 0/5"
               >
                 <div class="measure-head">
                   <div class="measure-main">
@@ -645,6 +648,8 @@
                 data-measure="motor"
                 data-disability-type="운동"
                 tabindex="0"
+                role="button"
+                aria-label="운동 측정: 입력 난이도, 동시 입력, 피로도. 클릭하면 운동 측정 허브로 이동합니다. 진행률 0/9"
               >
                 <div class="measure-head">
                   <div class="measure-main">
@@ -686,6 +691,8 @@
                 data-measure="audio"
                 data-disability-type="청각언어장애"
                 tabindex="0"
+                role="button"
+                aria-label="청각언어장애 측정: 자막, 시각적 피드백, 소리 의존도. 클릭하면 청각 측정 허브로 이동합니다. 진행률 0/3"
               >
                 <div class="measure-head">
                   <div class="measure-main">
@@ -721,12 +728,57 @@
                 </div>
               </article>
 
+              <!-- 색각/색채 측정 -->
+              <article
+                class="measure-card"
+                data-measure="color"
+                data-disability-type="색각"
+                tabindex="0"
+                role="button"
+                aria-label="색각·색채 측정: Ishihara 색약 검사, 심층 색상 식별. 클릭하면 색각 측정 허브로 이동합니다. 진행률 0/3"
+              >
+                <div class="measure-head">
+                  <div class="measure-main">
+                    <div class="measure-icon" aria-hidden="true">🎨</div>
+                    <div class="measure-text">
+                      <div class="measure-title">색각/색채 측정</div>
+                      <div class="measure-sub">
+                        Ishihara 색약 검사, 심층 색상 식별
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="measure-progress">
+                  <span
+                    class="measure-progress-label"
+                    data-progress-label="color"
+                  >
+                    색약·색채 혼동
+                  </span>
+                  <span
+                    class="measure-progress-value"
+                    data-progress-value="color"
+                  >
+                    0/3
+                  </span>
+                </div>
+                <div class="measure-progress-bar" aria-hidden="true">
+                  <div
+                    class="measure-progress-fill"
+                    data-progress-fill="color"
+                    style="transform: scaleX(0)"
+                  ></div>
+                </div>
+              </article>
+
               <!-- 인지 측정 -->
               <article
                 class="measure-card"
                 data-measure="cognitive"
                 data-disability-type="인지"
                 tabindex="0"
+                role="button"
+                aria-label="인지 측정: 정보량, 튜토리얼, UI 복잡도. 클릭하면 인지 측정 허브로 이동합니다. 진행률 0/4"
               >
                 <div class="measure-head">
                   <div class="measure-main">
@@ -872,9 +924,10 @@
         const measureGrid = document.getElementById("measure-grid");
 
         const PROGRESS_DEFAULTS = {
-          visual: { label: "반응속도 + 폰트 + 에임 + FOV", current: 0, total: 4 },
+          visual: { label: "반응속도 + 폰트 + 에임 + FOV", current: 0, total: 5 },
           motor: { label: "9개 테스트", current: 0, total: 9 },
           audio: { label: "자막·알림 피드백", current: 0, total: 3 },
+          color: { label: "반응속도 + Ishihara + 심층 색상 식별", current: 0, total: 3 },
           cognitive: { label: "4개 테스트", current: 0, total: 4 },
         };
 
@@ -903,6 +956,8 @@
               return "motor";
             case "청각언어장애":
               return "audio";
+            case "색각":
+              return "color";
             case "인지":
               return "cognitive";
             default:
@@ -1056,6 +1111,7 @@
               visual: "vision_hub.html",
               motor: "motor_hub.html",
               audio: "hearing_hub.html",
+              color: "color_hub.html",
               cognitive: "cognitive_hub.html",
             };
 

@@ -826,7 +826,8 @@
     </style>
   </head>
   <body>
-    <main class="shell" aria-labelledby="app-title">
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <main id="main-content" class="shell" aria-labelledby="app-title" role="main">
       <div class="shell-inner">
         <section style="grid-column: 1 / -1">
           <header class="header">
@@ -836,7 +837,7 @@
               </div>
               <div class="brand-text-main">
                 <span>게임 접근성 측정</span>
-                <span id="app-title">Inclusive Play Dashboard</span>
+                <h1 id="app-title" class="brand-text-main" style="font-size: inherit; font-weight: inherit; margin: 0;">Inclusive Play Dashboard</h1>
               </div>
             </div>
             <p class="header-tagline">
@@ -2144,11 +2145,8 @@
             return;
           }
           if (typeof GAStorage !== "undefined") {
-            // 새 세션 저장 시 이전 측정 결과(user_data.*_results)를 초기화하여 허브 진척도가 0에서 시작되도록 함
-            GAStorage.writeSession({
-              user_data: {},
-              ...userData,
-            });
+            // 프로필만 갱신, 기존 측정 결과(user_data.*_results)는 유지하여 재접속 시에도 데이터 보존
+            GAStorage.writeSession(userData);
           }
           statSession.textContent = "Saved";
           location.href = "hub.html";

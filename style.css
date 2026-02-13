@@ -1,7 +1,75 @@
 /**
  * 게임 접근성 진단 툴 - 공통 스타일시트
  * 전문적이고 세련된 대시보드 스타일 적용
+ * WCAG 2.1/2.2 접근성 준수 (NVDA 스크린리더 호환)
  */
+
+/* ===== WCAG 2.1/2.2 접근성 공통 ===== */
+:root {
+  --focus-ring-color: #7c3aed;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --min-touch-target: 24px; /* WCAG 2.2 2.5.8 Target Size */
+}
+
+/* 스킵 링크: 본문으로 바로 이동 (NVDA 등 스크린리더 지원) */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 8px;
+  z-index: 10000;
+  padding: 12px 20px;
+  min-height: var(--min-touch-target);
+  background: var(--accent-primary);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: top 0.2s ease;
+  font-size: 14px;
+}
+.skip-link:focus {
+  top: 8px;
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* WCAG 2.2: 포커스가 가려지지 않도록 강한 포커스 링 */
+*:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* WCAG 2.2: 최소 타깃 크기 24x24px */
+button,
+a.btn,
+a.back-btn,
+.test-card,
+.measure-card,
+.chip,
+.guide-trigger {
+  min-height: var(--min-touch-target);
+  min-width: var(--min-touch-target);
+}
+
+/* prefers-reduced-motion: 모션 감소 선호 사용자 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .skip-link { transition: none; }
+}
 
 :root {
   /* 색상 팔레트 */

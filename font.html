@@ -42,12 +42,14 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
 
 <nav>
     <a href="vision_hub.html">← 허브로</a>
     <a href="#" class="active">가독성 측정</a>
 </nav>
 
+<main id="main-content">
 <div id="view-wrapper">
     <div class="view-column" id="col-default" style="background: #1a1a1a;">
         <span class="theme-label" style="background: #333; color: #fff;">일반 모드</span>
@@ -63,7 +65,7 @@
     </div>
 </div>
 
-<div id="control-panel">
+<div id="control-panel" aria-label="폰트 크기 조절 및 저장 패널">
     <div class="slider-wrap">
         <label>글자 크기 조절 (Max 64px): <span class="val-display" id="size-val">20</span> px</label>
         <input type="range" id="font-slider" min="12" max="64" value="20">
@@ -76,6 +78,7 @@
         <button onclick="saveResult()">결과 저장 & 허브로 이동</button>
     </div>
 </div>
+</main>
 
 <script src="ga-storage.js"></script>
 <script>

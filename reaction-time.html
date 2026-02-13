@@ -126,17 +126,19 @@
     </style>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
     <div class="test-progress-bar">
       <div class="test-progress-fill" id="test-progress-fill" style="width: 0%"></div>
     </div>
     <div class="test-progress-info" id="test-progress-info">0/4</div>
     <header>
-      <a href="vision_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">반응속도 테스트</div>
+      <a href="vision_hub.html" class="back-btn" aria-label="시각 측정 허브로 돌아가기">← 허브로</a>
+      <h1 style="font-size: 12px; font-weight: 500; margin: 0; color: var(--text-muted);">반응속도 테스트</h1>
     </header>
 
-    <div class="test-area waiting" id="test-area">
-      <div class="test-message" id="test-message">대기 중... 클릭하면 시작합니다</div>
+    <main id="main-content">
+    <div class="test-area waiting" id="test-area" role="button" tabindex="0" aria-label="반응속도 테스트 영역. 클릭하여 시작. 화면 색이 바뀌면 클릭하세요">
+      <div class="test-message" id="test-message" aria-live="polite" aria-atomic="true">대기 중... 클릭하면 시작합니다</div>
     </div>
 
     <div class="results-panel" id="results-panel" style="display: none;">
@@ -147,6 +149,7 @@
         <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
       </div>
     </div>
+    </main>
 
     <script src="ga-storage.js"></script>
     <script>
@@ -209,6 +212,12 @@
           }
         }
 
+        testArea.addEventListener("keydown", function (e) {
+          if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
+            testArea.click();
+          }
+        });
         testArea.addEventListener("click", function () {
           if (state === "click") {
             const reactionTime = Date.now() - startTime;

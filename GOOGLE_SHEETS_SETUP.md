@@ -68,6 +68,22 @@ summary.html의 **전송** 버튼을 누르면 지정된 Web App URL로 POST 전
 - `mode: 'no-cors'` 또는 `credentials` 옵션은 사용하지 마세요 (응답을 읽을 수 없음)
 - CORS 오류 시: Apps Script에서 `doPost`가 `ContentService.MimeType.JSON`을 반환하는지, 배포 액세스가 "모든 사용자"인지 확인하세요.
 
+## 5-2. 회사 PC 등에서 구글 차단 시: JSON 파일 업로드
+
+구글이 차단된 환경에서는 먼저 JSON을 다운로드한 뒤, 구글 접속 가능한 환경에서 전송합니다.
+
+1. 회사에서 summary **전송** 시도 → 실패 시 **최종 전송 (JSON 다운로드)** 로 JSON 저장
+2. 집 등 구글 접속 가능한 PC에서 summary 페이지 열기 (localhost 또는 호스팅 주소)
+3. **JSON 파일 업로드하여 전송** 버튼 클릭 후 다운로드한 파일 선택
+4. 전송 완료
+
+## 5-3. 데이터 보존 (재접속 시)
+
+- 테스트 결과는 `localStorage`와 `sessionStorage`에 모두 저장됩니다 (ga-storage.js).
+- 브라우저를 닫았다가 다시 열어도 `localStorage`에 데이터가 남아 있어, 같은 주소(예: `http://localhost:8080`)로 접속하면 데이터를 유지합니다.
+- **주의**: `file://`와 `http://localhost`는 서로 다른 저장소를 사용합니다. 항상 같은 방식(예: 로컬 서버)으로 접속해야 합니다.
+- 전송 후에도 세션 ID별로 `ga_session_<userId>`에 백업이 남아 있어, index 페이지에서 세션 ID 입력 후 **복구** 버튼으로 되살릴 수 있습니다.
+
 ## 6. "Failed to fetch" / 전송 실패가 날 때
 
 브라우저에 **Failed to fetch** 또는 **전송 실패** 메시지가 뜨는 경우, 아래를 순서대로 확인하세요.

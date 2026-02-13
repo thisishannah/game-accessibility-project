@@ -257,7 +257,8 @@
     </style>
   </head>
   <body>
-    <main class="shell" aria-labelledby="motor-title">
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <main id="main-content" class="shell" aria-labelledby="motor-title" role="main">
       <div class="shell-inner">
         <header class="header">
           <div class="brand" aria-label="운동 측정 허브">
@@ -266,7 +267,7 @@
             </div>
             <div class="brand-text-main">
               <span>게임 접근성 측정</span>
-              <span id="motor-title">운동 측정 허브</span>
+              <h1 id="motor-title" style="font-size: inherit; font-weight: inherit; margin: 0;">운동 측정 허브</h1>
             </div>
           </div>
           <div class="header-meta" id="user-summary">세션 정보 로딩 중...</div>
@@ -285,7 +286,7 @@
 
             <div class="test-grid" id="test-grid">
               <!-- 순발력 -->
-              <article class="test-card" data-test="reaction-time" tabindex="0">
+              <article class="test-card" data-test="reaction-time" tabindex="0" role="button" aria-label="반응속도 테스트: 화면이 초록색으로 변할 때 클릭">
                 <div class="test-card-head">
                   <div class="test-card-title">반응속도 테스트</div>
                   <span class="test-card-badge" data-progress="reaction-time" data-done="false">0/1</span>
@@ -296,7 +297,7 @@
               </article>
 
               <!-- 정밀도 -->
-              <article class="test-card" data-test="precision" tabindex="0">
+              <article class="test-card" data-test="precision" tabindex="0" role="button" aria-label="정밀도 테스트: 중앙 타겟 클릭 오차 측정">
                 <div class="test-card-head">
                   <div class="test-card-title">정밀도 테스트</div>
                   <span class="test-card-badge" data-progress="precision" data-done="false">0/1</span>
@@ -306,7 +307,7 @@
                 </div>
               </article>
 
-              <article class="test-card" data-test="aim-trainer" tabindex="0">
+              <article class="test-card" data-test="aim-trainer" tabindex="0" role="button" aria-label="에임 트레이너: 15개 타겟 순차 클릭">
                 <div class="test-card-head">
                   <div class="test-card-title">에임 트레이너</div>
                   <span class="test-card-badge" data-progress="aim-trainer" data-done="false">0/1</span>
@@ -317,7 +318,7 @@
               </article>
 
               <!-- 폭발력 -->
-              <article class="test-card" data-test="burst-speed" tabindex="0">
+              <article class="test-card" data-test="burst-speed" tabindex="0" role="button" aria-label="연타 입력 테스트: 키보드와 마우스 5초 최대 연타">
                 <div class="test-card-head">
                   <div class="test-card-title">연타 입력 테스트</div>
                   <span class="test-card-badge" data-progress="burst-speed" data-done="false">0/1</span>
@@ -328,7 +329,7 @@
               </article>
 
               <!-- 협응력 -->
-              <article class="test-card" data-test="simultaneous-input" tabindex="0">
+              <article class="test-card" data-test="simultaneous-input" tabindex="0" role="button" aria-label="동시 입력 테스트: 멀리 떨어진 키와 마우스 동시 입력">
                 <div class="test-card-head">
                   <div class="test-card-title">동시 입력 테스트</div>
                   <span class="test-card-badge" data-progress="simultaneous-input" data-done="false">0/1</span>
@@ -339,7 +340,7 @@
               </article>
 
               <!-- 유지력 -->
-              <article class="test-card" data-test="hold-duration" tabindex="0">
+              <article class="test-card" data-test="hold-duration" tabindex="0" role="button" aria-label="최대 홀드 시간: 키보드와 마우스 10초 유지">
                 <div class="test-card-head">
                   <div class="test-card-title">최대 홀드 시간</div>
                   <span class="test-card-badge" data-progress="hold-duration" data-done="false">0/1</span>
@@ -350,7 +351,7 @@
               </article>
 
               <!-- 지구력(피로도) -->
-              <article class="test-card" data-test="fatigue" tabindex="0">
+              <article class="test-card" data-test="fatigue" tabindex="0" role="button" aria-label="피로도 테스트: 60초 지속 클릭, 10초 단위 속도 기록">
                 <div class="test-card-head">
                   <div class="test-card-title">피로도 테스트</div>
                   <span class="test-card-badge" data-progress="fatigue" data-done="false">0/1</span>
@@ -361,7 +362,7 @@
               </article>
 
               <!-- 조작 자원 제약: 디바이스 전환 -->
-              <article class="test-card" data-test="switch-test" tabindex="0">
+              <article class="test-card" data-test="switch-test" tabindex="0" role="button" aria-label="디바이스 전환 속도: 마우스 클릭 후 키 입력 속도">
                 <div class="test-card-head">
                   <div class="test-card-title">디바이스 전환 속도</div>
                   <span class="test-card-badge" data-progress="switch-test" data-done="false">0/1</span>

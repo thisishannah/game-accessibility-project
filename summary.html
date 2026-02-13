@@ -10,7 +10,8 @@
     </style>
   </head>
   <body class="summary-report">
-    <main class="shell" aria-labelledby="summary-title">
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <main id="main-content" class="shell" aria-labelledby="summary-title" role="main">
       <div class="shell-inner">
         <header class="header">
           <div class="brand" aria-label="접근성 분석 리포트">
@@ -19,7 +20,7 @@
             </div>
             <div class="brand-text-main">
               <span>게임 접근성 측정</span>
-              <span id="summary-title">접근성 분석 리포트</span>
+              <h1 id="summary-title" style="font-size: inherit; font-weight: inherit; margin: 0;">접근성 분석 리포트</h1>
             </div>
           </div>
           <div class="header-meta" id="user-summary">세션 정보 로딩 중...</div>
@@ -46,7 +47,7 @@
               </div>
               <div class="diag-card-body">
                 <div class="fov-canvas-wrap" id="fov-canvas-wrap">
-                  <canvas id="fov-canvas" style="max-width:100%; max-height:100%;"></canvas>
+                  <canvas id="fov-canvas" style="max-width:100%; max-height:100%;" role="img" aria-label="시야각(FOV) 9포인트 측정 결과 시각화"></canvas>
                   <div id="fov-placeholder" class="ai-insight-placeholder" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; margin:0;">
                     FOV 데이터 없음
                   </div>
@@ -90,6 +91,16 @@
                 <div id="hearing-stats"></div>
               </div>
             </div>
+
+            <div class="diag-card" id="diag-color">
+              <div class="diag-card-header">
+                <span class="diag-card-title">색각/색채</span>
+                <span class="badge" id="color-badge">—</span>
+              </div>
+              <div class="diag-card-body" id="color-body">
+                <div id="color-stats"></div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -120,11 +131,16 @@
         <div class="panel mt-md">
           <div class="section-title mb-sm">구글 시트 전송</div>
           <p class="text-xs text-muted mb-sm">
-            전송 버튼을 누르면 모든 테스트 결과(요약 수치 및 raw JSON)가 구글 시트에 추가됩니다. 성공 시 세션이 비워지며 메인 페이지로 이동합니다.
+            전송 버튼을 누르면 모든 테스트 결과(요약 수치 및 raw JSON)가 구글 시트에 추가됩니다. 전송 후에도 이 페이지에 머무르므로 JSON 다운로드를 추가로 받아 두시면 좋습니다.
           </p>
           <div class="flex gap-md flex-wrap items-center">
             <button type="button" class="btn-primary sheets-button" id="send-to-sheets">전송</button>
+            <label class="btn-secondary" style="margin:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+              <span>JSON 파일 업로드하여 전송</span>
+              <input type="file" id="upload-json-input" accept=".json,application/json" style="display:none;">
+            </label>
           </div>
+          <p class="text-xs text-muted mt-xs">회사에서 전송 실패 시 다운로드한 JSON을 선택하면, 구글이 접속 가능한 환경에서 업로드 후 전송할 수 있습니다.</p>
           <p id="sheets-status" class="sheets-status"></p>
         </div>
 
@@ -282,6 +298,12 @@
             const ai = vision.aimTrainer.averageInterval;
             const delay = ai ? Math.round(((ai - AVG_AIM_INTERVAL_MS) / AVG_AIM_INTERVAL_MS) * 100) : null;
             html += statRow("에임 간격 평균", ai + " ms", delay);
+          }
+          if (vision.contrastSensitivity && vision.contrastSensitivity.contrast_threshold != null) {
+            const th = vision.contrastSensitivity.contrast_threshold;
+            const hint = th <= 5 ? "미세한 대비까지 구분 가능" : th <= 15 ? "보통 수준" : "높은 대비 필요";
+            html += statRow("대비 감도 임계값", th + "%", null);
+            html += '<div class="stat-row stat-row--muted" style="font-size:11px; color:var(--text-muted); margin-top:-4px;">' + escapeHtml(hint) + '</div>';
           }
           stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
         }
@@ -471,17 +493,20 @@
           return factor != null ? Math.round(Number(px) * factor * 100) / 100 : null;
         }
 
-        /** 구글 시트 헤더 순서 (이 순서와 시트 첫 행 헤더가 일치해야 함) */
+        /** 구글 시트 헤더 순서 일치: contrast_sensitivity, color_blindness_type, color_confusion_detail 추가됨 */
         const SHEETS_HEADER_ORDER = [
           "timestamp", "user_id", "age", "gender", "monitor_inch", "resolution", "viewing_distance", "disability_type",
           "vision_rt_avg", "vision_aim_avg", "fov_blind_rate", "readable_font_size", "readable_font_size_mm",
+          "contrast_threshold", "contrast_sensitivity",
           "motor_rt_avg", "motor_aim_avg", "motor_switch_latency", "key_reach_score", "burst_speed_peak", "fatigue_index", "motor_precision_error_mm",
           "seq_memory_score", "go_nogo_accuracy",
           "hearing_hearing_number_left", "hearing_hearing_number_right", "hearing_capacity_left", "hearing_capacity_right",
           "hearing_speech_clarity_percent", "hearing_articulation_match_rate", "hearing_observer_clarity_rating",
           "input_device", "assistive_device",
           "calibration_mm_per_px",
-          "raw_vision_data", "raw_motor_data", "raw_cognitive_data", "raw_hearing_data", "observer_report"
+          "color_rt_avg", "color_blindness_type", "color_confusion_detail", "color_confusion_score",
+          "color_confusion_matrix",
+          "raw_vision_data", "raw_motor_data", "raw_cognitive_data", "raw_hearing_data", "raw_color_data", "observer_report"
         ];
 
         /**
@@ -493,6 +518,7 @@
           const motor = ud.motor_results || {};
           const cognitive = ud.cognitive_results || {};
           const hearing = ud.hearing_results || {};
+          const color = ud.color_results || {};
 
           const visionRtTrials = vision.reactionTime && vision.reactionTime.trials;
           const vision_rt_avg = visionRtTrials && visionRtTrials.length
@@ -510,6 +536,19 @@
           const readable_font_size_mm = readable_font_size != null && mmPerPx != null
             ? Math.round(readable_font_size * mmPerPx * 100) / 100
             : null;
+          const contrast_threshold = vision.contrastSensitivity && vision.contrastSensitivity.contrast_threshold != null
+            ? vision.contrastSensitivity.contrast_threshold
+            : null;
+          const contrast_sensitivity = vision.contrastSensitivity && Object.keys(vision.contrastSensitivity).length
+            ? vision.contrastSensitivity
+            : null;
+          const colorBlindnessInfo = buildColorBlindnessInfo(ud.color_results || {});
+          const colorRtTrials = color.reactionTime && color.reactionTime.trials;
+          const color_rt_avg = colorRtTrials && colorRtTrials.length
+            ? Math.round(avg(colorRtTrials))
+            : (color.reactionTime && color.reactionTime.average) != null ? color.reactionTime.average : null;
+          const color_blindness_type = colorBlindnessInfo.type;
+          const color_confusion_detail = colorBlindnessInfo.detail || null;
           const motor_precision_error_mm = motor.precision && motor.precision.averageError != null && mmPerPx != null
             ? Math.round(motor.precision.averageError * mmPerPx * 100) / 100
             : null;
@@ -601,6 +640,17 @@
           const raw_motor_data = motorWithMeta;
           const raw_cognitive_data = cognitive && Object.keys(cognitive).length ? cognitive : null;
           const raw_hearing_data = hearing && Object.keys(hearing).length ? hearing : null;
+          const color_confusion_matrix = color.color_confusion_matrix && Object.keys(color.color_confusion_matrix).length ? color.color_confusion_matrix : null;
+          let color_confusion_score = null;
+          if (color_confusion_matrix && color_confusion_matrix.deepDiscrimination) {
+            const dd = color_confusion_matrix.deepDiscrimination;
+            const total = dd.complementaryTotal;
+            const correct = dd.complementaryCorrectCount;
+            if (total != null && total > 0 && correct != null) {
+              color_confusion_score = Math.round((correct / total) * 10000) / 10000;
+            }
+          }
+          const raw_color_data = color && Object.keys(color).length ? color : null;
           const observer_report = session.observer_report && typeof session.observer_report === "object"
             ? session.observer_report
             : null;
@@ -621,6 +671,10 @@
             fov_blind_rate,
             readable_font_size,
             readable_font_size_mm,
+            contrast_threshold,
+            contrast_sensitivity,
+            color_blindness_type,
+            color_confusion_detail,
             motor_rt_avg,
             motor_aim_avg,
             motor_switch_latency,
@@ -640,10 +694,16 @@
             input_device: session.inputDevice != null ? session.inputDevice : "",
             assistive_device: session.assistiveDevice != null ? session.assistiveDevice : "",
             calibration_mm_per_px: mmPerPx != null ? Math.round(mmPerPx * 10000) / 10000 : null,
+            color_rt_avg: color_rt_avg,
+            color_blindness_type: color_blindness_type || null,
+            color_confusion_detail: color_confusion_detail || null,
+            color_confusion_score,
+            color_confusion_matrix,
             raw_vision_data,
             raw_motor_data,
             raw_cognitive_data,
             raw_hearing_data,
+            raw_color_data,
             observer_report,
           };
           const ordered = {};
@@ -665,12 +725,105 @@
           } catch (e) {}
         }
 
+        /**
+         * 색각 테스트 결과에서 의학 용어(적색맹/적색약/녹색맹/녹색약/황청색맹/황청색약/전색맹)와 정안인용 직관 코멘트 생성.
+         * 용어·분류 근거: 연세의대 의학백과, 위키백과(색각이상), NEI, ICD-10 H53.5. COLOR_VISION_REFERENCES.md 참조.
+         */
+        function buildColorBlindnessInfo(colorData) {
+          const cm = colorData && colorData.color_confusion_matrix;
+          if (!cm) return { type: null, detail: null };
+
+          let type = null;
+          const parts = [];
+
+          if (cm.ishihara && cm.ishihara.plateResults && cm.ishihara.plateResults.length) {
+            const redErrors = cm.ishihara.plateResults.filter(r => r.type === "RG-red" && !r.correct).length;
+            const greenErrors = cm.ishihara.plateResults.filter(r => r.type === "RG-green" && !r.correct).length;
+            const cl = cm.ishihara.classification;
+            if (cl === "normal") {
+              type = "정상";
+            } else             if (cl === "protanopia") {
+              type = "적색맹 (제1색각이상)";
+              parts.push("이 사용자는 Ishihara 판정판에서 적색 계열 숫자를 인지하기 어렵습니다.");
+            } else if (cl === "deuteranopia") {
+              type = "녹색맹 (제2색각이상)";
+              parts.push("이 사용자는 Ishihara 판정판에서 녹색 계열 숫자를 인지하기 어렵습니다.");
+            } else if (cl === "protanomaly" || (cl === "red_green_anomaly" && redErrors > greenErrors)) {
+              type = "적색약 (제1색각이상)";
+              parts.push("이 사용자는 적색 계열을 구분하는 데 어려움이 있습니다.");
+            } else if (cl === "deuteranomaly" || (cl === "red_green_anomaly" && greenErrors >= redErrors)) {
+              type = "녹색약 (제2색각이상)";
+              parts.push("이 사용자는 녹색 계열을 구분하는 데 어려움이 있습니다.");
+            } else if (cl === "tritanopia") {
+              type = "황청색맹 (제3색각이상)";
+              parts.push("이 사용자는 청색-녹색, 황색-분홍 구분에 어려움이 있습니다.");
+            } else if (cl === "tritanomaly") {
+              type = "황청색약 (제3색각이상)";
+              parts.push("이 사용자는 청색-녹색, 황색-적색 구분에 어려움이 있습니다.");
+            } else if (cl === "achromatopsia") {
+              type = "전색맹";
+              parts.push("이 사용자는 색을 전혀 구분하지 못하고 흑백만 인지합니다.");
+            } else {
+              type = "미분류";
+            }
+          }
+
+          if (cm.deepDiscrimination) {
+            const lum = cm.deepDiscrimination.luminanceBoundary;
+            if (lum === false) {
+              parts.push("명도가 같은 빨강과 초록의 경계를 구분하기 어려워합니다.");
+            }
+            const comp = cm.deepDiscrimination.complementaryConfusion;
+            if (comp && comp.length) {
+              const correct = (cm.deepDiscrimination.complementaryCorrectCount || 0);
+              const total = cm.deepDiscrimination.complementaryTotal || comp.length;
+              if (correct < total) {
+                parts.push("분홍-회색, 보라-파랑 등 보색 혼동 쌍에서 붉은 기운 식별에 어려움이 있습니다.");
+              }
+            }
+          }
+
+          const detail = parts.length ? parts.join(" ") : (type === "정상" ? "색각 정상" : null);
+          return { type: type || "미분류", detail: detail || "" };
+        }
+
+        function renderColorCard(colorData) {
+          const cm = colorData && colorData.color_confusion_matrix;
+          const badge = document.getElementById("color-badge");
+          const stats = document.getElementById("color-stats");
+          if (!badge || !stats) return;
+          badge.textContent = cm ? "데이터 있음" : "—";
+          badge.className = cm ? "badge success" : "badge";
+          if (!cm) {
+            stats.innerHTML = "<div class=\"text-muted text-sm\">데이터 없음</div>";
+            return;
+          }
+          const info = buildColorBlindnessInfo(colorData);
+          let html = "";
+          if (colorData.reactionTime && colorData.reactionTime.average != null) {
+            html += statRow("반응속도 평균", colorData.reactionTime.average + " ms", null);
+          }
+          if (info.type) html += statRow("색각 유형", info.type, null);
+          if (info.detail) {
+            html += '<div class="stat-row color-detail-box" style="margin-top:8px; padding:10px; background:rgba(51,65,85,0.4); border-radius:8px; font-size:12px; line-height:1.5; border-left:3px solid var(--accent-primary);">';
+            html += '<span style="color:var(--text-muted);">정안인용 요약</span><br>';
+            html += '<span>' + escapeHtml(info.detail) + '</span></div>';
+          }
+          if (cm.ishihara && cm.ishihara.correctCount != null) html += statRow("Ishihara 정답", cm.ishihara.correctCount + " / " + cm.ishihara.totalCount, null);
+          if (cm.deepDiscrimination) {
+            html += statRow("명도 경계 구분", cm.deepDiscrimination.luminanceBoundary ? "보임" : "보이지 않음", null);
+            if (cm.deepDiscrimination.complementaryCorrectCount != null) html += statRow("보색 정답률", cm.deepDiscrimination.complementaryCorrectCount + " / " + cm.deepDiscrimination.complementaryTotal, null);
+          }
+          stats.innerHTML = html || "<div class=\"text-muted text-sm\">데이터 없음</div>";
+        }
+
         function render(session) {
           renderProfileCard(session);
           renderVisionCard(session.user_data && session.user_data.vision_results);
           renderMotorCard(session.user_data && session.user_data.motor_results);
           renderCognitiveCard(session.user_data && session.user_data.cognitive_results);
           renderHearingCard(session.user_data && session.user_data.hearing_results);
+          renderColorCard(session.user_data && session.user_data.color_results);
           renderExpertOpinions(session.observer_report);
           document.getElementById("json-preview").textContent = JSON.stringify(session, null, 2);
 
@@ -746,13 +899,76 @@
             headers: {},
             body: JSON.stringify(payload),
           });
-          clearSessionStorage();
           alert("전송 시도 완료");
-          window.location.href = "index.html";
+          if (sheetsStatusEl) sheetsStatusEl.textContent = "전송이 요청되었습니다. JSON 다운로드를 추가로 받아 두시면 데이터 관리에 유리합니다.";
+          if (sendToSheetsBtn) { sendToSheetsBtn.disabled = false; sendToSheetsBtn.textContent = sendBtnOriginalText; }
         }
 
         if (sendToSheetsBtn) {
           sendToSheetsBtn.addEventListener("click", doSheetsSubmit);
+        }
+
+        const uploadInput = document.getElementById("upload-json-input");
+        if (uploadInput) {
+          uploadInput.addEventListener("change", function () {
+            const file = this.files[0];
+            if (!file) return;
+            if (window.location.protocol === "file:") {
+              if (sheetsStatusEl) {
+                sheetsStatusEl.textContent = "파일 직접 열기(file://)에서는 전송이 불가합니다.";
+                sheetsStatusEl.style.color = "#f97373";
+              }
+              this.value = "";
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              try {
+                const data = JSON.parse(e.target.result);
+                let payload;
+                if (data.user_data) {
+                  const errs = validateSession(data);
+                  if (errs.length > 0) {
+                    if (sheetsStatusEl) {
+                      sheetsStatusEl.textContent = "유효성 검사 실패: " + errs.join(" ");
+                      sheetsStatusEl.style.color = "#f97373";
+                    }
+                    uploadInput.value = "";
+                    return;
+                  }
+                  payload = buildSheetsRowPayload(data);
+                } else if (data.user_id != null || data.vision_rt_avg != null) {
+                  payload = data;
+                } else {
+                  if (sheetsStatusEl) {
+                    sheetsStatusEl.textContent = "세션 형식 또는 시트 전송용 JSON이 아닙니다.";
+                    sheetsStatusEl.style.color = "#f97373";
+                  }
+                  uploadInput.value = "";
+                  return;
+                }
+                if (sheetsStatusEl) {
+                  sheetsStatusEl.textContent = "전송 중...";
+                  sheetsStatusEl.style.color = "inherit";
+                }
+                fetch(DEPLOYED_SHEETS_URL, {
+                  method: "POST",
+                  mode: "no-cors",
+                  headers: {},
+                  body: JSON.stringify(payload),
+                });
+                alert("전송 시도 완료");
+                if (sheetsStatusEl) sheetsStatusEl.textContent = "JSON 파일 전송이 요청되었습니다.";
+              } catch (err) {
+                if (sheetsStatusEl) {
+                  sheetsStatusEl.textContent = "JSON 파싱 오류: " + (err.message || "알 수 없음");
+                  sheetsStatusEl.style.color = "#f97373";
+                }
+              }
+              uploadInput.value = "";
+            };
+            reader.readAsText(file, "UTF-8");
+          });
         }
 
         document.getElementById("back-to-observer").addEventListener("click", () => {

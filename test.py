@@ -12,6 +12,7 @@ DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxpzl0a9g-zJJ_vH0
 
 # summary.html buildSheetsRowPayload와 동일한 키 구조 (가짜 데이터)
 # target_sheet: Apps Script에서 Level3_data 시트로 기록할 때 참고
+# SHEETS_HEADER_ORDER 순서와 일치시켜 시트 첫 행 헤더와 매칭
 FAKE_PAYLOAD = {
     "target_sheet": "Level3_data",
     "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -27,6 +28,8 @@ FAKE_PAYLOAD = {
     "fov_blind_rate": 0.05,
     "readable_font_size": 14,
     "readable_font_size_mm": 3.7,
+    "contrast_threshold": 8,
+    "contrast_sensitivity": {"contrast_threshold": 8, "unit": "%", "recordedAt": datetime.utcnow().isoformat() + "Z"},
     "motor_rt_avg": 290,
     "motor_aim_avg": 420,
     "motor_switch_latency": 180,
@@ -35,7 +38,7 @@ FAKE_PAYLOAD = {
     "fatigue_index": 102,
     "motor_precision_error_mm": 2.1,
     "seq_memory_score": 4,
-    "go_nogo_accuracy": 92.5,
+    "go_nogo_accuracy": 0.925,
     "hearing_hearing_number_left": 25,
     "hearing_hearing_number_right": 22,
     "hearing_capacity_left": 85,
@@ -46,10 +49,16 @@ FAKE_PAYLOAD = {
     "input_device": "키보드+마우스",
     "assistive_device": "",
     "calibration_mm_per_px": 0.264,
+    "color_rt_avg": 275,
+    "color_blindness_type": "녹색약 (제2색각이상)",
+    "color_confusion_detail": "이 사용자는 녹색 계열을 구분하는 데 어려움이 있습니다. 명도가 같은 빨강과 초록의 경계를 구분하기 어려워합니다.",
+    "color_confusion_score": 0.75,
+    "color_confusion_matrix": {"ishihara": {"classification": "deuteranomaly"}, "deepDiscrimination": {"luminanceBoundary": False, "complementaryCorrectCount": 3, "complementaryTotal": 4}},
     "raw_vision_data": {"_test": "fake"},
     "raw_motor_data": {"_test": "fake"},
     "raw_cognitive_data": {"_test": "fake"},
     "raw_hearing_data": {"_test": "fake"},
+    "raw_color_data": {"_test": "fake", "reactionTime": {"average": 275}, "color_confusion_matrix": {"_test": "fake"}},
     "observer_report": {"_test": "fake"},
 }
 

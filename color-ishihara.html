@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>기본 색약 검사 (Ishihara Style) · 게임 접근성</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: #e5e7eb; background: #020617; display: flex; flex-direction: column; align-items: center; padding: 20px; padding-top: 60px; }
+      header { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+      .back-btn { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.6); background: rgba(2, 6, 23, 0.9); color: #e5e7eb; text-decoration: none; font-size: 12px; }
+      .instruction { text-align: center; font-size: 14px; color: #9ca3af; margin-bottom: 16px; max-width: 420px; }
+      .plate-wrap { background: #f5f0e8; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+      #plate-canvas { display: block; border-radius: 8px; }
+      .input-row { display: flex; gap: 12px; align-items: center; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+      .input-row input { padding: 12px 16px; font-size: 18px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.6); background: rgba(15, 23, 42, 0.9); color: #e5e7eb; width: 120px; text-align: center; }
+      .input-row button { padding: 12px 24px; border-radius: 999px; border: none; background: linear-gradient(120deg, #4f46e5, #7c3aed); color: white; font-weight: 600; cursor: pointer; font-size: 14px; }
+      .input-row button:hover { filter: brightness(1.1); }
+      .input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .results-panel { margin-top: 24px; padding: 20px; background: rgba(2, 6, 23, 0.9); border-radius: 16px; border: 1px solid rgba(51, 65, 85, 0.9); width: 100%; max-width: 500px; display: none; }
+      .result-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(51, 65, 85, 0.5); font-size: 14px; }
+      .btn-primary { margin-top: 16px; padding: 10px 20px; border-radius: 999px; border: none; background: linear-gradient(120deg, #4f46e5, #22c55e); color: white; font-weight: 550; cursor: pointer; font-size: 14px; width: 100%; }
+      .btn-primary:hover { filter: brightness(1.1); }
+      .progress-text { font-size: 12px; color: #9ca3af; margin-bottom: 8px; }
+    </style>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <header>
+      <a href="color_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: #9ca3af;">기본 색약 검사 (Ishihara Style)</div>
+    </header>
+
+    <main id="main-content">
+    <div class="instruction">
+      아래 원형 이미지에 보이는 숫자를 입력하세요.<br>
+      숫자가 보이지 않으면 <strong>0</strong>을 입력하고 다음으로 넘어가세요.<br>
+      <span style="font-size: 11px; color: #94a3b8; display: block; margin-top: 6px;">※ 이 검사는 Ishihara 방식 1차 스크리닝용이며, 적록색각(1·2형)만 검출합니다. 임상 진단을 대체하지 않습니다. (COLOR_VISION_REFERENCES.md)</span>
+    </div>
+
+    <div class="plate-wrap">
+      <canvas id="plate-canvas" width="280" height="280" aria-label="색약 검사 판정 이미지"></canvas>
+    </div>
+
+    <p class="progress-text" id="progress-text" aria-live="polite">1 / 6</p>
+    <div class="input-row" role="group" aria-labelledby="answer-label">
+      <label id="answer-label" for="answer-input" class="sr-only">원형 이미지에 보이는 숫자 입력. 보이지 않으면 0 입력</label>
+      <input type="text" id="answer-input" placeholder="숫자 입력" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-describedby="progress-text" />
+      <button type="button" id="next-btn" aria-label="다음 판으로 이동">다음</button>
+    </div>
+
+    <div class="results-panel" id="results-panel">
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+      <div id="results-content"></div>
+      <button class="btn-primary" id="save-btn" aria-label="결과 저장 후 색각 측정 허브로 이동">결과 저장 & 허브로 이동</button>
+    </div>
+    </main>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const SIZE = 280;
+        const DOT_R = 8;
+        const GAP = 14;
+
+        const PLATES = [
+          { expected: "12", bg: [195, 145, 130], fig: [90, 140, 95], type: "RG-green" },
+          { expected: "8", bg: [190, 150, 125], fig: [175, 95, 90], type: "RG-red" },
+          { expected: "6", bg: [188, 142, 128], fig: [85, 135, 90], type: "RG-green" },
+          { expected: "5", bg: [192, 148, 132], fig: [170, 92, 88], type: "RG-red" },
+          { expected: "29", bg: [185, 140, 125], fig: [88, 138, 92], type: "RG-green" },
+          { expected: "15", bg: [190, 145, 128], fig: [172, 90, 85], type: "RG-red" }
+        ];
+
+        function getNumberMask(numStr) {
+          const masks = {
+            "1": [[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0]],
+            "2": [[0,1,1,1,1,1,0],[0,0,0,0,0,1,0],[0,0,0,0,1,0,0],[0,0,0,1,0,0,0],[0,0,1,0,0,0,0],[0,1,1,1,1,1,0],[0,0,0,0,0,0,0]],
+            "5": [[0,1,1,1,1,0,0],[0,1,0,0,0,0,0],[0,1,1,1,0,0,0],[0,0,0,0,1,0,0],[0,0,0,0,1,0,0],[0,1,1,1,0,0,0],[0,0,0,0,0,0,0]],
+            "6": [[0,0,1,1,1,0,0],[0,1,0,0,0,0,0],[0,1,1,1,1,0,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0],[0,0,0,0,0,0,0]],
+            "8": [[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0]],
+            "9": [[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,0,1,1,1,1,0],[0,0,0,0,0,1,0],[0,0,1,1,1,0,0],[0,0,0,0,0,0,0]]
+          };
+          const chars = numStr.split("");
+          if (chars.length === 1) return { w: 7, h: 7, grid: masks[chars[0]] || [] };
+          if (chars.length === 2) {
+            const g1 = masks[chars[0]] || [];
+            const g2 = masks[chars[1]] || [];
+            const spacer = 2;
+            const w = (g1[0] ? g1[0].length : 0) + spacer + (g2[0] ? g2[0].length : 0);
+            const h = Math.max(g1.length, g2.length);
+            const grid = [];
+            for (let r = 0; r < h; r++) {
+              const row = [];
+              (g1[r] || []).forEach(v => row.push(v));
+              for (let s = 0; s < spacer; s++) row.push(0);
+              (g2[r] || []).forEach(v => row.push(v));
+              grid.push(row);
+            }
+            return { w, h, grid };
+          }
+          return { w: 7, h: 7, grid: [] };
+        }
+
+        function drawPlate(ctx, plate) {
+          const { bg, fig, expected } = plate;
+          const mask = getNumberMask(expected);
+          const cols = mask.grid[0] ? mask.grid[0].length : 10;
+          const rows = mask.grid.length || 10;
+          const ox = (SIZE - (cols * GAP)) / 2 + GAP / 2;
+          const oy = (SIZE - (rows * GAP)) / 2 + GAP / 2;
+
+          for (let r = 0; r < rows + 4; r++) {
+            for (let c = 0; c < cols + 6; c++) {
+              const mx = c - 2;
+              const my = r - 2;
+              const inFigure = my >= 0 && my < rows && mx >= 0 && mx < cols && mask.grid[my] && mask.grid[my][mx] === 1;
+              const [rx, ry, gx, gy, bx, by] = inFigure ? fig : bg;
+              const jitter = () => (Math.random() - 0.5) * 20;
+              const rv = Math.max(0, Math.min(255, (inFigure ? fig[0] : bg[0]) + jitter()));
+              const gv = Math.max(0, Math.min(255, (inFigure ? fig[1] : bg[1]) + jitter()));
+              const bv = Math.max(0, Math.min(255, (inFigure ? fig[2] : bg[2]) + jitter()));
+              ctx.fillStyle = "rgb(" + Math.round(rv) + "," + Math.round(gv) + "," + Math.round(bv) + ")";
+              const x = ox + c * GAP + (Math.random() - 0.5) * 4;
+              const y = oy + r * GAP + (Math.random() - 0.5) * 4;
+              const rad = DOT_R + (Math.random() - 0.5) * 2;
+              ctx.beginPath();
+              ctx.arc(x, y, rad, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+
+        function classifyColorVision(plateResults) {
+          const redErrors = plateResults.filter((r, i) => PLATES[i].type === "RG-red" && !r.correct).length;
+          const greenErrors = plateResults.filter((r, i) => PLATES[i].type === "RG-green" && !r.correct).length;
+          const totalErrors = plateResults.filter(r => !r.correct).length;
+          if (totalErrors === 0) return "normal";
+          if (redErrors >= 2 && redErrors > greenErrors) return "protanopia";
+          if (greenErrors >= 2 && greenErrors >= redErrors) return "deuteranopia";
+          if (redErrors >= 1 || greenErrors >= 1) return (redErrors > greenErrors ? "protanomaly" : "deuteranomaly");
+          return "unknown";
+        }
+
+        /** 의학 용어: 연세의대·위키백과·NEI·ICD-10 기반. 자세한 레퍼런스는 COLOR_VISION_REFERENCES.md 참조 */
+        const labels = {
+          normal: "정상",
+          protanopia: "적색맹 (제1색각이상)",
+          deuteranopia: "녹색맹 (제2색각이상)",
+          protanomaly: "적색약 (제1색각이상)",
+          deuteranomaly: "녹색약 (제2색각이상)",
+          tritanopia: "황청색맹 (제3색각이상)",
+          tritanomaly: "황청색약 (제3색각이상)",
+          achromatopsia: "전색맹",
+          unknown: "미분류"
+        };
+
+        const canvas = document.getElementById("plate-canvas");
+        const ctx = canvas.getContext("2d");
+        const input = document.getElementById("answer-input");
+        const nextBtn = document.getElementById("next-btn");
+        const progressText = document.getElementById("progress-text");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsContent = document.getElementById("results-content");
+        const saveBtn = document.getElementById("save-btn");
+
+        let currentIdx = 0;
+        const plateResults = [];
+
+        function renderPlate() {
+          ctx.fillStyle = "#e8e0d5";
+          ctx.fillRect(0, 0, SIZE, SIZE);
+          drawPlate(ctx, PLATES[currentIdx]);
+        }
+
+        function nextPlate() {
+          const ans = String(input.value).trim().replace(/\s/g, "");
+          const expected = PLATES[currentIdx].expected;
+          const correct = ans === expected || (ans === "0" && expected.length > 0);
+          plateResults.push({
+            plateIndex: currentIdx,
+            expected,
+            userAnswer: ans || "(미입력)",
+            correct,
+            type: PLATES[currentIdx].type
+          });
+
+          input.value = "";
+          currentIdx++;
+
+          if (currentIdx >= PLATES.length) {
+            showResults();
+          } else {
+            progressText.textContent = (currentIdx + 1) + " / 6";
+            renderPlate();
+            input.focus();
+          }
+        }
+
+        function showResults() {
+          document.querySelector(".plate-wrap").style.display = "none";
+          document.querySelector(".input-row").style.display = "none";
+          progressText.style.display = "none";
+
+          const classification = classifyColorVision(plateResults);
+          let html = '<div class="result-item"><span>1차 분류</span><span>' + (labels[classification] || classification) + '</span></div>';
+          plateResults.forEach((r, i) => {
+            html += '<div class="result-item"><span>판정 ' + (i + 1) + ' (예상 ' + r.expected + ')</span><span>' + (r.correct ? "정답" : "오답: " + r.userAnswer) + '</span></div>';
+          });
+          resultsContent.innerHTML = html;
+          resultsPanel.style.display = "block";
+        }
+
+        nextBtn.addEventListener("click", nextPlate);
+        input.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") nextPlate();
+        });
+
+        saveBtn.addEventListener("click", function () {
+          const classification = classifyColorVision(plateResults);
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          const color = (session.user_data && session.user_data.color_results) || {};
+          const existing = color.color_confusion_matrix || {};
+          existing.ishihara = {
+            plateResults,
+            classification,
+            correctCount: plateResults.filter(r => r.correct).length,
+            totalCount: PLATES.length,
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ color: { color_confusion_matrix: existing } });
+          }
+          window.location.href = "color_hub.html";
+        });
+
+        renderPlate();
+        input.focus();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>심층 색상 식별 검사 · 게임 접근성</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: #e5e7eb; background: #020617; display: flex; flex-direction: column; align-items: center; padding: 20px; padding-top: 60px; }
+      header { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+      .back-btn { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.6); background: rgba(2, 6, 23, 0.9); color: #e5e7eb; text-decoration: none; font-size: 12px; }
+      .instruction { text-align: center; font-size: 14px; color: #9ca3af; margin-bottom: 20px; max-width: 520px; }
+      .test-section { margin-bottom: 28px; width: 100%; max-width: 560px; }
+      .test-section h3 { font-size: 15px; margin-bottom: 12px; color: #e5e7eb; }
+      .canvas-container {
+        width: 100%;
+        height: 140px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        display: flex;
+      }
+      .canvas-container canvas { display: block; }
+      .choice-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+      .choice-canvas-wrap {
+        width: 100px;
+        height: 80px;
+        border-radius: 12px;
+        border: 2px solid rgba(148, 163, 184, 0.5);
+        cursor: pointer;
+        overflow: hidden;
+        transition: border-color 0.2s, transform 0.1s, box-shadow 0.2s;
+      }
+      .choice-canvas-wrap:hover { border-color: #7c3aed; transform: scale(1.02); }
+      .choice-canvas-wrap.selected { border-color: #4ade80; box-shadow: 0 0 12px rgba(74, 222, 128, 0.4); }
+      .choice-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+      .choice-btn {
+        width: 100px; height: 48px; border-radius: 12px; border: 2px solid rgba(148, 163, 184, 0.5);
+        cursor: pointer; font-size: 14px; font-weight: 500; color: #e5e7eb;
+        background: rgba(51, 65, 85, 0.8);
+      }
+      .choice-btn:hover { border-color: #7c3aed; }
+      .choice-btn.selected { border-color: #4ade80; box-shadow: 0 0 12px rgba(74, 222, 128, 0.4); }
+      .choice-btn[data-lum="yes"] { background: rgba(39, 174, 96, 0.4); }
+      .choice-btn[data-lum="no"] { background: rgba(231, 76, 60, 0.4); }
+      .question-text { font-size: 14px; color: #b8c5d6; margin-bottom: 12px; }
+      .nav-row { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+      .nav-row button { padding: 12px 24px; border-radius: 999px; border: none; background: linear-gradient(120deg, #4f46e5, #7c3aed); color: white; font-weight: 600; cursor: pointer; font-size: 14px; }
+      .nav-row button:hover { filter: brightness(1.1); }
+      .nav-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .results-panel { margin-top: 24px; padding: 20px; background: rgba(2, 6, 23, 0.9); border-radius: 16px; border: 1px solid rgba(51, 65, 85, 0.9); width: 100%; max-width: 500px; display: none; }
+      .result-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(51, 65, 85, 0.5); font-size: 14px; }
+      .btn-primary { margin-top: 16px; padding: 10px 20px; border-radius: 999px; border: none; background: linear-gradient(120deg, #4f46e5, #22c55e); color: white; font-weight: 550; cursor: pointer; font-size: 14px; width: 100%; }
+      .btn-primary:hover { filter: brightness(1.1); }
+      .phase-badge { font-size: 11px; color: #9ca3af; margin-bottom: 8px; }
+    </style>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <header>
+      <a href="color_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: #9ca3af;">심층 색상 식별 검사</div>
+    </header>
+
+    <main id="main-content">
+    <div class="instruction">
+      로직 1: 적·녹색 명도가 맞춰진 경계선에 무늬가 있습니다. 보이시나요?<br>
+      로직 2: 아래 색상 중 <strong>가장 붉은 기운이 도는 것</strong>을 골라주세요.<br>
+      <span style="font-size: 11px; color: #94a3b8; display: block; margin-top: 6px;">※ 스크리닝용 검사이며 임상 진단을 대체하지 않습니다. (COLOR_VISION_REFERENCES.md)</span>
+    </div>
+
+    <div id="phase1" class="test-section">
+      <p class="phase-badge">로직 1 — 명도 일치 경계선 (Canvas RGB/HSV 기반 생성)</p>
+      <h3>경계선의 세로 무늬가 보이나요?</h3>
+      <div class="canvas-container" id="luminance-canvas-wrap">
+        <canvas id="luminance-canvas" width="560" height="140" role="img" aria-label="적녹색 명도 경계선 검사 이미지"></canvas>
+      </div>
+      <p class="question-text">적색과 녹색을 동일한 명도로 맞춘 경계입니다.</p>
+      <div class="choice-row">
+        <button type="button" class="choice-btn" data-lum="yes">보임</button>
+        <button type="button" class="choice-btn" data-lum="no">보이지 않음</button>
+      </div>
+    </div>
+
+    <div id="phase2" class="test-section" style="display: none;">
+      <p class="phase-badge">로직 2 — 보색 혼동 (Canvas RGB/HSV 기반 생성)</p>
+      <h3>가장 붉은 기운이 도는 색상을 고르세요.</h3>
+      <p class="question-text">분홍-회색, 보라-파랑 등 혼동하기 쉬운 쌍입니다.</p>
+      <div class="choice-row" id="complementary-choices"></div>
+    </div>
+
+    <div class="nav-row">
+      <button type="button" id="next-phase-btn">다음</button>
+    </div>
+
+    <div class="results-panel" id="results-panel">
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+      <div id="results-content"></div>
+      <button class="btn-primary" id="save-btn" aria-label="결과 저장 후 색각 측정 허브로 이동">결과 저장 & 허브로 이동</button>
+    </div>
+    </main>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        /** RGB → sRGB 명도 (0~255) */
+        function rgbToLuminance(r, g, b) {
+          return 0.299 * r + 0.587 * g + 0.114 * b;
+        }
+
+        /** RGB → HSV 변환 */
+        function rgbToHsv(r, g, b) {
+          r /= 255; g /= 255; b /= 255;
+          const max = Math.max(r, g, b), min = Math.min(r, g, b);
+          let h = 0, s = 0, v = max;
+          const d = max - min;
+          if (d) {
+            s = d / max;
+            if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+            else if (max === g) h = (b - r) / d + 2;
+            else h = (r - g) / d + 4;
+            h /= 6;
+          }
+          return { h: h * 360, s: s * 100, v: v * 100 };
+        }
+
+        /** HSV → RGB 변환 */
+        function hsvToRgb(h, s, v) {
+          h = (h % 360) / 60; s /= 100; v /= 100;
+          const c = v * s, x = c * (1 - Math.abs(h % 2 - 1)), m = v - c;
+          let r = 0, g = 0, b = 0;
+          if (h < 1) { r = c; g = x; b = 0; } else if (h < 2) { r = x; g = c; b = 0; } else if (h < 3) { r = 0; g = c; b = x; } else if (h < 4) { r = 0; g = x; b = c; } else if (h < 5) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; }
+          return {
+            r: Math.round((r + m) * 255),
+            g: Math.round((g + m) * 255),
+            b: Math.round((b + m) * 255)
+          };
+        }
+
+        /** 목표 명도(L)에 맞춘 적색 생성: R 높음, G=B로 고정 */
+        function redAtLuminance(L) {
+          const r = 175;
+          const gb = (L - 0.299 * r) / (0.587 + 0.114);
+          const g = Math.round(Math.max(0, Math.min(255, gb)));
+          return { r, g, b: g };
+        }
+
+        /** 목표 명도(L)에 맞춘 녹색 생성: G 높음, R=B로 고정 */
+        function greenAtLuminance(L) {
+          const g = 140;
+          const rb = (L - 0.587 * g) / (0.299 + 0.114);
+          const r = Math.round(Math.max(0, Math.min(255, rb)));
+          return { r, g, b: r };
+        }
+
+        /** 명도 일치 경계선 Canvas 그리기 */
+        function drawLuminanceCanvas() {
+          const canvas = document.getElementById("luminance-canvas");
+          if (!canvas) return;
+          const ctx = canvas.getContext("2d");
+          const w = canvas.width, h = canvas.height;
+          const targetL = 88;
+
+          const red = redAtLuminance(targetL);
+          const green = greenAtLuminance(targetL);
+
+          const leftW = Math.floor(w * 0.45);
+          const rightW = w - leftW - 50;
+          const boundaryW = 50;
+
+          ctx.fillStyle = "rgb(" + red.r + "," + red.g + "," + red.b + ")";
+          ctx.fillRect(0, 0, leftW, h);
+
+          ctx.fillStyle = "rgb(" + green.r + "," + green.g + "," + green.b + ")";
+          ctx.fillRect(leftW + boundaryW, 0, rightW, h);
+
+          ctx.save();
+          ctx.translate(leftW, 0);
+          for (let i = 0; i < h; i += 6) {
+            const shade = 60 + (i % 12) * 4;
+            ctx.fillStyle = "rgb(" + shade + "," + shade + 8 + "," + shade + 16 + ")";
+            ctx.fillRect(0, i, boundaryW, 4);
+          }
+          ctx.restore();
+        }
+
+        /** 단일 색상으로 Canvas 채우기 */
+        function fillCanvasWithColor(canvas, rgb) {
+          if (!canvas) return;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        /** HSV로 미세 조정한 보색 혼동 색상 (붉은 기운이 가장 강한 것이 correctIndex) */
+        const COMPLEMENTARY_PAIRS = [
+          {
+            options: [
+              { h: 355, s: 35, v: 92 },
+              { h: 240, s: 8, v: 78 },
+              { h: 0, s: 12, v: 82 },
+              { h: 120, s: 12, v: 82 }
+            ],
+            correctIndex: 0,
+            label: "분홍-회색"
+          },
+          {
+            options: [
+              { h: 300, s: 25, v: 82 },
+              { h: 240, s: 30, v: 78 },
+              { h: 180, s: 25, v: 82 },
+              { h: 45, s: 35, v: 85 }
+            ],
+            correctIndex: 0,
+            label: "보라-파랑"
+          },
+          {
+            options: [
+              { h: 0, s: 38, v: 88 },
+              { h: 120, s: 38, v: 88 },
+              { h: 240, s: 38, v: 88 },
+              { h: 50, s: 42, v: 90 }
+            ],
+            correctIndex: 0,
+            label: "적-녹-청"
+          }
+        ];
+
+        const phase1 = document.getElementById("phase1");
+        const phase2 = document.getElementById("phase2");
+        const nextPhaseBtn = document.getElementById("next-phase-btn");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsContent = document.getElementById("results-content");
+        const saveBtn = document.getElementById("save-btn");
+
+        let phase = 1;
+        let luminanceBoundary = null;
+        const complementaryConfusion = [];
+
+        drawLuminanceCanvas();
+
+        function setLuminanceAnswer(val) {
+          document.querySelectorAll('.choice-btn[data-lum]').forEach(b => b.classList.remove('selected'));
+          const btn = document.querySelector('.choice-btn[data-lum="' + val + '"]');
+          if (btn) btn.classList.add('selected');
+          luminanceBoundary = val === "yes";
+          nextPhaseBtn.disabled = false;
+        }
+
+        document.querySelectorAll('.choice-btn[data-lum]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            setLuminanceAnswer(btn.getAttribute('data-lum'));
+          });
+        });
+
+        function renderComplementary() {
+          const pair = COMPLEMENTARY_PAIRS[complementaryConfusion.length];
+          if (!pair) {
+            finishTest();
+            return;
+          }
+          const container = document.getElementById("complementary-choices");
+          container.innerHTML = "";
+
+          const colors = pair.options.map(o => hsvToRgb(o.h, o.s, o.v));
+          const shuffled = colors.map((c, i) => ({ rgb: c, origIndex: i }));
+          for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+          }
+          const correctOrigIndex = pair.correctIndex;
+          const correctRgb = pair.options.map(o => hsvToRgb(o.h, o.s, o.v))[correctOrigIndex];
+          const userCorrectShuffledIndex = shuffled.findIndex(s => s.rgb.r === correctRgb.r && s.rgb.g === correctRgb.g && s.rgb.b === correctRgb.b);
+
+          shuffled.forEach(function (item, idx) {
+            const wrap = document.createElement("div");
+            wrap.className = "choice-canvas-wrap";
+            const canvas = document.createElement("canvas");
+            canvas.width = 100;
+            canvas.height = 80;
+            fillCanvasWithColor(canvas, item.rgb);
+            wrap.appendChild(canvas);
+            wrap.addEventListener("click", function () {
+              document.querySelectorAll("#complementary-choices .choice-canvas-wrap").forEach(w => w.classList.remove("selected"));
+              wrap.classList.add("selected");
+              complementaryConfusion.push({
+                pairLabel: pair.label,
+                options: pair.options.map(o => ({ h: o.h, s: o.s, v: o.v })),
+                correctIndex: pair.correctIndex,
+                userSelectedIndex: idx,
+                correct: idx === userCorrectShuffledIndex
+              });
+              setTimeout(renderComplementary, 300);
+            });
+            container.appendChild(wrap);
+          });
+        }
+
+        nextPhaseBtn.addEventListener("click", function () {
+          if (phase === 1) {
+            phase1.style.display = "none";
+            phase2.style.display = "block";
+            nextPhaseBtn.style.display = "none";
+            renderComplementary();
+          }
+        });
+
+        function finishTest() {
+          phase2.style.display = "none";
+          document.querySelector(".nav-row").style.display = "none";
+
+          const correctCount = complementaryConfusion.filter(c => c.correct).length;
+          let html = '<div class="result-item"><span>명도 경계 무늬 구분</span><span>' + (luminanceBoundary ? "보임" : "보이지 않음") + '</span></div>';
+          complementaryConfusion.forEach((c, i) => {
+            html += '<div class="result-item"><span>보색 ' + (i + 1) + ' (' + c.pairLabel + ')</span><span>' + (c.correct ? "정답" : "오답") + '</span></div>';
+          });
+          html += '<div class="result-item"><span>보색 정답률</span><span>' + correctCount + ' / ' + complementaryConfusion.length + '</span></div>';
+          resultsContent.innerHTML = html;
+          resultsPanel.style.display = "block";
+        }
+
+        saveBtn.addEventListener("click", function () {
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          const color = (session.user_data && session.user_data.color_results) || {};
+          const existing = color.color_confusion_matrix || {};
+          existing.deepDiscrimination = {
+            luminanceBoundary,
+            complementaryConfusion,
+            complementaryCorrectCount: complementaryConfusion.filter(c => c.correct).length,
+            complementaryTotal: complementaryConfusion.length,
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ color: { color_confusion_matrix: existing } });
+          }
+          window.location.href = "color_hub.html";
+        });
+
+        nextPhaseBtn.disabled = true;
+      })();
+    </script>
+  </body>
+</html>

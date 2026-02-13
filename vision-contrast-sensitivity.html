@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>대비 감도 테스트 · 시각 측정</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      :root {
+        --bg-gray: #6b7280;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --ok: #4ade80;
+        --danger: #f87171;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        background: #020617;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        padding-top: 60px;
+      }
+      header {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+      }
+      .back-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(2, 6, 23, 0.9);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 12px;
+      }
+      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
+      .instruction {
+        text-align: center;
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+        max-width: 400px;
+      }
+      .test-area {
+        width: 100%;
+        max-width: 600px;
+        min-height: 400px;
+        background: var(--bg-gray);
+        border-radius: 16px;
+        position: relative;
+        cursor: crosshair;
+      }
+      .target {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+      }
+      .target-hit { pointer-events: auto; }
+      .no-see-btn {
+        margin-top: 20px;
+        padding: 12px 24px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(30, 41, 59, 0.9);
+        color: var(--text-muted);
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .no-see-btn:hover { color: var(--text-main); background: rgba(51, 65, 85, 0.9); }
+      .results-panel {
+        margin-top: 24px;
+        padding: 20px;
+        background: rgba(2, 6, 23, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        width: 100%;
+        max-width: 600px;
+        display: none;
+      }
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        font-size: 14px;
+      }
+      .result-item:last-child { border-bottom: none; }
+      .btn-primary {
+        margin-top: 16px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(120deg, #4f46e5, #7c3aed, #22c55e);
+        color: white;
+        font-weight: 550;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+      .btn-primary:hover { filter: brightness(1.1); }
+      .level-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <header>
+      <a href="vision_hub.html" class="back-btn">← 허브로</a>
+      <div style="font-size: 12px; color: var(--text-muted);">대비 감도 테스트</div>
+    </header>
+
+    <main id="main-content">
+    <div class="instruction">
+      회색 배경 위에 나타나는 원형 타겟을 찾아 클릭하세요.<br>
+      성공할수록 타겟이 배경과 비슷해져 난이도가 올라갑니다.<br>
+      보이지 않으면 <strong>보이지 않습니다</strong> 버튼을 누르세요.<br>
+      <span style="color: var(--text-muted); font-size: 12px; margin-top: 8px; display: block;">※ 이 테스트는 모니터 밝기 100% 환경에서 권장됩니다.</span>
+    </div>
+
+    <div class="test-area" id="test-area"></div>
+    <button type="button" class="no-see-btn" id="no-see-btn">보이지 않습니다</button>
+    <p class="level-hint" id="level-hint"></p>
+
+    <div class="results-panel" id="results-panel">
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
+      <div id="results-content"></div>
+      <button class="btn-primary" id="save-btn" aria-label="결과 저장 후 시각 측정 허브로 이동">결과 저장 & 허브로 이동</button>
+    </div>
+    </main>
+
+    <script src="ga-storage.js"></script>
+    <script>
+      (function () {
+        const BG_RGB = { r: 107, g: 114, b: 128 };
+        const TARGET_RADIUS = 40;
+        const PADDING = 60;
+
+        const CONTRAST_LEVELS = [
+          1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3,
+          0.25, 0.22, 0.2, 0.18, 0.16, 0.14, 0.12, 0.1, 0.08, 0.06, 0.05, 0.04, 0.03, 0.02
+        ];
+
+        const testArea = document.getElementById("test-area");
+        const noSeeBtn = document.getElementById("no-see-btn");
+        const levelHint = document.getElementById("level-hint");
+        const resultsPanel = document.getElementById("results-panel");
+        const resultsContent = document.getElementById("results-content");
+        const saveBtn = document.getElementById("save-btn");
+
+        let currentLevelIdx = 0;
+        let targetEl = null;
+        let targetX = 0, targetY = 0;
+        let contrastThreshold = null;
+        let testDone = false;
+
+        function rgbFromLevel(level) {
+          const r = Math.round(BG_RGB.r * (1 - level));
+          const g = Math.round(BG_RGB.g * (1 - level));
+          const b = Math.round(BG_RGB.b * (1 - level));
+          return "rgb(" + r + "," + g + "," + b + ")";
+        }
+
+        function getRandomPosition() {
+          const rect = testArea.getBoundingClientRect();
+          const w = rect.width;
+          const h = rect.height;
+          return {
+            x: PADDING + Math.random() * (w - PADDING * 2),
+            y: PADDING + Math.random() * (h - PADDING * 2)
+          };
+        }
+
+        function spawnTarget() {
+          if (testDone || currentLevelIdx >= CONTRAST_LEVELS.length) {
+            endTest(null);
+            return;
+          }
+          const level = CONTRAST_LEVELS[currentLevelIdx];
+          const pos = getRandomPosition();
+          targetX = pos.x;
+          targetY = pos.y;
+
+          testArea.innerHTML = "";
+          targetEl = document.createElement("div");
+          targetEl.className = "target target-hit";
+          targetEl.style.width = TARGET_RADIUS * 2 + "px";
+          targetEl.style.height = TARGET_RADIUS * 2 + "px";
+          targetEl.style.left = (pos.x - TARGET_RADIUS) + "px";
+          targetEl.style.top = (pos.y - TARGET_RADIUS) + "px";
+          targetEl.style.background = rgbFromLevel(level);
+          targetEl.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.1)";
+          testArea.appendChild(targetEl);
+
+          const pct = Math.round(level * 100);
+          levelHint.textContent = "현재 대비: " + pct + "% (클릭 성공 시 더 낮은 대비로)";
+        }
+
+        function hitTarget() {
+          if (testDone) return;
+          currentLevelIdx++;
+          spawnTarget();
+        }
+
+        function failCurrentLevel(reason) {
+          if (testDone) return;
+          testDone = true;
+          const level = CONTRAST_LEVELS[currentLevelIdx];
+          contrastThreshold = Math.round(level * 100);
+          endTest(reason);
+        }
+
+        function endTest(reason) {
+          if (targetEl) targetEl.remove();
+          targetEl = null;
+          testArea.innerHTML = "";
+          noSeeBtn.style.display = "none";
+          levelHint.textContent = "";
+          resultsPanel.style.display = "block";
+          let thresh = contrastThreshold;
+          if (thresh == null) {
+            if (currentLevelIdx >= CONTRAST_LEVELS.length) {
+              thresh = Math.round(CONTRAST_LEVELS[CONTRAST_LEVELS.length - 1] * 100);
+            } else if (currentLevelIdx > 0) {
+              thresh = Math.round(CONTRAST_LEVELS[currentLevelIdx - 1] * 100);
+            }
+          }
+          let html = '<div class="result-item"><span>최소 대비 임계값</span><span>' + (thresh != null ? thresh + '%' : '-') + '</span></div>';
+          html += '<div class="result-item"><span>설명</span><span>이 수치가 낮을수록 미세한 대비까지 구분 가능</span></div>';
+          if (reason) html += '<div class="result-item"><span>종료 사유</span><span>' + reason + '</span></div>';
+          resultsContent.innerHTML = html;
+        }
+
+        testArea.addEventListener("click", function (e) {
+          if (testDone || !targetEl) return;
+          const rect = testArea.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const dist = Math.sqrt(Math.pow(x - targetX, 2) + Math.pow(y - targetY, 2));
+          if (dist <= TARGET_RADIUS) {
+            hitTarget();
+          } else {
+            failCurrentLevel("클릭 실패 (타겟 밖)");
+          }
+        });
+
+        noSeeBtn.addEventListener("click", function () {
+          if (testDone) return;
+          failCurrentLevel("보이지 않음");
+        });
+
+        saveBtn.addEventListener("click", function () {
+          let thresh = contrastThreshold;
+          if (thresh == null) {
+            if (currentLevelIdx >= CONTRAST_LEVELS.length) thresh = Math.round(CONTRAST_LEVELS[CONTRAST_LEVELS.length - 1] * 100);
+            else if (currentLevelIdx > 0) thresh = Math.round(CONTRAST_LEVELS[currentLevelIdx - 1] * 100);
+          }
+          const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+          if (!session.user_data) session.user_data = {};
+          const vision = session.user_data.vision_results || {};
+          vision.contrastSensitivity = {
+            contrast_threshold: thresh != null ? thresh : null,
+            unit: "%",
+            recordedAt: new Date().toISOString()
+          };
+          if (typeof GAStorage !== "undefined") {
+            GAStorage.writeSession({ vision: vision });
+          }
+          window.location.href = "vision_hub.html";
+        });
+
+        spawnTarget();
+      })();
+    </script>
+  </body>
+</html>
