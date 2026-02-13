@@ -55,6 +55,7 @@
       }
       .test-area {
         width: 100%;
+        min-width: 300px;
         max-width: 600px;
         min-height: 400px;
         background: var(--bg-gray);
@@ -177,11 +178,13 @@
 
         function getRandomPosition() {
           const rect = testArea.getBoundingClientRect();
-          const w = rect.width;
-          const h = rect.height;
+          const w = rect.width || testArea.offsetWidth || 500;
+          const h = rect.height || testArea.offsetHeight || 400;
+          const safeW = Math.max(w, 200);
+          const safeH = Math.max(h, 200);
           return {
-            x: PADDING + Math.random() * (w - PADDING * 2),
-            y: PADDING + Math.random() * (h - PADDING * 2)
+            x: PADDING + Math.random() * Math.max(safeW - PADDING * 2, 100),
+            y: PADDING + Math.random() * Math.max(safeH - PADDING * 2, 100)
           };
         }
 
@@ -307,7 +310,11 @@
           window.location.href = "vision_hub.html";
         });
 
-        spawnTarget();
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", function () { spawnTarget(); });
+        } else {
+          requestAnimationFrame(function () { spawnTarget(); });
+        }
       })();
     </script>
   </body>

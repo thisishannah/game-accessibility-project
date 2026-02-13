@@ -685,20 +685,20 @@
                 </div>
               </article>
 
-              <!-- 청각언어장애 측정 -->
+              <!-- 청각·언어 측정 -->
               <article
                 class="measure-card"
                 data-measure="audio"
                 data-disability-type="청각언어장애"
                 tabindex="0"
                 role="button"
-                aria-label="청각언어장애 측정: 언어 명료도, 그외 3개 테스트. 클릭하면 청각 측정 허브로 이동합니다."
+                aria-label="청각·언어 측정: 언어 명료도, 그외 3개 테스트. 클릭하면 청각 측정 허브로 이동합니다."
               >
                 <div class="measure-head">
                   <div class="measure-main">
                     <div class="measure-icon" aria-hidden="true">🔊</div>
                     <div class="measure-text">
-                      <div class="measure-title">청각언어장애 측정</div>
+                      <div class="measure-title">청각·언어 측정</div>
                       <div class="measure-sub">
                         자막·시각적 피드백, 소리 의존도, 믹싱
                       </div>
@@ -948,6 +948,10 @@
             .replace(/'/g, "&#039;");
         }
 
+        function disabilityDisplayLabel(type) {
+          return type === "청각언어장애" ? "청각·언어" : type;
+        }
+
         function mapDisabilityToKey(type) {
           switch (type) {
             case "시각":
@@ -970,7 +974,7 @@
           const types = session.disabilityTypes && session.disabilityTypes.length > 0
             ? session.disabilityTypes
             : (session.disabilityType ? [session.disabilityType] : []);
-          const disability = types.length > 0 ? types.join(", ") : "-";
+          const disability = types.length > 0 ? types.map(disabilityDisplayLabel).join(", ") : "-";
 
           sessionIdText.textContent = id || "-";
           sessionDisabilityText.textContent = disability || "-";
@@ -990,13 +994,13 @@
           const primaryKeys = types.map(mapDisabilityToKey).filter(Boolean);
           if (primaryKeys.length > 0) {
             primaryDisabilityBadge.textContent =
-              "장애 유형: " + (types.length > 1 ? types.length + "개 선택" : types[0]);
+              "장애 유형: " + (types.length > 1 ? types.length + "개 선택" : disabilityDisplayLabel(types[0]));
             hubSubtitle.textContent =
               "세션에서 선택한 장애 유형에 맞춰 해당 측정 항목을 필수로 강조합니다.";
             hubHelperText.innerHTML =
               types.length > 1
-                ? "선택한 <strong>" + escapeHtml(types.join(", ")) + "</strong>에 해당하는 카드가 모두 필수 측정입니다. 각각 완료 후 최종 전송이 가능합니다."
-                : "현재 세션의 주요 장애 유형은 <strong>" + escapeHtml(types[0]) + "</strong>입니다. 이 유형에 해당하는 카드가 필수 측정으로 간주됩니다.";
+                ? "선택한 <strong>" + escapeHtml(types.map(disabilityDisplayLabel).join(", ")) + "</strong>에 해당하는 카드가 모두 필수 측정입니다. 각각 완료 후 최종 전송이 가능합니다."
+                : "현재 세션의 주요 장애 유형은 <strong>" + escapeHtml(disabilityDisplayLabel(types[0])) + "</strong>입니다. 이 유형에 해당하는 카드가 필수 측정으로 간주됩니다.";
           } else {
             primaryDisabilityBadge.textContent = "장애 유형: -";
           }
