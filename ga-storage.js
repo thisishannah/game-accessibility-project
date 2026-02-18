@@ -97,20 +97,27 @@
     return false;
   }
 
+  function _progressKey(key, userId) {
+    return userId ? PROGRESS_PREFIX + userId + "_" + key : PROGRESS_PREFIX + key;
+  }
+
   function readProgress(key) {
-    var s = safeGet(sessionStorage, PROGRESS_PREFIX + key);
-    if (s) return s;
-    var l = safeGet(localStorage, PROGRESS_PREFIX + key);
-    if (l) {
-      safeSet(sessionStorage, PROGRESS_PREFIX + key, l);
-      return l;
-    }
-    return null;
+    var session = readSession();
+    var userId = session.userId || session.id || null;
+    var storageKey = _progressKey(key, userId);
+    var stored = safeGet(sessionStorage, storageKey) || safeGet(localStorage, storageKey);
+    if (!stored) return null;
+    return stored;
   }
 
   function writeProgress(key, data) {
-    safeSet(sessionStorage, PROGRESS_PREFIX + key, data);
-    safeSet(localStorage, PROGRESS_PREFIX + key, data);
+    var session = readSession();
+    var userId = session.userId || session.id || null;
+    var payload = typeof data === "object" && data !== null ? Object.assign({}, data) : data;
+    if (userId && typeof payload === "object") payload.userId = userId;
+    var storageKey = _progressKey(key, userId);
+    safeSet(sessionStorage, storageKey, payload);
+    safeSet(localStorage, storageKey, payload);
   }
 
   function readDraftVision() {
@@ -136,6 +143,21 @@
     } catch (e) {}
   }
 
+  function clearAllProgress() {
+    var keys = ["visual", "motor", "audio", "color", "cognitive"];
+    var session = readSession();
+    var userId = session.userId || session.id || null;
+    keys.forEach(function(k) {
+      try {
+        var sk = _progressKey(k, userId);
+        sessionStorage.removeItem(sk);
+        localStorage.removeItem(sk);
+        sessionStorage.removeItem(PROGRESS_PREFIX + k);
+        localStorage.removeItem(PROGRESS_PREFIX + k);
+      } catch (e) {}
+    });
+  }
+
   global.GAStorage = {
     readSession: readSession,
     writeSession: writeSession,
@@ -146,5 +168,6 @@
     readDraftVision: readDraftVision,
     writeDraftVision: writeDraftVision,
     clearDraftVision: clearDraftVision,
+    clearAllProgress: clearAllProgress,
   };
 })(typeof window !== "undefined" ? window : this);
