@@ -192,6 +192,16 @@
         background: rgba(2, 6, 23, 0.95);
         border-color: rgba(148, 163, 184, 0.9);
       }
+      .skip-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+      .skip-actions .retry-btn {
+        margin-top: 0;
+      }
     </style>
   </head>
   <body>
@@ -208,6 +218,11 @@
       </div>
 
       <div class="status-message" id="status-message"></div>
+
+      <div class="skip-actions" id="skip-actions">
+        <button type="button" class="retry-btn" id="skip-btn">이 문제 건너뛰기</button>
+        <button type="button" class="retry-btn" id="save-exit-btn">한 만큼 저장하고 나가기</button>
+      </div>
 
       <div class="results-panel" id="results-panel">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
@@ -272,9 +287,11 @@
         let mousePressed = false;
         let successfulCombinations = [];
         let failedCombinations = [];
+        let skippedCombinations = [];
         let allAttempts = [];
         let maxKeys = 0;
         let testCompleted = false;
+        let earlyExit = false;
 
         function keyMatchesEvent(e) {
           const mapped = KEY_CODE_MAP[e.code];
@@ -443,7 +460,7 @@
             currentCombinationIndex = 0;
             
             if (currentTestIndex >= TEST_SEQUENCE.length) {
-              completeTest();
+              completeTest(false);
               return;
             }
           }
@@ -455,19 +472,53 @@
           } else {
             instruction.textContent = nextTest.keys + "개 키를\n동시에 누르세요";
           }
+          updateKeyDisplay();
         }
 
-        function completeTest() {
+        function skipCurrentCombination() {
+          if (testCompleted) return;
+          const currentTest = TEST_SEQUENCE[currentTestIndex];
+          const currentCombo = currentTest.combinations[currentCombinationIndex];
+          skippedCombinations.push({
+            keys: currentCombo.length,
+            requiredCombination: currentCombo.slice(),
+            timestamp: new Date().toISOString()
+          });
+          nextCombination();
+        }
+
+        function saveAndExitEarly() {
+          if (testCompleted) return;
+          earlyExit = true;
           testCompleted = true;
+          document.getElementById("skip-actions").style.display = "none";
           instruction.style.display = "none";
           keyCombination.style.display = "none";
           statusMessage.style.display = "none";
+          resultsPanel.style.display = "block";
+          resultsContent.innerHTML = "<p style='margin-bottom: 16px;'>지금까지의 결과를 저장하고 허브로 이동합니다.</p>" +
+            "<div class='result-item'><span>성공한 최대 동시 입력</span><span>" + maxKeys + " 개</span></div>" +
+            "<div class='result-item'><span>성공한 조합</span><span>" + successfulCombinations.length + " 개</span></div>";
+          saveBtn.click();
+        }
+
+        function completeTest(isEarlyExit) {
+          testCompleted = true;
+          earlyExit = isEarlyExit || earlyExit;
+          instruction.style.display = "none";
+          keyCombination.style.display = "none";
+          statusMessage.style.display = "none";
+          document.getElementById("skip-actions").style.display = "none";
           resultsPanel.style.display = "block";
           
           let html = '<div class="result-item"><span>성공한 최대 동시 입력 개수</span><span>' + maxKeys + ' 개</span></div>';
           html += '<div class="result-item"><span>성공한 조합 수</span><span>' + successfulCombinations.length + ' 개</span></div>';
           html += '<div class="result-item"><span>실패한 조합 수</span><span>' + failedCombinations.length + ' 개</span></div>';
+          html += '<div class="result-item"><span>건너뛴 조합 수</span><span>' + skippedCombinations.length + ' 개</span></div>';
           html += '<div class="result-item"><span>총 시도 횟수</span><span>' + allAttempts.length + ' 회</span></div>';
+          if (earlyExit) {
+            html += '<div class="result-item" style="color: var(--wait);"><span>종료 방식</span><span>중도 저장 (한 만큼만 진행)</span></div>';
+          }
           html += '<div class="result-item" style="margin-top: 12px;"><strong>성공한 조합 목록:</strong></div>';
           successfulCombinations.forEach(function(combo, index) {
             html += '<div class="result-item" style="font-size: 12px;"><span>' + (index + 1) + '. 요구: ' + combo.requiredCombination.join(" + ") + ' | 실제: ' + combo.actualPressedKeys.join(" + ") + '</span><span>' + combo.keys + '개</span></div>';
@@ -488,6 +539,15 @@
               html += '<div class="result-item" style="font-size: 11px; color: #9ca3af;"><span>... 외 ' + (failedCombinations.length - 5) + '개 더</span></div>';
             }
           }
+          if (skippedCombinations.length > 0) {
+            html += '<div class="result-item" style="margin-top: 12px;"><strong>건너뛴 조합:</strong></div>';
+            skippedCombinations.slice(0, 5).forEach(function(combo, index) {
+              html += '<div class="result-item" style="font-size: 11px; color: #9ca3af;"><span>' + (index + 1) + '. ' + combo.requiredCombination.join(" + ") + '</span></div>';
+            });
+            if (skippedCombinations.length > 5) {
+              html += '<div class="result-item" style="font-size: 11px; color: #9ca3af;"><span>... 외 ' + (skippedCombinations.length - 5) + '개 더</span></div>';
+            }
+          }
           resultsContent.innerHTML = html;
         }
 
@@ -498,9 +558,11 @@
           mousePressed = false;
           successfulCombinations = [];
           failedCombinations = [];
+          skippedCombinations = [];
           allAttempts = [];
           maxKeys = 0;
           testCompleted = false;
+          earlyExit = false;
           
           instruction.style.display = "block";
           instruction.textContent = TEST_SEQUENCE[0].mouseIncluded
@@ -508,6 +570,7 @@
             : TEST_SEQUENCE[0].keys + "개 키를\n동시에 누르세요";
           keyCombination.style.display = "flex";
           statusMessage.style.display = "block";
+          document.getElementById("skip-actions").style.display = "flex";
           resultsPanel.style.display = "none";
           
           resetCurrentCombination();
@@ -541,10 +604,13 @@
             maxKeys: maxKeys,
             successfulCombinations: successfulCombinations,
             failedCombinations: failedCombinations,
+            skippedCombinations: skippedCombinations,
             allAttempts: allAttempts,
             totalSuccessful: successfulCombinations.length,
             totalFailed: failedCombinations.length,
+            totalSkipped: skippedCombinations.length,
             totalAttempts: allAttempts.length,
+            earlyExit: earlyExit,
             recordedAt: new Date().toISOString()
           };
           if (typeof GAStorage !== "undefined") {
@@ -554,6 +620,8 @@
         });
 
         retryBtn.addEventListener("click", resetTest);
+        document.getElementById("skip-btn").addEventListener("click", skipCurrentCombination);
+        document.getElementById("save-exit-btn").addEventListener("click", saveAndExitEarly);
 
         updateKeyDisplay();
         const firstTest = TEST_SEQUENCE[0];
