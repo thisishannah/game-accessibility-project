@@ -226,42 +226,41 @@
         const saveBtn = document.getElementById("save-btn");
         const retryBtn = document.getElementById("retry-btn");
 
-        const KEYS = ["`", "Q", "W", "E", "R", "A", "S", "D", "F", "G", "Z", "X", "C", "V", "F3", "Shift", "Ctrl", "Space"];
+        const KEYS = ["`", "Q", "W", "E", "R", "A", "S", "D", "F", "G", "Z", "X", "C", "V", "B", "T", "Shift", "Ctrl", "Space"];
         const MOUSE_KEY = "Mouse";
         const KEY_CODE_MAP = {
           "Backquote": "`", "KeyQ": "Q", "KeyW": "W", "KeyE": "E", "KeyR": "R",
           "KeyA": "A", "KeyS": "S", "KeyD": "D", "KeyF": "F", "KeyG": "G",
-          "KeyZ": "Z", "KeyX": "X", "KeyC": "C", "KeyV": "V",
-          "F3": "F3",
+          "KeyZ": "Z", "KeyX": "X", "KeyC": "C", "KeyV": "V", "KeyB": "B", "KeyT": "T",
           "ShiftLeft": "Shift", "ShiftRight": "Shift",
           "ControlLeft": "Ctrl", "ControlRight": "Ctrl",
           "Space": "Space"
         };
-        /* 2~3키: 키보드만. 4키: 마우스+3키. Ctrl+W(탭닫기), Ctrl+R(새로고침), Ctrl+Q(종료), Ctrl+A(전체선택) 등 위험 조합 회피 */
+        /* 펑션키(F1~F12) 제외: 특수키가 키 기능을 활성화해 검사 진행이 멈춤. Ctrl+W, Ctrl+R 등 위험 조합 회피 */
         const TEST_SEQUENCE = [
           { keys: 2, mouseIncluded: false, combinations: [
-            ["F3", "Space"],
+            ["B", "Space"],
             ["Shift", "C"],
             ["`", "R"],
             ["Ctrl", "E"],
-            ["F3", "`"],
+            ["B", "`"],
             ["Shift", "Space"],
             ["Ctrl", "Z"],
             ["`", "G"]
           ]},
           { keys: 3, mouseIncluded: false, combinations: [
-            ["F3", "Shift", "Space"],
+            ["B", "Shift", "Space"],
             ["Ctrl", "F", "X"],
             ["`", "E", "V"],
-            ["F3", "Ctrl", "C"],
+            ["B", "Ctrl", "C"],
             ["Shift", "Space", "R"],
             ["`", "G", "X"]
           ]},
           { keys: 4, mouseIncluded: true, combinations: [
             ["Mouse", "Shift", "Space", "R"],
-            ["Mouse", "F3", "Ctrl", "C"],
+            ["Mouse", "B", "Ctrl", "C"],
             ["Mouse", "`", "E", "Space"],
-            ["Mouse", "Shift", "V", "F3"]
+            ["Mouse", "Shift", "V", "T"]
           ]}
         ];
 
@@ -284,7 +283,7 @@
           return null;
         }
 
-        const DISPLAY_LABELS = { "`": "~", "Space": "Space", "Mouse": "🖱 좌클릭", "F3": "F3" };
+        const DISPLAY_LABELS = { "`": "~", "Space": "Space", "Mouse": "🖱 좌클릭" };
         function updateKeyDisplay() {
           const currentTest = TEST_SEQUENCE[currentTestIndex];
           const currentCombo = currentTest.combinations[currentCombinationIndex];

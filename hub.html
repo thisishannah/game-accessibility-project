@@ -915,7 +915,9 @@
         }
 
         function disabilityDisplayLabel(type) {
-          return type === "청각언어장애" ? "청각·언어" : type;
+          if (type === "청각언어장애") return "청각·언어";
+          if (type === "색각") return "색각·색채";
+          return type;
         }
 
         function mapDisabilityToKey(type) {

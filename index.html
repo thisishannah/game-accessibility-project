@@ -1008,7 +1008,7 @@
                         <div class="chip-icon" aria-hidden="true">👁️</div>
                         <div class="chip-content">
                           <span class="chip-title">시각</span>
-                          <span class="chip-caption">시야·시력, 대비, 색 인지 등</span>
+                          <span class="chip-caption">시야·시력, 대비 감도 등</span>
                           <span class="chip-tag">Screen / Contrast</span>
                         </div>
                       </label>
@@ -1042,6 +1042,22 @@
                           <span class="chip-title">청각·언어</span>
                           <span class="chip-caption">고·저음 인지, 한쪽/양쪽 청력 차이, 언어 명료도</span>
                           <span class="chip-tag">Audio / Language</span>
+                        </div>
+                      </label>
+
+                      <label class="chip" data-disability="색각" tabindex="0">
+                        <input
+                          class="chip-input"
+                          type="checkbox"
+                          name="disabilityType"
+                          value="색각"
+                          aria-label="색각 이상"
+                        />
+                        <div class="chip-icon" aria-hidden="true">🎨</div>
+                        <div class="chip-content">
+                          <span class="chip-title">색각</span>
+                          <span class="chip-caption">색약·색맹, 색 구분 곤란 등</span>
+                          <span class="chip-tag">Color / Chromatic</span>
                         </div>
                       </label>
 
@@ -1677,10 +1693,11 @@
         };
 
         const disabilityHints = {
-          시각: "예: 저시력, 색각 이상, 중심시야/주변시야 제한, 한쪽 시야 상실 등",
+          시각: "예: 저시력, 중심시야/주변시야 제한, 한쪽 시야 상실, 대비 감도 등",
           운동:
             "예: 손가락/손목 가동 범위 제한, 한 손 플레이, 버튼 연타 곤란, 미세 조작 어려움 등",
           "청각언어장애": "예: 한쪽 귀 난청, 고음/저음 인지 어려움, 배경 소음 속 대사 인지 곤란, 언어 명료도 저하 등",
+          색각: "예: 적녹색약, 청황색약, 색 구분 곤란 등",
           인지: "예: 복잡한 UI 이해 어려움, 짧은 주의 집중 시간, 실시간 판단 부담 등",
         };
 
@@ -1992,8 +2009,9 @@
           if (!disabilityDetail.value.trim()) {
             const placeholders = {
               운동: "예: 오른손 가동 범위 제한, 손떨림, 장시간 버튼 연타 어려움 등",
-              시각: "예: 저시력, 작은 UI 인지 어려움, 색상 구분 곤란 등",
+              시각: "예: 저시력, 작은 UI 인지 어려움, 시야 제한 등",
               청각언어장애: "예: 음성 대사 인지 어려움, 배경음 분리 곤란 등",
+              색각: "예: 적녹색약, 청황색약, 특정 색 조합 구분 어려움 등",
               인지: "예: 복잡한 UI 이해 지연, 실시간 정보량 많을 때 피로 등",
             };
             disabilityDetail.placeholder =
