@@ -24,16 +24,6 @@
             left: 20px;
             z-index: 101;
         }
-        .back-btn {
-            padding: 6px 12px;
-            border-radius: 999px;
-            border: 1px solid rgba(148, 163, 184, 0.6);
-            background: rgba(2, 6, 23, 0.9);
-            color: #fff;
-            text-decoration: none;
-            font-size: 12px;
-        }
-        .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
         .btn-group {
             display: flex;
             gap: 10px;
@@ -130,7 +120,7 @@
         <h2 class="accent-title">실전 압축 시야 측정 (32회)</h2>
         <p class="test-description">
             빨간 점을 응시하고,
-흰 점이 보이면 <b>[스페이스바]</b>를 누르세요.
+흰 점이 보이면 <b>[스페이스바]</b> 또는 <b>클릭</b>하세요.
         </p>
         <p class="test-description">
             중앙은 8방향, 외곽은 핵심 3방향씩만 측정합니다.
@@ -141,7 +131,7 @@
         <button class="admin-btn" onclick="startTest()">측정 시작</button>
     </div>
 
-    <canvas id="canvas" role="img" aria-label="시야각 측정 영역. 빨간 점 응시 후 흰 점이 보이면 스페이스바"></canvas>
+    <canvas id="canvas" role="img" aria-label="시야각 측정 영역. 빨간 점 응시 후 흰 점이 보이면 스페이스바 또는 클릭"></canvas>
 
     <div class="popup-overlay" id="popup-overlay">
         <div class="popup-content">
@@ -260,20 +250,33 @@
         }
 
         function recordPoint(failed = false) {
+            if (!stimulus.active) return;
+            stimulus.active = false;
             if (moveTimer) { clearInterval(moveTimer); moveTimer = null; }
             const cp = focusPoints[currentPIdx];
             if (!results[cp.id]) results[cp.id] = {};
             results[cp.id][cp.angles[currentAngleIdx]] = failed ? "Blind" : stimulus.dist.toFixed(0);
-            stimulus.active = false;
             currentAngleIdx++;
             draw();
             setTimeout(nextStep, 250);
         }
 
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && stimulus.active) {
-                e.preventDefault(); recordPoint(false);
+        function onDetect() {
+            if (testActive && stimulus.active) {
+                recordPoint(false);
             }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                onDetect();
+            }
+        });
+
+        canvas.addEventListener('click', (e) => {
+            e.preventDefault();
+            onDetect();
         });
 
         function finishTest() {

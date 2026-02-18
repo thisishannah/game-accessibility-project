@@ -34,6 +34,36 @@
   outline-offset: 2px;
 }
 
+/* 허브로 돌아가기 버튼: 검사 페이지 공통 */
+.back-btn,
+nav a.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill, 999px);
+  border: 2px solid rgba(148, 163, 184, 0.6);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.9), rgba(124, 58, 237, 0.9));
+  color: #fff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  min-height: 48px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.back-btn:hover,
+nav a.back-btn:hover {
+  border-color: rgba(148, 163, 184, 0.9);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+  transform: translateY(-1px);
+}
+.back-btn:focus-visible,
+nav a.back-btn:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
 /* WCAG 2.2: 포커스가 가려지지 않도록 강한 포커스 링 */
 *:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);

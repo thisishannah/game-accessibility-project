@@ -38,16 +38,6 @@
         align-items: center;
         z-index: 10;
       }
-      .back-btn {
-        padding: 6px 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.6);
-        background: rgba(2, 6, 23, 0.9);
-        color: var(--text-main);
-        text-decoration: none;
-        font-size: 12px;
-      }
-      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
       .test-container {
         width: 100%;
         max-width: 600px;
@@ -112,7 +102,7 @@
         font-size: 16px;
         color: #fbbf24;
       }
-      .instruction.input {
+      .instruction.phase-input {
         font-size: 16px;
         color: #4ade80;
       }
@@ -314,7 +304,7 @@
               }, 500);
             } else {
               state = "inputting";
-              instruction.className = "instruction input";
+              instruction.className = "instruction phase-input";
               instruction.textContent = "방금 본 순서대로 클릭하세요";
             }
           };

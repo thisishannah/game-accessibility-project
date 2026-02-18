@@ -38,16 +38,6 @@
         align-items: center;
         z-index: 10;
       }
-      .back-btn {
-        padding: 6px 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.6);
-        background: rgba(2, 6, 23, 0.9);
-        color: var(--text-main);
-        text-decoration: none;
-        font-size: 12px;
-      }
-      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
       .test-container {
         width: 100%;
         max-width: 700px;
@@ -110,6 +100,7 @@
         font-weight: 700;
         color: var(--ok);
         z-index: 5;
+        pointer-events: none;
       }
       .star {
         position: absolute;
@@ -120,6 +111,7 @@
         cursor: pointer;
         user-select: none;
         transition: transform 0.1s;
+        z-index: 10;
       }
       .star:hover {
         transform: scale(1.2);

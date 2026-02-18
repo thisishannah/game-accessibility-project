@@ -36,22 +36,29 @@
         align-items: center;
         z-index: 10;
       }
-      .back-btn {
-        padding: 6px 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.6);
-        background: rgba(2, 6, 23, 0.9);
-        color: var(--text-main);
-        text-decoration: none;
-        font-size: 12px;
-      }
-      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
       .instruction {
         text-align: center;
         font-size: 14px;
         color: var(--text-muted);
         margin-bottom: 16px;
         max-width: 400px;
+      }
+      .instruction p {
+        margin: 0 0 8px;
+      }
+      .instruction p:last-child {
+        margin-bottom: 0;
+      }
+      .instruction-main {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 12px 0 16px;
+      }
+      .instruction-note {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 12px;
       }
       .test-area {
         width: 100%;
@@ -126,10 +133,11 @@
     </header>
 
     <div class="instruction">
-      회색 배경 위에 여러 개의 원이 나타납니다. <strong>가장 어두운 원</strong>을 찾아 클릭하세요.<br>
-      성공할수록 모든 원이 배경에 가까워져 난이도가 올라갑니다.<br>
-      잘 모르겠으면 <strong>보이지 않습니다</strong> 버튼을 누르세요.<br>
-      <span style="color: var(--text-muted); font-size: 12px; margin-top: 8px; display: block;">※ 모니터 밝기 100%, 어두운 환경에서 권장됩니다.</span>
+      <p>회색 배경 위에 원이 하나 나타납니다.</p>
+      <p class="instruction-main">원을 클릭하세요.</p>
+      <p>클릭할수록 대비가 점차 낮아져 배경과 비슷해집니다.</p>
+      <p>보이지 않으면 <strong>보이지 않습니다</strong> 버튼을 누르세요.</p>
+      <p class="instruction-note">※ 모니터 밝기 100%, 어두운 환경에서 권장됩니다.</p>
     </div>
 
     <div class="test-area" id="test-area"></div>
@@ -148,13 +156,8 @@
         const BG_RGB = { r: 107, g: 114, b: 128 };
         const TARGET_RADIUS = 26;
         const PADDING = 50;
-        const DECOY_COUNT = 6;
 
-        const CONTRAST_LEVELS = [
-          0.55, 0.48, 0.42, 0.36, 0.32, 0.28, 0.24, 0.2, 0.18, 0.16,
-          0.14, 0.12, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.045, 0.04,
-          0.035, 0.03, 0.025, 0.02, 0.018, 0.016, 0.014, 0.012, 0.01, 0.008
-        ];
+        const CONTRAST_LEVELS = [0.4, 0.25, 0.15, 0.08, 0.045, 0.025, 0.012];
 
         const testArea = document.getElementById("test-area");
         const noSeeBtn = document.getElementById("no-see-btn");
@@ -188,54 +191,30 @@
           };
         }
 
-        function isOverlapping(pos, others, minDist) {
-          for (let i = 0; i < others.length; i++) {
-            const d = Math.sqrt(Math.pow(pos.x - others[i].x, 2) + Math.pow(pos.y - others[i].y, 2));
-            if (d < minDist) return true;
-          }
-          return false;
-        }
-
         function spawnTarget() {
           if (testDone || currentLevelIdx >= CONTRAST_LEVELS.length) {
             endTest(null);
             return;
           }
           const level = CONTRAST_LEVELS[currentLevelIdx];
-          const positions = [];
-          const targetIdx = Math.floor(Math.random() * (DECOY_COUNT + 1));
-          const minDist = TARGET_RADIUS * 3.5;
-
-          for (let i = 0; i <= DECOY_COUNT; i++) {
-            let pos;
-            let tries = 0;
-            do {
-              pos = getRandomPosition();
-              tries++;
-            } while (tries < 30 && isOverlapping(pos, positions, minDist));
-            positions.push(pos);
-          }
-
-          const targetPos = positions[targetIdx];
-          targetX = targetPos.x;
-          targetY = targetPos.y;
+          const pos = getRandomPosition();
+          targetX = pos.x;
+          targetY = pos.y;
 
           testArea.innerHTML = "";
-          for (let i = 0; i <= DECOY_COUNT; i++) {
-            const isTarget = i === targetIdx;
-            const el = document.createElement("div");
-            el.className = "target" + (isTarget ? " target-hit" : "");
-            el.style.width = TARGET_RADIUS * 2 + "px";
-            el.style.height = TARGET_RADIUS * 2 + "px";
-            el.style.left = (positions[i].x - TARGET_RADIUS) + "px";
-            el.style.top = (positions[i].y - TARGET_RADIUS) + "px";
-            el.style.background = isTarget ? rgbFromLevel(level) : rgbFromLevel(0.008);
-            testArea.appendChild(el);
-            if (isTarget) targetEl = el;
-          }
+          const el = document.createElement("div");
+          el.className = "target target-hit";
+          el.style.width = TARGET_RADIUS * 2 + "px";
+          el.style.height = TARGET_RADIUS * 2 + "px";
+          el.style.left = (pos.x - TARGET_RADIUS) + "px";
+          el.style.top = (pos.y - TARGET_RADIUS) + "px";
+          el.style.background = rgbFromLevel(level);
+          testArea.appendChild(el);
+          targetEl = el;
 
           const pct = (level * 100).toFixed(1);
-          levelHint.textContent = "현재 대비: " + pct + "% · 다중 원 중 더 어두운 것을 찾아 클릭하세요.";
+          const step = currentLevelIdx + 1;
+          levelHint.textContent = "대비 " + pct + "% · " + step + "/7회";
         }
 
         function hitTarget() {
@@ -247,8 +226,11 @@
         function failCurrentLevel(reason) {
           if (testDone) return;
           testDone = true;
-          const level = CONTRAST_LEVELS[currentLevelIdx];
-          contrastThreshold = parseFloat((level * 100).toFixed(1));
+          if (currentLevelIdx > 0) {
+            contrastThreshold = parseFloat((CONTRAST_LEVELS[currentLevelIdx - 1] * 100).toFixed(1));
+          } else {
+            contrastThreshold = parseFloat((CONTRAST_LEVELS[0] * 100).toFixed(1));
+          }
           endTest(reason);
         }
 

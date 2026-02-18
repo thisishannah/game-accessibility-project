@@ -9,8 +9,8 @@
       * { box-sizing: border-box; }
       body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: #e5e7eb; background: #020617; display: flex; flex-direction: column; align-items: center; padding: 20px; padding-top: 60px; }
       header { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-      .back-btn { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.6); background: rgba(2, 6, 23, 0.9); color: #e5e7eb; text-decoration: none; font-size: 12px; }
-      .instruction { text-align: center; font-size: 14px; color: #9ca3af; margin-bottom: 20px; max-width: 520px; }
+      .instruction-warning { font-size: 11px; color: #94a3b8; margin-bottom: 20px; text-align: center; }
+      .instruction-main { font-size: 18px; font-weight: 550; color: #e5e7eb; text-align: center; margin-bottom: 24px; width: 100%; max-width: 560px; line-height: 1.5; }
       .test-section { margin-bottom: 28px; width: 100%; max-width: 560px; }
       .test-section h3 { font-size: 15px; margin-bottom: 12px; color: #e5e7eb; }
       .canvas-container {
@@ -63,11 +63,8 @@
       <div style="font-size: 12px; color: #9ca3af;">심층 색상 식별 검사</div>
     </header>
 
-    <div class="instruction">
-      로직 1: 적·녹색 명도가 맞춰진 경계선에 무늬가 있습니다. 보이시나요?<br>
-      로직 2: 아래 색상 중 <strong>가장 붉은 기운이 도는 것</strong>을 골라주세요.<br>
-      <span style="font-size: 11px; color: #94a3b8; display: block; margin-top: 6px;">※ 스크리닝용 검사이며 임상 진단을 대체하지 않습니다. (COLOR_VISION_REFERENCES.md)</span>
-    </div>
+    <p class="instruction-warning">※ 스크리닝용 검사이며 임상 진단을 대체하지 않습니다. (COLOR_VISION_REFERENCES.md)</p>
+    <p class="instruction-main">경계선의 세로 무늬가 보이나요? 가장 붉은 기운이 도는 색상을 선택해 주세요.</p>
 
     <div id="phase1" class="test-section">
       <p class="phase-badge">로직 1 — 명도 일치 경계선 (동일 sRGB 명도의 적·녹 세로 줄무늬, WCAG 2.1 상대 명도)</p>

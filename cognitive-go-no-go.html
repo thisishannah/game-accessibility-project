@@ -38,16 +38,6 @@
         align-items: center;
         z-index: 10;
       }
-      .back-btn {
-        padding: 6px 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.6);
-        background: rgba(2, 6, 23, 0.9);
-        color: var(--text-main);
-        text-decoration: none;
-        font-size: 12px;
-      }
-      .back-btn:hover { border-color: rgba(148, 163, 184, 0.9); }
       .test-container {
         width: 100%;
         max-width: 600px;
@@ -59,7 +49,7 @@
         font-weight: 650;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         white-space: pre-line;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         color: var(--text-main);
         min-height: 140px;
         display: flex;
@@ -93,11 +83,12 @@
       .instruction-rule.nogo .symbol { color: var(--danger); }
       .circle-container {
         width: 100%;
-        height: 400px;
+        min-height: 220px;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         position: relative;
+        padding-top: 12px;
       }
       .circle {
         width: 200px;
@@ -337,7 +328,7 @@
           circleContainer.style.display = "flex";
           instruction.style.display = "block";
           infoPanel.style.display = "block";
-          instruction.textContent = "초록색 원: 클릭 / 빨간색 원: 클릭하지 마세요";
+          instruction.textContent = "아래 나타나는 원을 클릭해 주세요.\n\n초록색 원: 클릭\n빨간색 원: 클릭하지 마세요";
           testActive = true;
           currentTrial = 0;
           trials = [];
