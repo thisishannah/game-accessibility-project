@@ -6,130 +6,451 @@
     <title>가독 폰트 크기 측정 · 시각 측정</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        :root { --panel-height: 220px; }
-        body { background-color: #121212; color: white; margin: 0; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        :root {
+            --panel-min-height: 280px;
+            --accent: #00ffcc;
+            --header-h: 56px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #121212;
+            color: #e5e7eb;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .font-page-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 20px;
+            min-height: var(--header-h);
+            background: linear-gradient(180deg, rgba(18, 18, 18, 0.98) 0%, rgba(18, 18, 18, 0.88) 100%);
+            border-bottom: 1px solid rgba(0, 255, 204, 0.25);
+        }
+        .font-page-subtitle {
+            margin: 0;
+            font-size: 12px;
+            color: #b8c5d6;
+            font-weight: 500;
+        }
 
-        /* 상단 내비게이션 메뉴 */
-        nav { background: #333; padding: 10px; text-align: center; border-bottom: 2px solid #00ffcc; display: flex; justify-content: center; gap: 20px; }
-        nav a { color: white; text-decoration: none; font-weight: bold; padding: 8px 15px; border-radius: 5px; background: #444; }
-        nav a.active { background: #00ffcc; color: #000; }
-        nav a:hover { background: #555; }
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+            padding-top: var(--header-h);
+        }
 
-        /* 상단: 3분할 뷰 영역 */
-        #view-wrapper { flex: 1; display: flex; overflow: hidden; }
+        #view-wrapper {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            min-height: 0;
+        }
         .view-column {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-right: 1px solid #444; position: relative; padding: 20px;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            border-right: 1px solid rgba(68, 68, 68, 0.9);
+            position: relative;
+            padding: 12px 10px 10px;
+            padding-top: 44px;
         }
         .view-column:last-child { border-right: none; }
-        .theme-label { position: absolute; top: 15px; font-size: 0.9em; font-weight: bold; padding: 5px 12px; border-radius: 20px; z-index: 10; }
 
-        .sample-text { margin: 10px; line-height: 1.2; text-align: center; word-break: break-all; transition: font-size 0.1s; }
-
-        /* 하단 조작 패널 */
-        #control-panel {
-            height: var(--panel-height); background: #1a1a1a; border-top: 4px solid #00ffcc;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box;
+        .theme-label {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85em;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 999px;
+            z-index: 10;
+            white-space: nowrap;
         }
-        .slider-wrap { width: 85%; text-align: center; }
-        input[type=range] { width: 100%; height: 35px; cursor: pointer; }
-        .val-display { font-size: 2.2em; color: #00ffcc; font-weight: bold; }
 
-        #data-summary { background: #000; color: #00ffcc; padding: 10px; font-family: monospace; border-radius: 8px; width: 90%; text-align: center; margin-top: 10px; font-size: 0.9em; }
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        button { padding: 10px 20px; background: #00ffcc; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; color: #000; }
-        button:hover { background: #00e6b8; }
+        /* 글자 표시 영역: 열 높이의 약 50%(이전 전체 열 대비 절반), 세로 중앙 정렬 */
+        .sample-zone {
+            flex: 0 0 50%;
+            width: 100%;
+            max-width: 100%;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            margin-top: 4px;
+        }
+
+        .sample-text {
+            margin: 0;
+            line-height: 1.25;
+            text-align: center;
+            word-break: break-word;
+            transition: font-size 0.08s ease-out;
+        }
+
+        /* 일반: 흰 바탕 검은 글 / 반전: 검은 바탕 흰 글 / 고대비 */
+        #col-default { background: #f5f5f5; }
+        #col-default .theme-label { background: #e5e5e5; color: #111827; border: 1px solid #d1d5db; }
+        #col-default .sample-zone { background: #ffffff; border: 1px solid #e5e7eb; }
+        #col-default .sample-text { color: #111827; }
+
+        #col-inverse { background: #0f0f0f; }
+        #col-inverse .theme-label { background: #262626; color: #f9fafb; border: 1px solid #404040; }
+        #col-inverse .sample-zone { background: #000000; border: 1px solid #333; }
+        #col-inverse .sample-text { color: #fafafa; }
+
+        #col-high { background: #0a0a0a; }
+        #col-high .theme-label { background: #facc15; color: #000; border: 1px solid #ca8a04; }
+        #col-high .sample-zone { background: #000000; border: 2px solid #facc15; }
+        #col-high .sample-text { color: #ffeb3b; }
+
+        .instruction-block {
+            flex-shrink: 0;
+            padding: 14px 20px 12px;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+        }
+        .instruction-block p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.65;
+            color: #d1d5db;
+            max-width: 920px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #control-panel {
+            flex-shrink: 0;
+            min-height: var(--panel-min-height);
+            background: #1a1a1a;
+            border-top: 3px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 18px 16px 20px;
+            gap: 14px;
+        }
+
+        .slider-section {
+            width: 100%;
+            max-width: 640px;
+        }
+        .slider-label-text {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            color: #f3f4f6;
+            text-align: center;
+            margin-bottom: 14px;
+            line-height: 1.45;
+        }
+
+        .slider-row {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
+        }
+
+        .size-input-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .size-input-wrap {
+            display: inline-flex;
+            align-items: center;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            background: #0d0d0d;
+            padding: 4px 6px 4px 12px;
+            min-height: 52px;
+        }
+        .size-input-wrap input[type="number"] {
+            width: 4.5rem;
+            min-width: 3.5rem;
+            padding: 10px 8px;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--accent);
+            background: transparent;
+            border: none;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+        .size-input-wrap input[type="number"]::-webkit-outer-spin-button,
+        .size-input-wrap input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .px-suffix {
+            font-size: 16px;
+            font-weight: 600;
+            color: #9ca3af;
+            padding-right: 8px;
+        }
+
+        .slider-track-wrap {
+            padding: 14px 4px 8px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 24px;
+            border-radius: 12px;
+            background: transparent;
+            cursor: pointer;
+            margin: 0;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 20px;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #374151 0%, #4b5563 100%);
+            border: 1px solid #525252;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 44px;
+            height: 44px;
+            margin-top: -13px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 3px solid #0a0a0a;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-track {
+            height: 20px;
+            border-radius: 10px;
+            background: #4b5563;
+            border: 1px solid #525252;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 3px solid #0a0a0a;
+            cursor: pointer;
+        }
+        input[type="range"]:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 4px;
+        }
+
+        #data-summary {
+            background: #000;
+            color: var(--accent);
+            padding: 10px 14px;
+            font-family: ui-monospace, monospace;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 640px;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn-group button {
+            padding: 12px 22px;
+            min-height: 48px;
+            background: var(--accent);
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 8px;
+            color: #000;
+            font-size: 15px;
+        }
+        .btn-group button:hover { filter: brightness(1.08); }
+        .btn-group button:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 700px) {
+            #view-wrapper { flex-direction: column; overflow-y: auto; }
+            .view-column { border-right: none; border-bottom: 1px solid #444; min-height: 160px; flex: 0 0 auto; }
+            .sample-zone {
+                flex: 0 0 100px;
+                max-height: 120px;
+                min-height: 72px;
+            }
+        }
     </style>
 </head>
 <body>
     <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
 
-<nav>
-    <a href="vision_hub.html" class="back-btn">← 허브로 돌아가기</a>
-    <a href="#" class="active">가독성 측정</a>
-</nav>
+    <header class="font-page-header">
+        <a href="vision_hub.html" class="back-btn">← 허브로 돌아가기</a>
+        <p class="font-page-subtitle">가독 폰트 측정</p>
+    </header>
 
-<div id="view-wrapper">
-    <div class="view-column" id="col-default" style="background: #1a1a1a;">
-        <span class="theme-label" style="background: #333; color: #fff;">일반 모드</span>
-        <p class="sample-text" style="color: #fff;">가나다라 ABC 123</p>
-    </div>
-    <div class="view-column" id="col-inverse" style="background: #f4f4f4;">
-        <span class="theme-label" style="background: #ddd; color: #000;">반전 모드</span>
-        <p class="sample-text" style="color: #000;">가나다라 ABC 123</p>
-    </div>
-    <div class="view-column" id="col-high" style="background: #000;">
-        <span class="theme-label" style="background: #ffeb3b; color: #000;">고대비 모드</span>
-        <p class="sample-text" style="color: #ffeb3b;">가나다라 ABC 123</p>
-    </div>
-</div>
+    <main id="main-content" role="main" aria-labelledby="font-page-title" tabindex="-1">
+        <h1 id="font-page-title" class="sr-only">가독 폰트 크기 측정</h1>
 
-<div id="control-panel" aria-label="폰트 크기 조절 및 저장 패널">
-    <div class="slider-wrap">
-        <label>글자 크기 조절 (Max 64px): <span class="val-display" id="size-val">20</span> px</label>
-        <input type="range" id="font-slider" min="12" max="64" value="20">
-    </div>
-    
-    <div id="data-summary">현재 크기: 20px | 각 테마별 가독성을 비교해 보세요.</div>
-    
-    <div class="btn-group">
-        <button onclick="retryTest()">재시도</button>
-        <button onclick="saveResult()">결과 저장 & 허브로 이동</button>
-    </div>
-</div>
+        <div id="view-wrapper">
+            <div class="view-column" id="col-default">
+                <span class="theme-label">일반 모드</span>
+                <div class="sample-zone">
+                    <p class="sample-text">가나다라 ABC 123</p>
+                </div>
+            </div>
+            <div class="view-column" id="col-inverse">
+                <span class="theme-label">반전 모드</span>
+                <div class="sample-zone">
+                    <p class="sample-text">가나다라 ABC 123</p>
+                </div>
+            </div>
+            <div class="view-column" id="col-high">
+                <span class="theme-label">고대비 모드</span>
+                <div class="sample-zone">
+                    <p class="sample-text">가나다라 ABC 123</p>
+                </div>
+            </div>
+        </div>
 
-<script src="ga-storage.js"></script>
-<script>
-    const slider = document.getElementById('font-slider');
-    const texts = document.querySelectorAll('.sample-text');
-    const sizeVal = document.getElementById('size-val');
-    const summary = document.getElementById('data-summary');
+        <div class="instruction-block">
+            <p id="font-instructions">1. 화면으로부터 60cm 정도 떨어진 거리를 유지해 주세요. 2. 아래 글자크기 슬라이더를 좌우로 움직이거나 직접 숫자를 입력하여 읽을 수 있는 가장 작은 글자 크기를 표시해 주세요.</p>
+        </div>
 
-    slider.addEventListener('input', function() {
-        const val = this.value;
-        texts.forEach(t => t.style.fontSize = val + 'px');
-        sizeVal.innerText = val;
-        updateSummary();
-    });
+        <div id="control-panel" aria-label="폰트 크기 조절 및 저장 패널">
+            <div class="slider-section">
+                <span class="slider-label-text" id="slider-label-main">식별 가능한 최소 글자 크기 (최소 12px, 최대 64px)</span>
+                <div class="slider-row">
+                    <div class="size-input-box">
+                        <div class="size-input-wrap">
+                            <label class="sr-only" for="font-size-input">글자 크기(px), 12~64</label>
+                            <input type="number" id="font-size-input" name="font-size-input" min="12" max="64" step="1" value="20" inputmode="numeric" aria-describedby="font-instructions data-summary" />
+                            <span class="px-suffix" aria-hidden="true">px</span>
+                        </div>
+                    </div>
+                    <div class="slider-track-wrap">
+                        <label class="sr-only" for="font-slider">슬라이더로 글자 크기 조절</label>
+                        <input type="range" id="font-slider" name="font-slider" min="12" max="64" value="20" aria-valuemin="12" aria-valuemax="64" aria-valuenow="20" aria-labelledby="slider-label-main" aria-describedby="font-instructions data-summary" />
+                    </div>
+                </div>
+            </div>
 
-    function retryTest() {
-        slider.value = 20;
-        texts.forEach(t => t.style.fontSize = '20px');
-        sizeVal.innerText = '20';
-        updateSummary();
-    }
+            <div id="data-summary">현재 크기: 20px | 각 테마별 가독성을 비교해 보세요.</div>
 
-    function updateSummary() {
-        summary.innerText = `현재 해상도: ${window.screen.width}px | 설정 크기: ${slider.value}px | 64px 도달 시 "식별 불가" 판단`;
-    }
+            <div class="btn-group">
+                <button type="button" onclick="retryTest()">재시도</button>
+                <button type="button" onclick="saveResult()">결과 저장 & 허브로 이동</button>
+            </div>
+        </div>
+    </main>
 
-    function saveResult() {
-        const resolution = window.screen.width + "x" + window.screen.height;
-        const minFontSize = parseInt(slider.value, 10);
-        let advice = "";
-        
-        if (minFontSize <= 24) advice = "정상 가독 범위 (추가 옵션 불필요)";
-        else if (minFontSize <= 48) advice = "약도 저시력 (글자 크기 조절 옵션 권장)";
-        else if (minFontSize <= 64) advice = "중증 저시력 (고대비 모드 및 전용 UI 필수)";
-        else advice = "중증 시각장애 (보이스 오버 시스템 필수)";
+    <script src="ga-storage.js"></script>
+    <script>
+        const MIN_PX = 12;
+        const MAX_PX = 64;
+        const slider = document.getElementById("font-slider");
+        const sizeInput = document.getElementById("font-size-input");
+        const texts = document.querySelectorAll(".sample-text");
+        const summary = document.getElementById("data-summary");
 
-        const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
-        if (!session.user_data) session.user_data = {};
-        const vision = session.user_data.vision_results || {};
-        vision.fontReadability = {
-            resolution: resolution,
-            minFontSize: minFontSize,
-            unit: "px",
-            advice: advice,
-            recordedAt: new Date().toISOString()
-        };
-        if (typeof GAStorage !== "undefined") {
-            GAStorage.writeSession({ vision: vision });
+        function clampSize(n) {
+            const v = parseInt(String(n), 10);
+            if (isNaN(v)) return MIN_PX;
+            return Math.min(MAX_PX, Math.max(MIN_PX, v));
         }
-        window.location.href = "vision_hub.html";
-    }
 
-    window.onload = updateSummary;
-</script>
+        function applyFontSize(px) {
+            const val = String(px);
+            texts.forEach(function (t) { t.style.fontSize = val + "px"; });
+            slider.value = val;
+            sizeInput.value = val;
+            slider.setAttribute("aria-valuenow", val);
+        }
+
+        slider.addEventListener("input", function () {
+            applyFontSize(clampSize(this.value));
+            updateSummary();
+        });
+
+        sizeInput.addEventListener("input", function () {
+            if (this.value === "") return;
+            applyFontSize(clampSize(this.value));
+            updateSummary();
+        });
+        sizeInput.addEventListener("change", function () {
+            applyFontSize(clampSize(this.value || MIN_PX));
+            updateSummary();
+        });
+
+        function retryTest() {
+            applyFontSize(20);
+            updateSummary();
+        }
+
+        function updateSummary() {
+            summary.textContent = "현재 해상도: " + window.screen.width + "px | 설정 크기: " + slider.value + "px | 64px 도달 시 \"식별 불가\" 판단";
+        }
+
+        function saveResult() {
+            const resolution = window.screen.width + "x" + window.screen.height;
+            const minFontSize = clampSize(sizeInput.value || slider.value);
+            applyFontSize(minFontSize);
+            var advice = "";
+            if (minFontSize <= 24) advice = "정상 가독 범위 (추가 옵션 불필요)";
+            else if (minFontSize <= 48) advice = "약도 저시력 (글자 크기 조절 옵션 권장)";
+            else if (minFontSize <= 64) advice = "중증 저시력 (고대비 모드 및 전용 UI 필수)";
+            else advice = "중증 시각장애 (보이스 오버 시스템 필수)";
+
+            const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+            if (!session.user_data) session.user_data = {};
+            const vision = session.user_data.vision_results || {};
+            vision.fontReadability = {
+                resolution: resolution,
+                minFontSize: minFontSize,
+                unit: "px",
+                advice: advice,
+                recordedAt: new Date().toISOString()
+            };
+            if (typeof GAStorage !== "undefined") {
+                GAStorage.writeSession({ vision: vision });
+            }
+            window.location.href = "vision_hub.html";
+        }
+
+        window.addEventListener("load", function () {
+            applyFontSize(20);
+            updateSummary();
+        });
+    </script>
 </body>
 </html>

@@ -205,19 +205,21 @@
     </style>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
     <header>
-      <a href="motor_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">동시 입력 테스트</div>
+      <a href="motor_hub.html" class="back-btn">← 허브로 돌아가기</a>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;" id="page-subtitle">동시 입력 테스트</p>
     </header>
 
-    <div class="test-container">
-      <div class="instruction" id="instruction">지시된 키 조합을 동시에 누르세요</div>
+    <main id="main-content" class="test-container" role="main" aria-labelledby="page-title-h1" tabindex="-1">
+      <h1 id="page-title-h1" class="sr-only">동시 입력 테스트</h1>
+      <div class="instruction" id="instruction"></div>
       
-      <div class="key-combination" id="key-combination">
+      <div class="key-combination" id="key-combination" role="group" aria-label="눌러야 할 키 조합">
         <span class="key-display" id="key-display-1">-</span>
       </div>
 
-      <div class="status-message" id="status-message"></div>
+      <div class="status-message" id="status-message" aria-live="polite" aria-atomic="true"></div>
 
       <div class="skip-actions" id="skip-actions">
         <button type="button" class="retry-btn" id="skip-btn">이 문제 건너뛰기</button>
@@ -230,7 +232,7 @@
         <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
         <button class="retry-btn" id="retry-btn">다시 측정하기</button>
       </div>
-    </div>
+    </main>
 
     <script src="ga-storage.js?v=2"></script>
     <script>
@@ -285,6 +287,13 @@
         let currentCombinationIndex = 0;
         let pressedKeys = new Set();
         let mousePressed = false;
+        let mouseLeftHeld = false;
+        let mouseRightHeld = false;
+
+        const INSTRUCTION_KEYBOARD_ONLY =
+          "동시 입력 테스트입니다. 오른쪽 또는 왼쪽 손 한 쪽만 이용하여 두 개 이상의 버튼을 동시에 눌러주세요. 가능하지 않은 경우, 하단의 [이 문제 건너뛰기]버튼을 눌러 다음 문제로 넘어가실 수 있습니다.";
+        const INSTRUCTION_MOUSE_AND_KEYBOARD =
+          "한 손으로는 마우스를 조작하고, 다른 한 손으로는 키보드를 작동합니다. 마우스 좌 또는 우클릭을 유지한채로 키보드 버튼 2개 또는 3개를 동시에 누르세요";
         let successfulCombinations = [];
         let failedCombinations = [];
         let skippedCombinations = [];
@@ -302,7 +311,7 @@
           return null;
         }
 
-        const DISPLAY_LABELS = { "`": "~", "Space": "Space", "Mouse": "🖱 좌클릭" };
+        const DISPLAY_LABELS = { "`": "~", "Space": "Space", "Mouse": "🖱 좌·우" };
         function updateKeyDisplay() {
           const currentTest = TEST_SEQUENCE[currentTestIndex];
           const currentCombo = currentTest.combinations[currentCombinationIndex];
@@ -311,7 +320,7 @@
           if (currentTest.mouseIncluded) {
             keyCombination.classList.add("mouse-target");
             keyCombination.style.cursor = "pointer";
-            keyCombination.title = "이 영역을 마우스 좌클릭으로 누른 채 3개 키를 동시에 누르세요";
+            keyCombination.title = "이 영역에서 마우스 좌클릭 또는 우클릭을 누른 채 키보드 키를 동시에 누르세요";
           } else {
             keyCombination.classList.remove("mouse-target");
             keyCombination.style.cursor = "";
@@ -352,18 +361,23 @@
         }
 
         function handleMouseDown(e) {
-          if (testCompleted || e.button !== 0) return;
+          if (testCompleted) return;
+          if (e.button !== 0 && e.button !== 2) return;
           const currentTest = TEST_SEQUENCE[currentTestIndex];
           if (!currentTest.mouseIncluded) return;
           e.preventDefault();
-          mousePressed = true;
+          if (e.button === 0) mouseLeftHeld = true;
+          if (e.button === 2) mouseRightHeld = true;
+          mousePressed = mouseLeftHeld || mouseRightHeld;
           updateKeyDisplay();
           checkCombination();
         }
 
         function handleMouseUp(e) {
-          if (e.button !== 0) return;
-          mousePressed = false;
+          if (e.button !== 0 && e.button !== 2) return;
+          if (e.button === 0) mouseLeftHeld = false;
+          if (e.button === 2) mouseRightHeld = false;
+          mousePressed = mouseLeftHeld || mouseRightHeld;
           updateKeyDisplay();
         }
 
@@ -445,6 +459,8 @@
         function resetCurrentCombination() {
           pressedKeys.clear();
           mousePressed = false;
+          mouseLeftHeld = false;
+          mouseRightHeld = false;
           updateKeyDisplay();
           keyCombination.classList.remove("success", "failed");
           statusMessage.textContent = "";
@@ -467,11 +483,7 @@
           
           resetCurrentCombination();
           const nextTest = TEST_SEQUENCE[currentTestIndex];
-          if (nextTest.mouseIncluded) {
-            instruction.textContent = "마우스 좌클릭 유지 +\n3개 키를 동시에 누르세요";
-          } else {
-            instruction.textContent = nextTest.keys + "개 키를\n동시에 누르세요";
-          }
+          instruction.textContent = nextTest.mouseIncluded ? INSTRUCTION_MOUSE_AND_KEYBOARD : INSTRUCTION_KEYBOARD_ONLY;
           updateKeyDisplay();
         }
 
@@ -565,9 +577,7 @@
           earlyExit = false;
           
           instruction.style.display = "block";
-          instruction.textContent = TEST_SEQUENCE[0].mouseIncluded
-            ? "마우스 좌클릭 유지 +\n3개 키를 동시에 누르세요"
-            : TEST_SEQUENCE[0].keys + "개 키를\n동시에 누르세요";
+          instruction.textContent = TEST_SEQUENCE[0].mouseIncluded ? INSTRUCTION_MOUSE_AND_KEYBOARD : INSTRUCTION_KEYBOARD_ONLY;
           keyCombination.style.display = "flex";
           statusMessage.style.display = "block";
           document.getElementById("skip-actions").style.display = "flex";
@@ -594,6 +604,10 @@
         });
 
         keyCombination.addEventListener("mousedown", handleMouseDown);
+        keyCombination.addEventListener("contextmenu", function (e) {
+          const currentTest = TEST_SEQUENCE[currentTestIndex];
+          if (currentTest && currentTest.mouseIncluded) e.preventDefault();
+        });
         document.addEventListener("mouseup", handleMouseUp);
 
         saveBtn.addEventListener("click", function () {
@@ -625,9 +639,7 @@
 
         updateKeyDisplay();
         const firstTest = TEST_SEQUENCE[0];
-        instruction.textContent = firstTest.mouseIncluded
-          ? "마우스 좌클릭 유지 +\n3개 키를 동시에 누르세요"
-          : firstTest.keys + "개 키를\n동시에 누르세요";
+        instruction.textContent = firstTest.mouseIncluded ? INSTRUCTION_MOUSE_AND_KEYBOARD : INSTRUCTION_KEYBOARD_ONLY;
       })();
     </script>
   </body>

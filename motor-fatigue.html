@@ -51,7 +51,10 @@
         white-space: pre-line;
         font-weight: 600;
         margin-bottom: 20px;
-        min-height: 80px;
+        min-height: 120px;
+        max-width: 42rem;
+        margin-left: auto;
+        margin-right: auto;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -224,16 +227,18 @@
     </style>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
     <header>
-      <a href="motor_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">피로도 테스트</div>
+      <a href="motor_hub.html" class="back-btn">← 허브로 돌아가기</a>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">피로도 테스트</p>
     </header>
 
-    <div class="test-container">
-      <div class="instruction" id="instruction">30초 동안 지속적으로 클릭하세요</div>
+    <main id="main-content" class="test-container" role="main" aria-labelledby="page-title-h1" tabindex="-1">
+      <h1 id="page-title-h1" class="sr-only">피로도 테스트</h1>
+      <div class="instruction" id="instruction"></div>
       <div class="warning-text" id="warning-text">⚠️ 무리하지 마세요. 언제든지 중단할 수 있습니다.</div>
       
-      <div class="timer-display" id="timer-display">30</div>
+      <div class="timer-display" id="timer-display" aria-live="polite" aria-atomic="true">30</div>
 
       <button class="key-button" id="key-button" disabled>
         <div id="key-display">SPACE</div>
@@ -260,7 +265,7 @@
         <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
         <button class="retry-btn" id="retry-btn">다시 측정하기</button>
       </div>
-    </div>
+    </main>
 
     <script src="ga-storage.js"></script>
     <script>
@@ -282,7 +287,8 @@
 
         const TEST_DURATION = 30; // 30초
         const SECTION_DURATION = 5; // 5초 단위 (총 6구간)
-        const TARGET_KEY = "SPACE";
+        const INSTRUCTION_MAIN =
+          "게임에서 일정 시간 이상 반복적인 조작을 요구하는 경우 대응 역량을 판단하기 위한 테스트입니다. 얼마나 오랫동안 연타를 유지할 수 있는지 측정합니다. [스페이스바]를 누르면 테스트는 시작되고 30초 동안 계속됩니다. 30초 동안 계속해서 스페이스바를 연타하세요. 끝까지 진행하기 어렵다면 아래 [중단하기] 버튼을 누르세요.";
 
         let testActive = false;
         let startTime = 0;
@@ -298,7 +304,7 @@
           sections = [];
           keyButton.disabled = false;
           keyButton.classList.add("active");
-          instruction.textContent = "최대한 빠르게 " + TARGET_KEY + " 키를 연타하세요!";
+          instruction.textContent = INSTRUCTION_MAIN;
           warningText.style.display = "block";
           stopBtn.style.display = "block";
           sectionsPanel.style.display = "block";
@@ -513,7 +519,7 @@
           sections = [];
           
           instruction.style.display = "block";
-          instruction.textContent = "30초 동안 지속적으로 클릭하세요";
+          instruction.textContent = INSTRUCTION_MAIN;
           warningText.style.display = "block";
           timerDisplay.style.display = "flex";
           timerDisplay.textContent = "30";
@@ -605,6 +611,8 @@
         });
 
         retryBtn.addEventListener("click", resetTest);
+
+        instruction.textContent = INSTRUCTION_MAIN;
       })();
     </script>
   </body>

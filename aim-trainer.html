@@ -44,6 +44,18 @@
         text-align: center;
         margin-bottom: 12px;
       }
+      .aim-instruction {
+        margin: 0 auto 14px;
+        max-width: 640px;
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.55;
+        color: var(--text-main);
+      }
+      .aim-instruction-target-label {
+        color: var(--ok);
+        font-weight: 700;
+      }
       .aim-wrapper .info-panel {
         display: inline-block;
         background: rgba(2, 6, 23, 0.9);
@@ -111,13 +123,18 @@
   <body>
     <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
     <header>
-      <a href="vision_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: #9ca3af;">에임 트레이너</div>
+      <a href="vision_hub.html" class="back-btn">← 허브로 돌아가기</a>
+      <p style="font-size: 12px; color: #9ca3af; margin: 0;">에임 트레이너</p>
     </header>
 
+    <main id="main-content" role="main" aria-labelledby="page-title-h1" tabindex="-1">
+    <h1 id="page-title-h1" class="sr-only">에임 트레이너</h1>
     <div class="aim-wrapper" id="aim-wrapper">
-      <div class="info-panel-wrap"><div class="info-panel" id="info-panel">타겟: 0/15</div></div>
-      <div id="game-area"></div>
+      <div class="info-panel-wrap">
+        <p class="aim-instruction" id="aim-instruction-text">화면에 나타난 <span class="aim-instruction-target-label">초록색 동그라미</span>를 마우스로 최대한 빠르게 클릭하세요. 총 15번 측정합니다.</p>
+        <div class="info-panel" id="info-panel" aria-live="polite" aria-atomic="true">타겟: 0/15</div>
+      </div>
+      <div id="game-area" role="application" aria-label="에임 트레이너 클릭 영역" aria-describedby="aim-instruction-text"></div>
     </div>
 
     <div class="results-panel" id="results-panel">
@@ -128,6 +145,7 @@
         <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
       </div>
     </div>
+    </main>
 
     <script src="ga-storage.js"></script>
     <script>

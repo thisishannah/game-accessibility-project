@@ -18,12 +18,14 @@
       * { box-sizing: border-box; }
       body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: var(--text-main); background: #020617; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; padding-top: 60px; }
       header { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-      .test-area { width: 100%; max-width: 600px; height: 400px; border-radius: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 0.2s; position: relative; margin-top: 60px; }
+      .test-area { width: 100%; max-width: 600px; height: 400px; border-radius: 20px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; padding: 20px 24px 24px; box-sizing: border-box; cursor: pointer; transition: background-color 0.2s; position: relative; margin-top: 60px; }
+      .test-intro { display: none; margin: 0 0 12px; font-size: 14px; font-weight: 500; line-height: 1.55; text-align: center; color: rgba(248, 250, 252, 0.95); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+      .test-area.waiting .test-intro { display: block; }
       .test-area.waiting { background: #1e293b; cursor: wait; }
       .test-area.ready { background: var(--ready-bg); cursor: pointer; }
       .test-area.click { background: var(--click-bg); cursor: pointer; }
       .test-area.too-early { background: var(--danger); cursor: not-allowed; }
-      .test-message { font-size: 16px; font-weight: 650; text-align: center; min-height: 120px; display: flex; align-items: center; justify-content: center; }
+      .test-message { font-size: 16px; font-weight: 650; text-align: center; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 100px; }
       .test-area.waiting .test-message, .test-area.ready .test-message, .test-area.too-early .test-message { color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
       .test-area.click .test-message { color: #0f172a; text-shadow: 0 1px 2px rgba(255,255,255,0.2); }
       .results-panel { margin-top: 30px; padding: 20px; background: rgba(2, 6, 23, 0.8); border-radius: 16px; border: 1px solid rgba(51, 65, 85, 0.9); width: 100%; max-width: 600px; }
@@ -43,17 +45,20 @@
   </head>
   <body>
     <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
-    <div class="test-progress-bar">
-      <div class="test-progress-fill" id="test-progress-fill" style="width: 0%"></div>
-    </div>
-    <div class="test-progress-info" id="test-progress-info">0/4</div>
     <header>
-      <a href="color_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">반응속도 테스트 (색각 측정)</div>
+      <a href="color_hub.html" class="back-btn">← 허브로 돌아가기</a>
+      <h1 id="page-title-h1" style="font-size: 12px; font-weight: 500; margin: 0; color: var(--text-muted);">반응속도 테스트 (색각 측정)</h1>
     </header>
 
+    <main id="main-content" role="main" aria-labelledby="page-title-h1" tabindex="-1">
+    <div class="test-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-labelledby="test-progress-info" id="test-progress-bar-wrap">
+      <div class="test-progress-fill" id="test-progress-fill" style="width: 0%"></div>
+    </div>
+    <div class="test-progress-info" id="test-progress-info" aria-live="polite">0/4</div>
+
     <div class="test-area waiting" id="test-area" role="button" tabindex="0" aria-label="반응속도 테스트 영역. 클릭하여 시작">
-      <div class="test-message" id="test-message" aria-live="polite" aria-atomic="true">대기 중... 클릭하면 시작합니다</div>
+      <p class="test-intro" id="test-intro">이 테스트는 마우스 클릭에 대한 반응속도를 측정합니다. 상황 변화에 얼마나 빨리 반응하는지 반복 측정하며, 측정은 총 4번 진행됩니다.</p>
+      <div class="test-message" id="test-message" aria-live="polite" aria-atomic="true">대기 중... 이곳을 클릭하면 시작합니다.</div>
     </div>
 
     <div class="results-panel" id="results-panel" style="display: none;">
@@ -64,6 +69,7 @@
         <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
       </div>
     </div>
+    </main>
 
     <script src="ga-storage.js"></script>
     <script>
@@ -85,8 +91,10 @@
           const progress = (currentTrial / TOTAL_TRIALS) * 100;
           const progressFill = document.getElementById("test-progress-fill");
           const progressInfo = document.getElementById("test-progress-info");
+          const progressBar = document.getElementById("test-progress-bar-wrap");
           if (progressFill) progressFill.style.width = progress + "%";
           if (progressInfo) progressInfo.textContent = currentTrial + "/" + TOTAL_TRIALS;
+          if (progressBar) progressBar.setAttribute("aria-valuenow", String(currentTrial));
         }
 
         function getRandomDelay() { return 2000 + Math.random() * 3000; }
@@ -94,7 +102,7 @@
         function goToReady() {
           state = "ready";
           testArea.className = "test-area ready";
-          testMessage.textContent = "기다리세요... 화면이 바뀌면 클릭하세요";
+          testMessage.textContent = "기다리세요. 화면 색깔이 바뀌면 이곳을 클릭해 주세요.";
           startTime = Date.now();
           waitTimeout = setTimeout(function () {
             if (state === "ready") {
@@ -111,7 +119,7 @@
           if (currentTrial === 0 && trials.length === 0) {
             state = "waiting";
             testArea.className = "test-area waiting";
-            testMessage.textContent = "대기 중... 클릭하면 시작합니다";
+            testMessage.textContent = "대기 중... 이곳을 클릭하면 시작합니다.";
             testArea.onclick = function () { testArea.onclick = null; goToReady(); };
           } else { goToReady(); }
         }

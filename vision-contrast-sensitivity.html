@@ -128,10 +128,12 @@
   <body>
     <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
     <header>
-      <a href="vision_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">대비 감도 테스트</div>
+      <a href="vision_hub.html" class="back-btn">← 허브로 돌아가기</a>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">대비 감도 테스트</p>
     </header>
 
+    <main id="main-content" role="main" aria-labelledby="page-title-h1" tabindex="-1">
+    <h1 id="page-title-h1" class="sr-only">대비 감도 테스트</h1>
     <div class="instruction">
       <p>회색 배경 위에 원이 하나 나타납니다.</p>
       <p class="instruction-main">원을 클릭하세요.</p>
@@ -140,15 +142,16 @@
       <p class="instruction-note">※ 모니터 밝기 100%, 어두운 환경에서 권장됩니다.</p>
     </div>
 
-    <div class="test-area" id="test-area"></div>
+    <div class="test-area" id="test-area" role="application" aria-label="대비 원 탐지 영역. 원을 클릭하세요"></div>
     <button type="button" class="no-see-btn" id="no-see-btn">보이지 않습니다</button>
-    <p class="level-hint" id="level-hint"></p>
+    <p class="level-hint" id="level-hint" aria-live="polite"></p>
 
     <div class="results-panel" id="results-panel">
       <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">측정 결과</div>
       <div id="results-content"></div>
       <button class="btn-primary" id="save-btn" aria-label="결과 저장 후 시각 측정 허브로 이동">결과 저장 & 허브로 이동</button>
     </div>
+    </main>
 
     <script src="ga-storage.js"></script>
     <script>

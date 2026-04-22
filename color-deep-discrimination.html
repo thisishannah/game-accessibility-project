@@ -12,7 +12,7 @@
       .instruction-warning { font-size: 11px; color: #94a3b8; margin-bottom: 20px; text-align: center; }
       .instruction-main { font-size: 18px; font-weight: 550; color: #e5e7eb; text-align: center; margin-bottom: 24px; width: 100%; max-width: 560px; line-height: 1.5; }
       .test-section { margin-bottom: 28px; width: 100%; max-width: 560px; }
-      .test-section h3 { font-size: 15px; margin-bottom: 12px; color: #e5e7eb; }
+      .test-section h2 { font-size: 15px; margin-bottom: 12px; color: #e5e7eb; }
       .canvas-container {
         width: 100%;
         height: 140px;
@@ -59,16 +59,18 @@
   <body>
     <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
     <header>
-      <a href="color_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: #9ca3af;">심층 색상 식별 검사</div>
+      <a href="color_hub.html" class="back-btn">← 허브로 돌아가기</a>
+      <p style="font-size: 12px; color: #9ca3af; margin: 0;">심층 색상 식별 검사</p>
     </header>
 
+    <main id="main-content" role="main" aria-labelledby="page-title-h1" tabindex="-1">
+    <h1 id="page-title-h1" class="sr-only">심층 색상 식별 검사</h1>
     <p class="instruction-warning">※ 스크리닝용 검사이며 임상 진단을 대체하지 않습니다. (COLOR_VISION_REFERENCES.md)</p>
     <p class="instruction-main">경계선의 세로 무늬가 보이나요? 가장 붉은 기운이 도는 색상을 선택해 주세요.</p>
 
     <div id="phase1" class="test-section">
       <p class="phase-badge">로직 1 — 명도 일치 경계선 (동일 sRGB 명도의 적·녹 세로 줄무늬, WCAG 2.1 상대 명도)</p>
-      <h3>경계선의 세로 무늬가 보이나요?</h3>
+      <h2>경계선의 세로 무늬가 보이나요?</h2>
       <div class="canvas-container" id="luminance-canvas-wrap">
         <canvas id="luminance-canvas" width="560" height="140" role="img" aria-label="적녹색 명도 경계선 검사 이미지"></canvas>
       </div>
@@ -81,7 +83,7 @@
 
     <div id="phase2" class="test-section" style="display: none;">
       <p class="phase-badge">로직 2 — 보색 혼동 (Canvas RGB/HSV 기반 생성)</p>
-      <h3>가장 붉은 기운이 도는 색상을 고르세요.</h3>
+      <h2>가장 붉은 기운이 도는 색상을 고르세요.</h2>
       <p class="question-text">분홍-회색, 보라-파랑 등 혼동하기 쉬운 쌍입니다.</p>
       <div class="choice-row" id="complementary-choices"></div>
     </div>
@@ -95,6 +97,7 @@
       <div id="results-content"></div>
       <button class="btn-primary" id="save-btn" aria-label="결과 저장 후 색각 측정 허브로 이동">결과 저장 & 허브로 이동</button>
     </div>
+    </main>
 
     <script src="ga-storage.js"></script>
     <script>

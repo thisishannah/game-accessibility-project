@@ -42,13 +42,13 @@
   </head>
   <body>
     <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
-    <main id="main-content" class="hearing-input-shell" role="main">
+    <main id="main-content" class="hearing-input-shell" role="main" aria-labelledby="hearing-input-title" tabindex="-1">
       <header class="hearing-input-header">
-        <a href="hearing_hub.html" class="back-btn">← 허브로</a>
-        <span class="page-label">청력 측정 결과 입력</span>
+        <a href="hearing_hub.html" class="back-btn">← 허브로 돌아가기</a>
+        <span class="page-label" id="hearing-input-title">청력 측정 결과 입력</span>
       </header>
 
-      <section class="hearing-input-panel">
+      <section class="hearing-input-panel" aria-describedby="hearing-input-hint">
         <div class="section-title">
           <span>외부 측정값 입력</span>
           <span class="section-title-pill">청력 · Import</span>
@@ -57,7 +57,7 @@
           측정 출처를 선택한 뒤, Mimi 앱 결과 화면과 동일한 형식으로 입력하세요. 히어링 넘버, 청각 수용력, 주파수별 청력 민감도를 기록합니다.
         </p>
 
-        <div class="mimi-hint">
+        <div class="mimi-hint" id="hearing-input-hint">
           <strong>Mimi 앱 결과 참고</strong>: 히어링 넘버(dB), 청각 수용력(%), 250~8000Hz 청력 민감도(dB HL)는 그래프에서 5단위(-10, -5, 0, 5, …, 120)로 맞춰 입력하세요. 중간값은 가까운 5단위로 선택합니다.
         </div>
 

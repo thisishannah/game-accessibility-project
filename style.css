@@ -159,6 +159,27 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* 스킵 링크 도착 시 포커스·뷰포트 가림 방지 (WCAG 2.2 2.4.11) */
+#main-content {
+  scroll-margin-top: 1.25rem;
+}
+
+/* 본문으로 건너뛴 뒤 포커스 이동 (일부 브라우저용) */
+#main-content:focus {
+  outline: none;
+}
+
+#main-content:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -813,8 +834,19 @@ body {
   margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* WCAG 2.2 2.5.8: 주요 1차 버튼류 최소 클릭 영역 */
+.btn-primary,
+.btn-retry,
+.retry-btn,
+.admin-btn,
+.btn-secondary {
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
 /* 유틸리티 클래스 추가 */

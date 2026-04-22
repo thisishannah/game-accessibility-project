@@ -198,13 +198,15 @@
     </style>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
     <header>
-      <a href="motor_hub.html" class="back-btn">← 허브로</a>
-      <div style="font-size: 12px; color: var(--text-muted);">최대 홀드 시간 측정</div>
+      <a href="motor_hub.html" class="back-btn">← 허브로 돌아가기</a>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">최대 홀드 시간 측정</p>
     </header>
 
-    <div class="test-container">
-      <div class="instruction" id="instruction"></div>
+    <main id="main-content" class="test-container" role="main" aria-labelledby="page-title-h1" tabindex="-1">
+      <h1 id="page-title-h1" class="sr-only">최대 홀드 시간 측정</h1>
+      <div class="instruction" id="instruction" aria-live="polite" aria-atomic="true"></div>
       <div class="phase-label" id="phase-label"></div>
 
       <div class="hold-area" id="hold-area">
@@ -233,7 +235,7 @@
           <button class="btn-primary" id="save-btn">결과 저장 & 허브로 이동</button>
         </div>
       </div>
-    </div>
+    </main>
 
     <script src="ga-storage.js"></script>
     <script>
