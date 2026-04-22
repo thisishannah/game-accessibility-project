@@ -16,16 +16,18 @@
         --danger: #dc2626;
       }
       * { box-sizing: border-box; }
-      body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: var(--text-main); background: #020617; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; padding-top: 60px; }
+      body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: var(--text-main); background: #020617; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; padding-top: 72px; }
       header { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-      .test-area { width: 100%; max-width: 600px; height: 400px; border-radius: 20px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; padding: 20px 24px 24px; box-sizing: border-box; cursor: pointer; transition: background-color 0.2s; position: relative; margin-top: 60px; }
-      .test-intro { display: none; margin: 0 0 12px; font-size: 14px; font-weight: 500; line-height: 1.55; text-align: center; color: rgba(248, 250, 252, 0.95); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
-      .test-area.waiting .test-intro { display: block; }
+      #main-content { position: relative; width: 100%; max-width: 600px; padding-top: 40px; }
+      .test-container { width: 100%; max-width: 600px; margin-top: 0; }
+      .instruction { text-align: center; font-size: 16px; font-weight: 650; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.6; margin: 0 0 16px; color: var(--text-main); }
+      .instruction.instruction--hidden { visibility: hidden; }
+      .test-area { width: 100%; max-width: 600px; height: 400px; min-height: 400px; max-height: 400px; flex-shrink: 0; overflow: hidden; border-radius: 20px; display: flex; flex-direction: column; align-items: stretch; justify-content: center; padding: 20px 24px 24px; box-sizing: border-box; cursor: pointer; transition: background-color 0.2s; position: relative; margin-top: 0; }
       .test-area.waiting { background: #1e293b; cursor: wait; }
       .test-area.ready { background: var(--ready-bg); cursor: pointer; }
       .test-area.click { background: var(--click-bg); cursor: pointer; }
       .test-area.too-early { background: var(--danger); cursor: not-allowed; }
-      .test-message { font-size: 16px; font-weight: 650; text-align: center; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 100px; }
+      .test-message { font-size: 16px; font-weight: 650; text-align: center; flex: 1 1 auto; min-height: 0; width: 100%; padding: 0 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
       .test-area.waiting .test-message, .test-area.ready .test-message, .test-area.too-early .test-message { color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
       .test-area.click .test-message { color: #0f172a; text-shadow: 0 1px 2px rgba(255,255,255,0.2); }
       .results-panel { margin-top: 30px; padding: 20px; background: rgba(2, 6, 23, 0.8); border-radius: 16px; border: 1px solid rgba(51, 65, 85, 0.9); width: 100%; max-width: 600px; }
@@ -40,7 +42,7 @@
       .btn-retry:hover { background: rgba(51, 65, 85, 0.9); border-color: rgba(148, 163, 184, 0.9); }
       .test-progress-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: rgba(51, 65, 85, 0.9); }
       .test-progress-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #22c55e); transition: width 0.3s; }
-      .test-progress-info { position: absolute; top: 20px; right: 20px; font-size: 12px; color: var(--text-muted); z-index: 11; }
+      .test-progress-info { position: absolute; top: 12px; right: 0; font-size: 12px; color: var(--text-muted); z-index: 11; }
     </style>
   </head>
   <body>
@@ -56,9 +58,11 @@
     </div>
     <div class="test-progress-info" id="test-progress-info" aria-live="polite">0/4</div>
 
-    <div class="test-area waiting" id="test-area" role="button" tabindex="0" aria-label="반응속도 테스트 영역. 클릭하여 시작">
-      <p class="test-intro" id="test-intro">이 테스트는 마우스 클릭에 대한 반응속도를 측정합니다. 상황 변화에 얼마나 빨리 반응하는지 반복 측정하며, 측정은 총 4번 진행됩니다.</p>
-      <div class="test-message" id="test-message" aria-live="polite" aria-atomic="true">대기 중... 이곳을 클릭하면 시작합니다.</div>
+    <div class="test-container" id="test-container">
+      <p class="instruction" id="test-intro">이 테스트는 마우스 클릭에 대한 반응속도를 측정합니다. 상황 변화에 얼마나 빨리 반응하는지 반복 측정하며, 측정은 총 4번 진행됩니다.</p>
+      <div class="test-area waiting" id="test-area" role="button" tabindex="0" aria-label="반응속도 테스트 영역. 클릭하여 시작">
+        <div class="test-message" id="test-message" aria-live="polite" aria-atomic="true">대기 중... 이곳을 클릭하면 시작합니다.</div>
+      </div>
     </div>
 
     <div class="results-panel" id="results-panel" style="display: none;">
@@ -74,6 +78,8 @@
     <script src="ga-storage.js"></script>
     <script>
       (function () {
+        const testContainer = document.getElementById("test-container");
+        const testIntro = document.getElementById("test-intro");
         const testArea = document.getElementById("test-area");
         const testMessage = document.getElementById("test-message");
         const resultsPanel = document.getElementById("results-panel");
@@ -99,10 +105,17 @@
 
         function getRandomDelay() { return 2000 + Math.random() * 3000; }
 
+        function syncIntroVisibility() {
+          var hidden = state !== "waiting";
+          testIntro.classList.toggle("instruction--hidden", hidden);
+          testIntro.setAttribute("aria-hidden", hidden ? "true" : "false");
+        }
+
         function goToReady() {
           state = "ready";
           testArea.className = "test-area ready";
           testMessage.textContent = "기다리세요. 화면 색깔이 바뀌면 이곳을 클릭해 주세요.";
+          syncIntroVisibility();
           startTime = Date.now();
           waitTimeout = setTimeout(function () {
             if (state === "ready") {
@@ -110,6 +123,7 @@
               testArea.className = "test-area click";
               testMessage.textContent = "지금 클릭하세요!";
               startTime = Date.now();
+              syncIntroVisibility();
             }
           }, getRandomDelay());
         }
@@ -121,6 +135,7 @@
             testArea.className = "test-area waiting";
             testMessage.textContent = "대기 중... 이곳을 클릭하면 시작합니다.";
             testArea.onclick = function () { testArea.onclick = null; goToReady(); };
+            syncIntroVisibility();
           } else { goToReady(); }
         }
 
@@ -139,6 +154,7 @@
           } else if (state === "ready") {
             clearTimeout(waitTimeout);
             state = "too-early";
+            syncIntroVisibility();
             testArea.className = "test-area too-early";
             testMessage.textContent = "너무 빨랐습니다. 다시 시도합니다.";
             setTimeout(goToReady, 1500);
@@ -147,6 +163,7 @@
 
         function resetTest() {
           trials = []; currentTrial = 0;
+          testContainer.style.display = "block";
           testArea.style.display = "flex";
           resultsPanel.style.display = "none";
           startTrial();
@@ -154,7 +171,7 @@
         }
 
         function showResults() {
-          testArea.style.display = "none";
+          testContainer.style.display = "none";
           resultsPanel.style.display = "block";
           const avg = trials.reduce((a, b) => a + b, 0) / trials.length;
           let html = "";
