@@ -324,7 +324,7 @@
             }
           });
 
-          trials.push({
+          const trialRow = {
             trial: currentTrial + 1,
             sentence: currentSentence.text,
             keyword: currentSentence.keyword,
@@ -332,7 +332,18 @@
             success: isCorrect,
             reactionTime: reactionTime,
             timestamp: Date.now()
-          });
+          };
+          if (!isCorrect) {
+            trialRow.error_pattern = {
+              confused_what_with_what: {
+                error_type: "keyword_mismatch",
+                correct_keyword: currentSentence.keyword,
+                mistaken_as: selectedOption,
+                description: "문장 핵심 키워드 「" + currentSentence.keyword + "」 대신 「" + selectedOption + "」 선택"
+              }
+            };
+          }
+          trials.push(trialRow);
 
           if (isCorrect) {
             infoPanel.textContent = "정답!";
@@ -418,14 +429,21 @@
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
           const cognitive = session.user_data.cognitive_results || {};
+          const readingFailures = trials.filter(function (t) { return !t.success; });
           cognitive.readingSpeed = {
             totalTrials: TOTAL_TRIALS,
             successes: successfulTrials.length,
             failures: TOTAL_TRIALS - successfulTrials.length,
             successRate: parseFloat(successRate.toFixed(2)),
             averageReactionTime: Math.round(avgReactionTime),
+            error_pattern: {
+              source: "reading_speed",
+              events: readingFailures.map(function (t) {
+                return { trial: t.trial, error_pattern: t.error_pattern || null };
+              })
+            },
             trials: trials.map(function(t) {
-              return {
+              var row = {
                 trial: t.trial,
                 sentence: t.sentence,
                 keyword: t.keyword,
@@ -434,6 +452,8 @@
                 reactionTime: t.reactionTime,
                 timestamp: t.timestamp
               };
+              if (t.error_pattern) row.error_pattern = t.error_pattern;
+              return row;
             }),
             recordedAt: new Date().toISOString()
           };

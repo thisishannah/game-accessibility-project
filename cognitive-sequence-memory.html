@@ -362,9 +362,26 @@
         function handleFailure() {
           failures++;
           const lastReaction = reactionTimes[reactionTimes.length - 1];
+          const clicked = userSequence[userSequence.length - 1];
+          const expected = sequence[userSequence.length - 1];
           if (lastReaction) {
             lastReaction.reactionTime = Date.now() - lastReaction.startTime;
             lastReaction.success = false;
+            lastReaction.error_pattern = {
+              confused_what_with_what: {
+                error_type: "sequence_order_error",
+                expected_cell_index: expected,
+                mistaken_as_cell_index: clicked,
+                description:
+                  "표시 순서 " +
+                  (userSequence.length) +
+                  "번째에서 셀 " +
+                  expected +
+                  " 대신 셀 " +
+                  clicked +
+                  " 클릭"
+              }
+            };
           }
           
           const wrongCell = gridContainer.children[userSequence[userSequence.length - 1]];
@@ -443,18 +460,27 @@
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
           const cognitive = session.user_data.cognitive_results || {};
+          const failedRx = reactionTimes.filter(function (r) { return r.success === false; });
           cognitive.sequenceMemory = {
             maxLevel: currentLevel,
             successes: successes,
             failures: failures,
             successRate: parseFloat(successRate.toFixed(2)),
             averageReactionTime: Math.round(avgReactionTime),
+            error_pattern: {
+              source: "sequence_memory",
+              events: failedRx.map(function (r) {
+                return { level: r.level, error_pattern: r.error_pattern || null };
+              })
+            },
             reactionTimes: reactionTimes.map(function(r) {
-              return {
+              var row = {
                 level: r.level,
                 reactionTime: r.reactionTime,
                 success: r.success
               };
+              if (r.error_pattern) row.error_pattern = r.error_pattern;
+              return row;
             }),
             recordedAt: new Date().toISOString()
           };

@@ -75,8 +75,11 @@
         font-size: 16px;
         font-weight: 650;
         color: var(--text-main);
-        margin: 0;
+        margin: 0 0 0.45em 0;
         line-height: 1.65;
+      }
+      .instruction .instruction-body:last-child {
+        margin-bottom: 0;
       }
       .device-visual {
         width: 100%;
@@ -291,10 +294,14 @@
 
         const KEYBOARD_INSTRUCTION =
           '<p class="instruction-lead">스페이스바를 누르면 3초 후 시작됩니다.</p>' +
-          '<p class="instruction-body">키보드 버튼 연타 속도를 측정합니다. 스페이스 버튼이 초록색으로 바뀌면 시작합니다. 5초 동안 할 수 있는 한 가장 빠른 속도로 연타해 주세요.</p>';
+          '<p class="instruction-body">키보드 버튼 연타 속도를 측정합니다.</p>' +
+          '<p class="instruction-body">스페이스 버튼이 초록색으로 바뀌면 시작합니다.</p>' +
+          '<p class="instruction-body">5초 동안 할 수 있는 한 가장 빠른 속도로 연타해 주세요.</p>';
         const MOUSE_INSTRUCTION =
           '<p class="instruction-lead">마우스 좌측 버튼을 누르면 3초 후 시작됩니다.</p>' +
-          '<p class="instruction-body">마우스 연속 클릭 속도를 측정합니다. 마우스 모양이 초록색으로 바뀌면 시작합니다. 5초 동안 할 수 있는 한 가장 빠른 속도로 연타해 주세요.</p>';
+          '<p class="instruction-body">마우스 연속 클릭 속도를 측정합니다.</p>' +
+          '<p class="instruction-body">마우스 모양이 초록색으로 바뀌면 시작합니다.</p>' +
+          '<p class="instruction-body">5초 동안 할 수 있는 한 가장 빠른 속도로 연타해 주세요.</p>';
 
         function showKeyboardPhase() {
           phase = "keyboard";

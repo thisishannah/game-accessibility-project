@@ -9,23 +9,33 @@ summary.html의 "구글 시트 전송" 기능을 사용하려면 Google Apps Scr
 
 ## 2. 전송 payload 구조 (summary.html 기준)
 
-**키 순서 (SHEETS_HEADER_ORDER):**
+**키 순서 (SHEETS_HEADER_ORDER) — 열 번호 기준:**
+
+- **A~AM (39열)**: 요약 스칼라·`color_confusion_matrix`까지.
+- **AN~AQ (40~43열)**: `sheet_column_align_pad_*` — 빈 셀(열 번호 맞춤용).
+- **AR열 = `sheet_AR_test_data`**: 전체 테스트 raw·`observer_report`·`ai_precursor_metrics`를 묶은 JSON **문자열**.
+- **AS열 = `sheet_AS_observer_comment`**: 관찰자 코멘트(요약 페이지 textarea). 없으면 빈 문자열.
+- **AT열 = `sheet_AT_ai_report`**: Gemini 종합 리포트 본문. AI 없이 전송 시 `"pending"`.
+
 ```
 timestamp | user_id | age | gender | monitor_inch | resolution | viewing_distance | disability_type |
 vision_rt_avg | vision_aim_avg | fov_blind_rate | readable_font_size | readable_font_size_mm |
+contrast_threshold | contrast_sensitivity |
 motor_rt_avg | motor_aim_avg | motor_switch_latency | key_reach_score | burst_speed_peak | fatigue_index | motor_precision_error_mm |
 seq_memory_score | go_nogo_accuracy |
 hearing_hearing_number_left | hearing_hearing_number_right | hearing_capacity_left | hearing_capacity_right |
 hearing_speech_clarity_percent | hearing_articulation_match_rate | hearing_observer_clarity_rating |
 input_device | assistive_device |
 calibration_mm_per_px |
-raw_vision_data | raw_motor_data | raw_cognitive_data | raw_hearing_data | observer_report
+color_rt_avg | color_blindness_type | color_confusion_detail | color_confusion_score | color_confusion_matrix |
+sheet_column_align_pad_40 | sheet_column_align_pad_41 | sheet_column_align_pad_42 | sheet_column_align_pad_43 |
+sheet_AR_test_data | sheet_AS_observer_comment | sheet_AT_ai_report
 ```
 
 - **요약 필드**: vision_rt_avg, motor_rt_avg 등 수치
 - **청각**: 히어링 넘버·청각 수용력은 좌(L)/우(R) 각각, 수음 명료도·발화 인식 일치도·관찰자 발화 명료도는 단일 값
-- **raw_*_data**: 시각/운동/인지/청각 전체 객체 (JSON 문자열로 저장 권장)
-- **observer_report**: 관찰자 리포트 객체 (JSON 문자열로 저장 권장)
+- **AR 번들**: `user_data`(vision/motor/cognitive/hearing/color raw), `observer_report`, `ai_precursor_metrics` 포함. 셀 길이 제한(약 5만 자)에 유의.
+- **전송 직전 백업**: 브라우저 `localStorage` 키 `ga_presheet_backup_v1`에 payload 스냅샷 저장(성공 시 삭제).
 
 ## 3. Apps Script 작성
 

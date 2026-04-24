@@ -48,15 +48,21 @@
         font-size: 16px;
         font-weight: 650;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        white-space: pre-line;
         font-weight: 600;
         margin-bottom: 16px;
         min-height: 80px;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 0;
         color: var(--text-main);
-        white-space: pre-line;
+      }
+      .instruction p {
+        margin: 0 0 0.35em 0;
+      }
+      .instruction p:last-child {
+        margin-bottom: 0;
       }
       .precision-progress {
         text-align: center;
@@ -240,8 +246,10 @@
 
     <main id="main-content" class="test-container" role="main" aria-labelledby="page-title-h1" tabindex="-1">
       <h1 id="page-title-h1" class="sr-only">정밀도 테스트</h1>
-      <div class="instruction" id="instruction">바둑판 교차점에 나타나는 타겟의 정중앙을 클릭하세요.
-(총 20회)</div>
+      <div class="instruction" id="instruction">
+        <p>바둑판 교차점에 나타나는 타겟의 정중앙을 클릭하세요.</p>
+        <p>(총 20회)</p>
+      </div>
       <div class="precision-progress" id="precision-progress">
         <div class="info-panel" id="info-panel">클릭: 0/20</div>
       </div>

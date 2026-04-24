@@ -54,12 +54,13 @@ FAKE_PAYLOAD = {
     "color_confusion_detail": "이 사용자는 녹색 계열을 구분하는 데 어려움이 있습니다. 명도가 같은 빨강과 초록의 경계를 구분하기 어려워합니다.",
     "color_confusion_score": 0.75,
     "color_confusion_matrix": {"ishihara": {"classification": "deuteranomaly"}, "deepDiscrimination": {"luminanceBoundary": False, "complementaryCorrectCount": 3, "complementaryTotal": 4}},
-    "raw_vision_data": {"_test": "fake"},
-    "raw_motor_data": {"_test": "fake"},
-    "raw_cognitive_data": {"_test": "fake"},
-    "raw_hearing_data": {"_test": "fake"},
-    "raw_color_data": {"_test": "fake", "reactionTime": {"average": 275}, "color_confusion_matrix": {"_test": "fake"}},
-    "observer_report": {"_test": "fake"},
+    "sheet_column_align_pad_40": "",
+    "sheet_column_align_pad_41": "",
+    "sheet_column_align_pad_42": "",
+    "sheet_column_align_pad_43": "",
+    "sheet_AR_test_data": '{"_schema":"ga_sheet_AR_test_bundle_v1","_test":"fake"}',
+    "sheet_AS_observer_comment": "",
+    "sheet_AT_ai_report": "pending",
 }
 
 

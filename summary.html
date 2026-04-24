@@ -7,6 +7,96 @@
     <link rel="stylesheet" href="style.css">
     <style>
       body.summary-report { padding-bottom: 120px; }
+      .summary-observer-textarea {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        background: rgba(15, 23, 42, 0.85);
+        color: var(--text-main);
+        font-size: 14px;
+        line-height: 1.55;
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+      }
+      .summary-observer-textarea:focus-visible {
+        outline: 2px solid rgba(129, 140, 248, 0.85);
+        outline-offset: 2px;
+      }
+      .summary-api-key-input {
+        width: 100%;
+        max-width: 420px;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        background: rgba(15, 23, 42, 0.85);
+        color: var(--text-main);
+        font-size: 14px;
+        font-family: ui-monospace, monospace;
+      }
+      .ai-report-box {
+        padding: 16px 18px;
+        border-radius: 12px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(2, 6, 23, 0.75);
+        font-size: 14px;
+        line-height: 1.65;
+        color: var(--text-main);
+        white-space: pre-wrap;
+        max-height: min(70vh, 520px);
+        overflow: auto;
+      }
+      .btn-ai-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .ai-btn-spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(148, 163, 184, 0.35);
+        border-top-color: #a5b4fc;
+        border-radius: 50%;
+        animation: ai-spin 0.7s linear infinite;
+        display: none;
+        flex-shrink: 0;
+      }
+      .ai-btn-spinner[data-visible="true"] {
+        display: inline-block;
+      }
+      @keyframes ai-spin {
+        to { transform: rotate(360deg); }
+      }
+      .ai-analysis-loading-panel {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(129, 140, 248, 0.45);
+        background: rgba(30, 27, 75, 0.45);
+        color: var(--text-main);
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .ai-analysis-loading-panel[data-visible="true"] {
+        display: flex;
+      }
+      .ai-analysis-loading-panel .ai-analysis-loading-spinner {
+        width: 22px;
+        height: 22px;
+        border: 2px solid rgba(148, 163, 184, 0.35);
+        border-top-color: #a5b4fc;
+        border-radius: 50%;
+        animation: ai-spin 0.7s linear infinite;
+        flex-shrink: 0;
+      }
     </style>
   </head>
   <body class="summary-report">
@@ -114,8 +204,75 @@
             <div id="expert-opinions"></div>
           </div>
 
-          <div class="ai-insight-placeholder" id="ai-insight-placeholder" style="margin-top: 24px;">
-            AI 분석 결과가 여기에 표시됩니다.
+          <div class="summary-final-block" style="margin-top: 20px;">
+            <label for="summary-observer-comment" class="text-sm" style="display:block; margin-bottom:8px; font-weight:600; color: var(--text-main);">
+              관찰자 코멘트 <span class="text-muted" style="font-weight:500;">(시트 AS열·Gemini 참고)</span>
+            </label>
+            <textarea
+              id="summary-observer-comment"
+              class="summary-observer-textarea"
+              rows="5"
+              maxlength="8000"
+              placeholder="현장에서 관찰한 플레이 패턴, 어려움, 보조기기 사용 등을 적어 주세요."
+              aria-describedby="summary-observer-hint"
+            ></textarea>
+            <p id="summary-observer-hint" class="text-xs text-muted" style="margin-top:6px;">
+              전송 시 스프레드시트 <strong>AR열</strong>에 전체 테스트(raw) JSON, <strong>AS열</strong>에 이 코멘트, <strong>AT열</strong>에 AI 리포트가 기록됩니다. 시트로 보내기 직전에 브라우저 로컬에도 임시 백업됩니다.
+            </p>
+
+            <div class="gemini-key-row" style="margin-top: 16px;">
+              <p class="text-xs text-muted" style="margin:0 0 8px; line-height:1.5;">
+                <strong>권장:</strong> 프로젝트 루트에서 <code>npm start</code> 후 이 페이지를 열면, <code>.env</code>의 키로
+                <code>/api/gemini</code> 프록시가 동작합니다(키가 브라우저에 노출되지 않음).
+              </p>
+              <label for="gemini-api-key" class="text-sm" style="display:block; margin-bottom:6px; font-weight:600;">API 키 직접 입력 (선택)</label>
+              <input
+                type="password"
+                id="gemini-api-key"
+                class="summary-api-key-input"
+                autocomplete="off"
+                placeholder="프록시 실패 시에만 입력 (Google AI Studio)"
+                aria-describedby="gemini-key-hint"
+              />
+              <p id="gemini-key-hint" class="text-xs text-muted" style="margin-top:6px;">
+                로컬 서버 없이 파일만 연 경우에만 사용합니다. 입력값은 Gemini API로만 전송됩니다.
+              </p>
+              <label class="text-xs text-muted" style="display:flex; align-items:center; gap:8px; margin-top:8px; cursor:pointer;">
+                <input type="checkbox" id="gemini-remember-key" />
+                폴백용 키를 이 브라우저에 임시 저장
+              </label>
+            </div>
+
+            <div id="ai-insight-result-wrap" style="margin-top: 20px; display: none;" aria-live="polite">
+              <div class="section-title text-sm" style="margin-bottom: 8px; color: var(--neon-blue);">AI 분석 결과</div>
+              <div id="ai-insight-result" class="ai-report-box"></div>
+            </div>
+            <div class="ai-insight-placeholder text-muted text-sm" id="ai-insight-placeholder" style="margin-top: 16px;">
+              AI 분석 후 결과가 위에 표시됩니다.
+            </div>
+
+            <div class="flex gap-md flex-wrap items-center" style="margin-top: 20px;">
+              <button type="button" class="btn-primary btn-ai-row" id="btn-ai-analyze-and-save" aria-busy="false">
+                <span class="ai-btn-spinner" id="ai-btn-spinner" aria-hidden="true"></span>
+                <span id="btn-ai-analyze-label">AI 분석 시작</span>
+              </button>
+              <button type="button" class="btn-secondary" id="btn-download-json-only">
+                JSON만 다운로드
+              </button>
+            </div>
+            <div
+              id="ai-analysis-loading"
+              class="ai-analysis-loading-panel"
+              data-visible="false"
+              role="status"
+              aria-live="polite"
+              aria-busy="false"
+              hidden
+            >
+              <span class="ai-analysis-loading-spinner" aria-hidden="true"></span>
+              <span id="ai-analysis-loading-text">분석 중...</span>
+            </div>
+            <p id="ai-save-status" class="sheets-status" style="margin-top: 12px;" role="status"></p>
           </div>
         </section>
 
@@ -129,9 +286,9 @@
 
         <!-- 구글 시트 전송 -->
         <div class="panel mt-md">
-          <div class="section-title mb-sm">구글 시트 전송</div>
+          <div class="section-title mb-sm">구글 시트 전송 (빠른 모드)</div>
           <p class="text-xs text-muted mb-sm">
-            전송 버튼을 누르면 모든 테스트 결과(요약 수치 및 raw JSON)가 구글 시트에 추가됩니다. 전송 후에도 이 페이지에 머무르므로 JSON 다운로드를 추가로 받아 두시면 좋습니다.
+            <strong>AS·AT·AR(번들)</strong>을 한 번에 맞추려면 위 <strong>「AI 분석 시작」</strong>을 사용하세요. 아래 전송은 AI 없이 진행되며 AS는 비어 있고 AT는 <code>pending</code>, AR에는 테스트 JSON만 들어갑니다.
           </p>
           <div class="flex gap-md flex-wrap items-center">
             <button type="button" class="btn-primary sheets-button" id="send-to-sheets">전송</button>
@@ -158,7 +315,7 @@
       <p id="validation-msg" class="validation-error" style="display:none;"></p>
       <button type="button" class="btn-primary" id="final-submit">
         <span class="btn-icon" aria-hidden="true">✓</span>
-        <span>최종 전송 (JSON 다운로드)</span>
+        <span>JSON 백업 다운로드</span>
       </button>
     </div>
 
@@ -179,6 +336,10 @@
 
         const AVG_REACTION_MS = 280;
         const AVG_AIM_INTERVAL_MS = 450;
+        const GEMINI_MODEL = "gemini-2.0-flash";
+        const PENDING_SHEET_STORAGE_KEY = "ga_pending_sheet_export_v1";
+        const PRESHEET_BACKUP_KEY = "ga_presheet_backup_v1";
+        const GEMINI_KEY_STORAGE = "ga_gemini_api_key_optional";
 
         function readSession() {
           return (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
@@ -493,7 +654,174 @@
           return factor != null ? Math.round(Number(px) * factor * 100) / 100 : null;
         }
 
-        /** 구글 시트 헤더 순서 일치: contrast_sensitivity, color_blindness_type, color_confusion_detail 추가됨 */
+        /**
+         * raw_* JSON 최상단에 AI가 읽기 쉬운 요약 수치(summary_metrics)를 두되, 기존 키는 유지.
+         */
+        function mergeSummaryMetricsFirst(obj, summaryMetrics) {
+          if (!obj || typeof obj !== "object") return obj;
+          const next = {};
+          if (summaryMetrics && typeof summaryMetrics === "object" && Object.keys(summaryMetrics).length > 0) {
+            next.summary_metrics = summaryMetrics;
+          }
+          Object.keys(obj).forEach(function (k) {
+            if (k === "summary_metrics") return;
+            next[k] = obj[k];
+          });
+          return next;
+        }
+
+        function buildVisionSummaryMetrics(vision, opts) {
+          const m = {};
+          if (opts.vision_rt_avg != null) m["시각_반응_평균_ms"] = opts.vision_rt_avg;
+          if (opts.vision_aim_avg != null) m["에임_평균_구간_ms"] = opts.vision_aim_avg;
+          if (vision && vision.aimTrainer && vision.aimTrainer.fittsLaw) {
+            const f = vision.aimTrainer.fittsLaw;
+            if (f.effectiveThroughput_bps != null) m["에임_Fitts_효과_처리량_bps"] = f.effectiveThroughput_bps;
+            if (f.meanThroughput_bps != null) m["에임_Fitts_평균_처리량_bps"] = f.meanThroughput_bps;
+            if (f.meanIndexOfDifficulty != null) m["에임_Fitts_평균_난이도"] = f.meanIndexOfDifficulty;
+          }
+          if (opts.fov_blind_rate != null) m["시야_맹점_비율"] = opts.fov_blind_rate;
+          if (opts.readable_font_size != null) m["판독_임계_글자크기_px"] = opts.readable_font_size;
+          if (opts.readable_font_size_mm != null) m["판독_임계_글자크기_mm"] = opts.readable_font_size_mm;
+          if (opts.contrast_threshold != null) m["대비_임계값"] = opts.contrast_threshold;
+          return m;
+        }
+
+        function buildMotorSummaryMetrics(motor, opts) {
+          const m = {};
+          if (opts.motor_rt_avg != null) m["운동_반응_평균_ms"] = opts.motor_rt_avg;
+          if (opts.motor_aim_avg != null) m["운동_에임_평균_구간_ms"] = opts.motor_aim_avg;
+          if (motor && motor.aimTrainer && motor.aimTrainer.fittsLaw) {
+            const f = motor.aimTrainer.fittsLaw;
+            if (f.effectiveThroughput_bps != null) m["운동_에임_Fitts_효과_처리량_bps"] = f.effectiveThroughput_bps;
+            if (f.meanThroughput_bps != null) m["운동_에임_Fitts_평균_처리량_bps"] = f.meanThroughput_bps;
+            if (f.meanIndexOfDifficulty != null) m["운동_에임_Fitts_평균_난이도"] = f.meanIndexOfDifficulty;
+          }
+          if (motor && motor.aimTrainer && motor.aimTrainer.failedClicks != null) {
+            m["에임_오클릭_횟수"] = motor.aimTrainer.failedClicks;
+          }
+          if (opts.motor_switch_latency != null) m["전환_지연_평균_ms"] = opts.motor_switch_latency;
+          if (opts.key_reach_score != null) m["키_도달_단계"] = opts.key_reach_score;
+          if (opts.burst_speed_peak != null) m["연타_피크_ip_s"] = opts.burst_speed_peak;
+          if (opts.fatigue_index != null) m["피로_지수"] = opts.fatigue_index;
+          if (opts.motor_precision_error_mm != null) m["조준_오차_mm"] = opts.motor_precision_error_mm;
+          return m;
+        }
+
+        function buildColorSummaryMetrics(opts) {
+          const m = {};
+          if (opts.color_rt_avg != null) m["색상_반응_평균_ms"] = opts.color_rt_avg;
+          if (opts.color_blindness_type != null) m["색각_분류_요약"] = opts.color_blindness_type;
+          if (opts.color_confusion_score != null) {
+            m["보색_판별_정확도"] = opts.color_confusion_score;
+            m["혼동_채도값"] = Math.round((1 - opts.color_confusion_score) * 1000) / 1000;
+          }
+          return m;
+        }
+
+        /** 0~100, 높을수록 부하/난이도 가정 (다중 과제 가중 평균) */
+        function buildCognitiveLoadIndex(cognitive) {
+          if (!cognitive || typeof cognitive !== "object") return null;
+          const parts = [];
+          if (cognitive.goNoGo && cognitive.goNoGo.successRate != null) {
+            parts.push(100 - Number(cognitive.goNoGo.successRate));
+          }
+          if (cognitive.sequenceMemory && cognitive.sequenceMemory.maxLevel != null) {
+            const lv = Number(cognitive.sequenceMemory.maxLevel);
+            if (!isNaN(lv)) parts.push(Math.max(0, 100 - lv * 8));
+          }
+          if (cognitive.dividedAttention && cognitive.dividedAttention.successRate != null) {
+            parts.push(100 - Number(cognitive.dividedAttention.successRate));
+          }
+          if (cognitive.readingSpeed && cognitive.readingSpeed.successRate != null) {
+            parts.push(100 - Number(cognitive.readingSpeed.successRate));
+          }
+          if (!parts.length) return null;
+          const sum = parts.reduce(function (a, b) { return a + b; }, 0);
+          return Math.round((sum / parts.length) * 10) / 10;
+        }
+
+        function buildCognitiveSummaryMetrics(cognitive, opts) {
+          const m = {};
+          if (opts.seq_memory_score != null) m["작업기억_최대_단계"] = opts.seq_memory_score;
+          if (opts.go_nogo_accuracy != null) m["go_nogo_정확도_퍼센트"] = opts.go_nogo_accuracy;
+          const load = buildCognitiveLoadIndex(cognitive);
+          if (load != null) m["인지_부하_지수"] = load;
+          return m;
+        }
+
+        function buildHearingSummaryMetrics(hearing) {
+          const m = {};
+          if (!hearing || typeof hearing !== "object") return m;
+          if (hearing.hearingNumber && hearing.hearingNumber.left != null) m["히어링_넘버_좌_dB"] = hearing.hearingNumber.left;
+          if (hearing.hearingNumber && hearing.hearingNumber.right != null) m["히어링_넘버_우_dB"] = hearing.hearingNumber.right;
+          if (hearing.speechClarityPercent != null) m["수음_명료도_퍼센트"] = hearing.speechClarityPercent;
+          if (hearing.articulationTest && hearing.articulationTest.matchRate != null) {
+            m["발화_일치율"] = hearing.articulationTest.matchRate;
+          }
+          return m;
+        }
+
+        function aggregateColorErrorPattern(colorClone) {
+          if (!colorClone || !colorClone.color_confusion_matrix) return;
+          const cm = colorClone.color_confusion_matrix;
+          const events = [];
+          if (cm.ishihara && cm.ishihara.error_pattern && Array.isArray(cm.ishihara.error_pattern.events)) {
+            events.push.apply(events, cm.ishihara.error_pattern.events);
+          }
+          if (cm.deepDiscrimination && cm.deepDiscrimination.error_pattern && Array.isArray(cm.deepDiscrimination.error_pattern.events)) {
+            events.push.apply(events, cm.deepDiscrimination.error_pattern.events);
+          }
+          if (events.length) {
+            colorClone.error_pattern = { aggregated: true, event_count: events.length, events: events };
+          }
+        }
+
+        /**
+         * 시트·AI 파이프라인용 통합 요약 (각 raw_* 내부 summary_metrics와 중복 가능하나 조회 편의용).
+         * 동적 추적 한계치: 시각·운동 에임 Fitts 효과 처리량 중 보수적 최소값(bps).
+         */
+        function buildAiPrecursorMetrics(vision, motor, cognitive, colorRtAvg, colorConfusionScore) {
+          const m = {
+            _schema: "ai_precursor_v1",
+            generated_at: new Date().toISOString()
+          };
+          if (colorConfusionScore != null) {
+            m["색채_혼동_지수"] = Math.round((1 - colorConfusionScore) * 1000) / 1000;
+            m["보색_판별_정확도"] = colorConfusionScore;
+          }
+          if (colorRtAvg != null) m["색상_반응_평균_ms"] = colorRtAvg;
+          const vFitts = vision && vision.aimTrainer && vision.aimTrainer.fittsLaw;
+          const mFitts = motor && motor.aimTrainer && motor.aimTrainer.fittsLaw;
+          const vTp = vFitts && vFitts.effectiveThroughput_bps != null ? vFitts.effectiveThroughput_bps : null;
+          const mTp = mFitts && mFitts.effectiveThroughput_bps != null ? mFitts.effectiveThroughput_bps : null;
+          if (vTp != null) m["동적_추적_Fitts_처리량_시각_bps"] = vTp;
+          if (mTp != null) m["동적_추적_Fitts_처리량_운동_bps"] = mTp;
+          const tps = [vTp, mTp].filter(function (x) {
+            return x != null && !isNaN(Number(x));
+          });
+          if (tps.length) {
+            m["동적_추적_한계치"] = Math.round(Math.min.apply(null, tps) * 100) / 100;
+          }
+          if (vision && vision.aimTrainer && vision.aimTrainer.averageInterval != null) {
+            m["시각_에임_평균_구간_ms"] = vision.aimTrainer.averageInterval;
+          }
+          if (motor && motor.aimTrainer && motor.aimTrainer.averageInterval != null) {
+            m["운동_에임_평균_구간_ms"] = motor.aimTrainer.averageInterval;
+          }
+          const load = buildCognitiveLoadIndex(cognitive);
+          if (load != null) m["인지_부하_지수"] = load;
+          return m;
+        }
+
+        /**
+         * 구글 시트 열 정렬 (1행 헤더와 동일 순서 필수):
+         * A~AM(39열): 요약 스칼라·color_confusion_matrix까지.
+         * AN~AQ(40~43열): 정렬용 빈 패딩(시트 AR=44열에 테스트 묶음이 오도록).
+         * AR: sheet_AR_test_data — 전체 테스트 raw JSON(문자열).
+         * AS: sheet_AS_observer_comment — 관찰자 코멘트.
+         * AT: sheet_AT_ai_report — AI 리포트 본문 또는 "pending".
+         */
         const SHEETS_HEADER_ORDER = [
           "timestamp", "user_id", "age", "gender", "monitor_inch", "resolution", "viewing_distance", "disability_type",
           "vision_rt_avg", "vision_aim_avg", "fov_blind_rate", "readable_font_size", "readable_font_size_mm",
@@ -506,13 +834,22 @@
           "calibration_mm_per_px",
           "color_rt_avg", "color_blindness_type", "color_confusion_detail", "color_confusion_score",
           "color_confusion_matrix",
-          "raw_vision_data", "raw_motor_data", "raw_cognitive_data", "raw_hearing_data", "raw_color_data", "observer_report"
+          "sheet_column_align_pad_40",
+          "sheet_column_align_pad_41",
+          "sheet_column_align_pad_42",
+          "sheet_column_align_pad_43",
+          "sheet_AR_test_data",
+          "sheet_AS_observer_comment",
+          "sheet_AT_ai_report"
         ];
 
         /**
          * 구글 시트 헤더 순서에 맞춘 전송용 객체 생성. SHEETS_HEADER_ORDER와 시트 첫 행 헤더가 일치해야 함.
+         * @param {object} [sheetOptions] — { sheetObserverComment, sheetAiAnalysis } → AS·AT열
          */
-        function buildSheetsRowPayload(session) {
+        function buildSheetsRowPayload(session, sheetOptions) {
+          sheetOptions = sheetOptions || {};
+          const rowTimestamp = new Date().toISOString();
           const ud = session.user_data || {};
           const vision = ud.vision_results || {};
           const motor = ud.motor_results || {};
@@ -605,15 +942,26 @@
           const hearing_observer_clarity_rating = hearing.speechClarityRating != null ? hearing.speechClarityRating : null;
 
           let raw_vision_data = vision && Object.keys(vision).length ? vision : null;
-          if (raw_vision_data && mmPerPx != null) {
+          if (raw_vision_data) {
             raw_vision_data = JSON.parse(JSON.stringify(raw_vision_data));
-            if (raw_vision_data.fontReadability && raw_vision_data.fontReadability.minFontSize != null) {
+            if (mmPerPx != null && raw_vision_data.fontReadability && raw_vision_data.fontReadability.minFontSize != null) {
               raw_vision_data.fontReadability.physical_size_mm = pxToMm(
                 raw_vision_data.fontReadability.minFontSize,
                 session.monitorSizeInch,
                 session.pcResolution
               );
             }
+            raw_vision_data = mergeSummaryMetricsFirst(
+              raw_vision_data,
+              buildVisionSummaryMetrics(vision, {
+                vision_rt_avg: vision_rt_avg,
+                vision_aim_avg: vision_aim_avg,
+                fov_blind_rate: fov_blind_rate,
+                readable_font_size: readable_font_size,
+                readable_font_size_mm: readable_font_size_mm,
+                contrast_threshold: contrast_threshold
+              })
+            );
           }
           const baseMotor = motor && typeof motor === "object" ? motor : {};
           const hasMotorData = Object.keys(baseMotor).length > 0;
@@ -637,9 +985,35 @@
               })
             });
           }
-          const raw_motor_data = motorWithMeta;
-          const raw_cognitive_data = cognitive && Object.keys(cognitive).length ? cognitive : null;
-          const raw_hearing_data = hearing && Object.keys(hearing).length ? hearing : null;
+          let raw_motor_data = motorWithMeta;
+          if (raw_motor_data) {
+            raw_motor_data = mergeSummaryMetricsFirst(
+              raw_motor_data,
+              buildMotorSummaryMetrics(motor, {
+                motor_rt_avg: motor_rt_avg,
+                motor_aim_avg: motor_aim_avg,
+                motor_switch_latency: motor_switch_latency,
+                key_reach_score: key_reach_score,
+                burst_speed_peak: burst_speed_peak,
+                fatigue_index: fatigue_index,
+                motor_precision_error_mm: motor_precision_error_mm
+              })
+            );
+          }
+          let raw_cognitive_data = cognitive && Object.keys(cognitive).length ? JSON.parse(JSON.stringify(cognitive)) : null;
+          if (raw_cognitive_data) {
+            raw_cognitive_data = mergeSummaryMetricsFirst(
+              raw_cognitive_data,
+              buildCognitiveSummaryMetrics(cognitive, {
+                seq_memory_score: seq_memory_score,
+                go_nogo_accuracy: go_nogo_accuracy
+              })
+            );
+          }
+          let raw_hearing_data = hearing && Object.keys(hearing).length ? JSON.parse(JSON.stringify(hearing)) : null;
+          if (raw_hearing_data) {
+            raw_hearing_data = mergeSummaryMetricsFirst(raw_hearing_data, buildHearingSummaryMetrics(hearing));
+          }
           const color_confusion_matrix = color.color_confusion_matrix && Object.keys(color.color_confusion_matrix).length ? color.color_confusion_matrix : null;
           let color_confusion_score = null;
           if (color_confusion_matrix && color_confusion_matrix.deepDiscrimination) {
@@ -650,13 +1024,78 @@
               color_confusion_score = Math.round((correct / total) * 10000) / 10000;
             }
           }
-          const raw_color_data = color && Object.keys(color).length ? color : null;
-          const observer_report = session.observer_report && typeof session.observer_report === "object"
-            ? session.observer_report
-            : null;
+          let raw_color_data = color && Object.keys(color).length ? JSON.parse(JSON.stringify(color)) : null;
+          if (raw_color_data) {
+            aggregateColorErrorPattern(raw_color_data);
+            raw_color_data = mergeSummaryMetricsFirst(
+              raw_color_data,
+              buildColorSummaryMetrics({
+                color_rt_avg: color_rt_avg,
+                color_blindness_type: color_blindness_type || null,
+                color_confusion_score: color_confusion_score
+              })
+            );
+          }
+          const baseObserver =
+            session.observer_report && typeof session.observer_report === "object"
+              ? session.observer_report
+              : {};
+          let observer_report = Object.keys(baseObserver).length ? Object.assign({}, baseObserver) : null;
+          const commentTrim =
+            sheetOptions.sheetObserverComment != null ? String(sheetOptions.sheetObserverComment).trim() : "";
+          if (commentTrim) {
+            observer_report = Object.assign({}, observer_report || {});
+            observer_report.summary_page_observer_comment = commentTrim;
+          }
+          if (session.ai_accessibility_report && typeof session.ai_accessibility_report === "object") {
+            observer_report = Object.assign({}, observer_report || {});
+            observer_report.ai_accessibility_report_meta = {
+              generatedAt: session.ai_accessibility_report.generatedAt || null,
+              model: session.ai_accessibility_report.model || null
+            };
+          }
+
+          const sheet_AS_observer_comment =
+            sheetOptions.sheetObserverComment !== undefined && sheetOptions.sheetObserverComment !== null
+              ? String(sheetOptions.sheetObserverComment)
+              : "";
+          const sheet_AT_ai_report =
+            sheetOptions.sheetAiAnalysis !== undefined && sheetOptions.sheetAiAnalysis !== null
+              ? String(sheetOptions.sheetAiAnalysis)
+              : "pending";
+          const ai_precursor_metrics = buildAiPrecursorMetrics(
+            vision,
+            motor,
+            cognitive,
+            color_rt_avg,
+            color_confusion_score
+          );
+
+          var sheet_AR_test_data = "";
+          try {
+            sheet_AR_test_data = JSON.stringify({
+              _schema: "ga_sheet_AR_test_bundle_v1",
+              exportedAt: rowTimestamp,
+              user_data: {
+                vision_results: raw_vision_data,
+                motor_results: raw_motor_data,
+                cognitive_results: raw_cognitive_data,
+                hearing_results: raw_hearing_data,
+                color_results: raw_color_data
+              },
+              observer_report: observer_report,
+              ai_precursor_metrics: ai_precursor_metrics
+            });
+          } catch (serErr) {
+            sheet_AR_test_data = JSON.stringify({
+              _schema: "ga_sheet_AR_test_bundle_v1",
+              error: "json_stringify_failed",
+              message: serErr && serErr.message ? serErr.message : String(serErr)
+            });
+          }
 
           const raw = {
-            timestamp: new Date().toISOString(),
+            timestamp: rowTimestamp,
             user_id: session.userId || session.id || "",
             age: session.ageRange != null ? session.ageRange : "",
             gender: session.gender != null ? session.gender : "",
@@ -699,12 +1138,13 @@
             color_confusion_detail: color_confusion_detail || null,
             color_confusion_score,
             color_confusion_matrix,
-            raw_vision_data,
-            raw_motor_data,
-            raw_cognitive_data,
-            raw_hearing_data,
-            raw_color_data,
-            observer_report,
+            sheet_column_align_pad_40: "",
+            sheet_column_align_pad_41: "",
+            sheet_column_align_pad_42: "",
+            sheet_column_align_pad_43: "",
+            sheet_AR_test_data,
+            sheet_AS_observer_comment,
+            sheet_AT_ai_report,
           };
           const ordered = {};
           SHEETS_HEADER_ORDER.forEach(function (k) {
@@ -827,6 +1267,23 @@
           renderExpertOpinions(session.observer_report);
           document.getElementById("json-preview").textContent = JSON.stringify(session, null, 2);
 
+          const taComment = document.getElementById("summary-observer-comment");
+          if (taComment && session.observer_report && session.observer_report.summary_page_observer_comment) {
+            taComment.value = session.observer_report.summary_page_observer_comment;
+          }
+          const aiWrap = document.getElementById("ai-insight-result-wrap");
+          const aiResultEl = document.getElementById("ai-insight-result");
+          const aiPh = document.getElementById("ai-insight-placeholder");
+          if (session.ai_accessibility_report && session.ai_accessibility_report.fullText) {
+            if (aiWrap) aiWrap.style.display = "block";
+            if (aiResultEl) aiResultEl.textContent = session.ai_accessibility_report.fullText;
+            if (aiPh) aiPh.style.display = "none";
+          } else {
+            if (aiWrap) aiWrap.style.display = "none";
+            if (aiResultEl) aiResultEl.textContent = "";
+            if (aiPh) aiPh.style.display = "block";
+          }
+
           const id = session.userId || session.id || "-";
           const disability = (session.disabilityTypes && session.disabilityTypes.length > 0)
             ? session.disabilityTypes.join(", ")
@@ -835,19 +1292,18 @@
             "세션 <strong>" + escapeHtml(id) + "</strong> · 장애 <strong>" + escapeHtml(disability) + "</strong>";
         }
 
-        document.getElementById("final-submit").addEventListener("click", () => {
-          const session = readSession();
-          const errs = validateSession(session);
+        function downloadSessionJson(session) {
           const msgEl = document.getElementById("validation-msg");
-
+          const errs = validateSession(session);
           if (errs.length > 0) {
-            msgEl.textContent = "유효성 검사 실패: " + errs.join(" ");
-            msgEl.style.display = "block";
-            msgEl.classList.add("validation-error");
-            return;
+            if (msgEl) {
+              msgEl.textContent = "유효성 검사 실패: " + errs.join(" ");
+              msgEl.style.display = "block";
+              msgEl.classList.add("validation-error");
+            }
+            return false;
           }
-
-          msgEl.style.display = "none";
+          if (msgEl) msgEl.style.display = "none";
           try {
             const blob = new Blob([JSON.stringify(session, null, 2)], { type: "application/json" });
             const a = document.createElement("a");
@@ -855,11 +1311,189 @@
             a.download = "ga_report_" + (session.userId || session.id || "export") + "_" + new Date().toISOString().slice(0, 10) + ".json";
             a.click();
             URL.revokeObjectURL(a.href);
+            return true;
           } catch (e) {
-            msgEl.textContent = "다운로드 오류: " + (e.message || "알 수 없음");
-            msgEl.style.display = "block";
+            if (msgEl) {
+              msgEl.textContent = "다운로드 오류: " + (e.message || "알 수 없음");
+              msgEl.style.display = "block";
+            }
+            return false;
           }
+        }
+
+        document.getElementById("final-submit").addEventListener("click", () => {
+          downloadSessionJson(readSession());
         });
+
+        function savePendingSheetExport(err, context) {
+          try {
+            localStorage.setItem(
+              PENDING_SHEET_STORAGE_KEY,
+              JSON.stringify({
+                version: 1,
+                savedAt: new Date().toISOString(),
+                errorMessage: err && (err.message || String(err)),
+                stage: context.stage || "unknown",
+                sessionSnapshot: context.session || null,
+                payload: context.payload || null,
+                observerComment: context.observerComment || "",
+                aiText: context.aiText || null
+              })
+            );
+          } catch (e) {}
+        }
+
+        /** 시트 POST 직전 임시 백업(정상/오류와 무관하게 전송 시도 데이터 보존) */
+        function savePreSheetBackup(payload, sessionSnapshot, opts) {
+          try {
+            localStorage.setItem(
+              PRESHEET_BACKUP_KEY,
+              JSON.stringify({
+                version: 1,
+                savedAt: new Date().toISOString(),
+                stage: (opts && opts.stage) || "pre_sheet_fetch",
+                payload: payload || null,
+                sessionSnapshot: sessionSnapshot || null,
+                observerComment: (opts && opts.observerComment) || "",
+                aiReportPreview: (opts && opts.aiReportPreview) || null
+              })
+            );
+          } catch (e) {}
+        }
+
+        function buildGeminiDiagnosticsPayload(session) {
+          const ud = session.user_data || {};
+          const vision = ud.vision_results || {};
+          const color = ud.color_results || {};
+          const cognitive = ud.cognitive_results || {};
+          const div = cognitive.dividedAttention || {};
+          return {
+            fov: {
+              blindRate: calcFovBlindRate(vision.fovResults),
+              hasFovData: !!(vision.fovResults && vision.fovResults.length)
+            },
+            visionSummary: {
+              reactionAvgMs: vision.reactionTime && vision.reactionTime.average,
+              aimIntervalAvgMs: vision.aimTrainer && vision.aimTrainer.averageInterval,
+              contrastThreshold: vision.contrastSensitivity && vision.contrastSensitivity.contrast_threshold,
+              fontMinPx: vision.fontReadability && vision.fontReadability.minFontSize
+            },
+            colorSummary: {
+              color_confusion_matrix: color.color_confusion_matrix || null,
+              reactionAvgMs: color.reactionTime && color.reactionTime.average,
+              colorBlindnessInfo: buildColorBlindnessInfo(color || {})
+            },
+            cognitiveSummary: {
+              sequenceMemoryMax: cognitive.sequenceMemory && cognitive.sequenceMemory.maxLevel,
+              goNoGoSuccessRate: cognitive.goNoGo && cognitive.goNoGo.successRate,
+              dividedAttentionStarSuccess: div.starSuccessRate != null ? div.starSuccessRate : div.successRate,
+              readingSpeedSuccessRate: cognitive.readingSpeed && cognitive.readingSpeed.successRate
+            },
+            profile: {
+              disability: (session.disabilityTypes && session.disabilityTypes.join(", ")) || session.disabilityType,
+              gameTitle: session.gameTitle
+            }
+          };
+        }
+
+        function buildGeminiAccessibilityPrompt(session, observerComment) {
+          const pack = buildGeminiDiagnosticsPayload(session);
+          const expert = session.observer_report || {};
+          const testJsonBlock = JSON.stringify(pack, null, 2);
+          const observerFormBlock = JSON.stringify(
+            {
+              quitReason: expert.quitReason || "",
+              altBehavior: expert.altBehavior || "",
+              analysisSummary: expert.analysisSummary || ""
+            },
+            null,
+            2
+          );
+          const pageComment =
+            observerComment && observerComment.trim() ? observerComment.trim() : "(없음 — 아래 관찰자 코멘트 박스에 입력된 내용이 없습니다.)";
+
+          return (
+            "너는 세계 최고의 게임 접근성 컨설턴트야. 'Smile Play Ally' 프로젝트의 데이터를 분석해야 해.\n\n" +
+            "## 입력 데이터\n\n" +
+            "### [사용자의 시야/색각/인지 테스트 요약 JSON]\n" +
+            testJsonBlock +
+            "\n\n### [관찰자 리포트 폼(이탈·대체 행동·핵심 요약)]\n" +
+            observerFormBlock +
+            "\n\n### [관찰자 코멘트 — 결과 화면 하단 텍스트 영역]\n" +
+            pageComment +
+            "\n\n## 출력 형식 (반드시 아래 세 섹션 제목을 사용하고, 한국어 마크다운으로 작성)\n\n" +
+            "### 1. 플레이어의 주요 시각적/인지적 특성 요약\n" +
+            "(측정값과 관찰 코멘트를 통합해 전문가 관점에서 요약)\n\n" +
+            "### 2. 이 플레이어가 일반적인 액션 게임에서 겪을 구체적 어려움\n" +
+            "(전투·탐색·UI·색 정보·시간 압박 등 구체 시나리오)\n\n" +
+            "### 3. 게임 개발자를 위한 맞춤형 접근성 설정 권장안\n" +
+            "(예: High Contrast 모드 강도, UI·글자 크기, FOV·카메라, 색각 안전 팔레트, 입력 타이밍·QTE 완화, 자막·오디오 큐 등 실행 가능한 항목)\n\n" +
+            "톤: 접근성 전문가로서 정중하고 명확하게. 추측은 '추가 검증 필요'로 표시."
+          );
+        }
+
+        /**
+         * 1) 동일 출처 /api/gemini 프록시(.env 키) 우선
+         * 2) 실패 시 선택 입력한 API 키로 브라우저에서 직접 호출(폴백)
+         */
+        async function callGeminiGenerateContent(promptText, apiKeyOptional) {
+          var proxyRes = null;
+          try {
+            proxyRes = await fetch("/api/gemini", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ prompt: promptText, model: GEMINI_MODEL })
+            });
+          } catch (e) {
+            proxyRes = null;
+          }
+          if (proxyRes && proxyRes.ok) {
+            var proxyData = await proxyRes.json().catch(function () {
+              return {};
+            });
+            if (proxyData.text && String(proxyData.text).trim()) return String(proxyData.text);
+            if (proxyData.error) throw new Error(String(proxyData.error));
+          }
+          if (proxyRes && !proxyRes.ok) {
+            var errBody = await proxyRes.json().catch(function () {
+              return {};
+            });
+            var errMsg = errBody.error || proxyRes.status + " " + proxyRes.statusText;
+            var key = (apiKeyOptional || "").trim();
+            if (!key) throw new Error("로컬 프록시 오류: " + errMsg + " — `npm start`와 .env 키를 확인하거나, 아래에 API 키를 입력하세요.");
+          }
+
+          var apiKey = (apiKeyOptional || "").trim();
+          if (!apiKey) {
+            throw new Error(
+              "Gemini 호출에 실패했습니다. 터미널에서 `npm start` 후 http://localhost:8080/summary.html 로 열었는지 확인하거나, 아래에 API 키를 입력하세요."
+            );
+          }
+          var url =
+            "https://generativelanguage.googleapis.com/v1beta/models/" +
+            encodeURIComponent(GEMINI_MODEL) +
+            ":generateContent?key=" +
+            encodeURIComponent(apiKey);
+          var res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: promptText }] }],
+              generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
+            })
+          });
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) {
+            var msg = (data.error && data.error.message) || res.status + " " + res.statusText;
+            throw new Error(msg || "Gemini API 요청 실패");
+          }
+          var parts = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
+          var text = parts ? parts.map(function (p) { return p.text || ""; }).join("") : "";
+          if (!text.trim()) throw new Error("Gemini 응답에 본문이 없습니다.");
+          return text;
+        }
 
         const DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxpzl0a9g-zJJ_vH0MghogtE6DNts036TudVKGzIETHjeek4z2WycCZL_Gj35j6qwsE/exec";
         const sendToSheetsBtn = document.getElementById("send-to-sheets");
@@ -893,14 +1527,18 @@
           }
 
           const payload = buildSheetsRowPayload(session);
+          savePreSheetBackup(payload, session, { stage: "quick_sheet_send", observerComment: "", aiReportPreview: null });
           fetch(DEPLOYED_SHEETS_URL, {
             method: "POST",
             mode: "no-cors",
             headers: {},
             body: JSON.stringify(payload),
           });
+          try {
+            localStorage.removeItem(PRESHEET_BACKUP_KEY);
+          } catch (e) {}
           alert("전송 시도 완료");
-          if (sheetsStatusEl) sheetsStatusEl.textContent = "전송이 요청되었습니다. JSON 다운로드를 추가로 받아 두시면 데이터 관리에 유리합니다.";
+          if (sheetsStatusEl) sheetsStatusEl.textContent = "전송이 요청되었습니다(AR·AS·AT 열 형식). JSON 다운로드를 추가로 받아 두시면 좋습니다.";
           if (sendToSheetsBtn) { sendToSheetsBtn.disabled = false; sendToSheetsBtn.textContent = sendBtnOriginalText; }
         }
 
@@ -951,12 +1589,16 @@
                   sheetsStatusEl.textContent = "전송 중...";
                   sheetsStatusEl.style.color = "inherit";
                 }
+                savePreSheetBackup(payload, data, { stage: "upload_json_send", observerComment: "", aiReportPreview: null });
                 fetch(DEPLOYED_SHEETS_URL, {
                   method: "POST",
                   mode: "no-cors",
                   headers: {},
                   body: JSON.stringify(payload),
                 });
+                try {
+                  localStorage.removeItem(PRESHEET_BACKUP_KEY);
+                } catch (e) {}
                 alert("전송 시도 완료");
                 if (sheetsStatusEl) sheetsStatusEl.textContent = "JSON 파일 전송이 요청되었습니다.";
               } catch (err) {
@@ -977,7 +1619,190 @@
 
         function init() {
           const session = readSession();
+          const gk = document.getElementById("gemini-api-key");
+          const rem = document.getElementById("gemini-remember-key");
+          if (gk) {
+            try {
+              var stored = localStorage.getItem(GEMINI_KEY_STORAGE);
+              if (stored) {
+                gk.value = stored;
+                if (rem) rem.checked = true;
+              }
+            } catch (e) {}
+          }
           render(session);
+        }
+
+        const AI_ANALYZE_BTN_DEFAULT = "AI 분석 시작";
+
+        /**
+         * 결과 화면이 보유한 세션(테스트 결과) + 관찰자 코멘트를 한 번에 수집합니다.
+         */
+        function collectResultsForAiAnalysis() {
+          const ta = document.getElementById("summary-observer-comment");
+          return {
+            session: readSession(),
+            observerComment: (ta && ta.value) ? String(ta.value) : ""
+          };
+        }
+
+        function setAiAnalyzeButtonLoading(isLoading, phase) {
+          const btn = document.getElementById("btn-ai-analyze-and-save");
+          const spin = document.getElementById("ai-btn-spinner");
+          const label = document.getElementById("btn-ai-analyze-label");
+          const loadPanel = document.getElementById("ai-analysis-loading");
+          const loadText = document.getElementById("ai-analysis-loading-text");
+          if (!btn) return;
+          btn.disabled = !!isLoading;
+          btn.setAttribute("aria-busy", isLoading ? "true" : "false");
+          var taObs = document.getElementById("summary-observer-comment");
+          if (taObs) taObs.disabled = !!isLoading;
+          const showGeminiWait = !!isLoading && phase === "gemini";
+          if (spin) spin.setAttribute("data-visible", showGeminiWait ? "true" : "false");
+          if (loadPanel) {
+            loadPanel.hidden = !showGeminiWait;
+            loadPanel.setAttribute("data-visible", showGeminiWait ? "true" : "false");
+            loadPanel.setAttribute("aria-busy", showGeminiWait ? "true" : "false");
+          }
+          if (loadText && showGeminiWait) loadText.textContent = "분석 중...";
+          if (!label) return;
+          if (!isLoading) {
+            label.textContent = AI_ANALYZE_BTN_DEFAULT;
+            return;
+          }
+          if (phase === "sheet") label.textContent = "시트 전송 중…";
+          else label.textContent = "분석 중...";
+        }
+
+        const btnAiAnalyzeSave = document.getElementById("btn-ai-analyze-and-save");
+        const aiSaveStatusEl = document.getElementById("ai-save-status");
+        if (btnAiAnalyzeSave) {
+          btnAiAnalyzeSave.addEventListener("click", function () {
+            if (window.location.protocol === "file:") {
+              alert("file:// 환경에서는 Gemini·시트 전송이 동작하지 않을 수 있습니다. localhost로 열어 주세요.");
+              return;
+            }
+            const apiKeyFallback = (document.getElementById("gemini-api-key") && document.getElementById("gemini-api-key").value.trim()) || "";
+            var collected = collectResultsForAiAnalysis();
+            var session = collected.session;
+            var observerComment = collected.observerComment;
+            const errs = validateSession(session);
+            if (errs.length > 0) {
+              alert("유효성 검사 실패: " + errs.join(" "));
+              return;
+            }
+
+            const remember = document.getElementById("gemini-remember-key") && document.getElementById("gemini-remember-key").checked;
+            try {
+              if (remember) localStorage.setItem(GEMINI_KEY_STORAGE, apiKeyFallback);
+              else localStorage.removeItem(GEMINI_KEY_STORAGE);
+            } catch (e) {}
+
+            setAiAnalyzeButtonLoading(true, "gemini");
+            if (aiSaveStatusEl) {
+              aiSaveStatusEl.textContent = "";
+              aiSaveStatusEl.style.color = "inherit";
+            }
+
+            const promptText = buildGeminiAccessibilityPrompt(session, observerComment);
+            callGeminiGenerateContent(promptText, apiKeyFallback)
+              .then(function (reportText) {
+                const aiMeta = {
+                  fullText: reportText,
+                  model: GEMINI_MODEL,
+                  generatedAt: new Date().toISOString()
+                };
+                var sessionAfter;
+                if (typeof GAStorage !== "undefined") {
+                  var orMerged = Object.assign({}, session.observer_report || {});
+                  if (observerComment.trim()) orMerged.summary_page_observer_comment = observerComment.trim();
+                  sessionAfter = GAStorage.writeSession({
+                    observer_report: orMerged,
+                    ai_accessibility_report: aiMeta
+                  });
+                } else {
+                  sessionAfter = readSession();
+                }
+                const payload = buildSheetsRowPayload(sessionAfter, {
+                  sheetObserverComment: observerComment,
+                  sheetAiAnalysis: reportText
+                });
+
+                const aiWrap = document.getElementById("ai-insight-result-wrap");
+                const aiResultEl = document.getElementById("ai-insight-result");
+                const aiPh = document.getElementById("ai-insight-placeholder");
+                if (aiWrap) aiWrap.style.display = "block";
+                if (aiResultEl) aiResultEl.textContent = reportText;
+                if (aiPh) aiPh.style.display = "none";
+                document.getElementById("json-preview").textContent = JSON.stringify(sessionAfter, null, 2);
+
+                setAiAnalyzeButtonLoading(true, "sheet");
+                savePreSheetBackup(payload, sessionAfter, {
+                  stage: "pre_sheet_after_ai",
+                  observerComment: observerComment,
+                  aiReportPreview: reportText.length > 500 ? reportText.slice(0, 500) + "…" : reportText
+                });
+
+                try {
+                  return fetch(DEPLOYED_SHEETS_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: {},
+                    body: JSON.stringify(payload)
+                  });
+                } catch (fetchErr) {
+                  throw fetchErr;
+                }
+              })
+              .then(function () {
+                try {
+                  localStorage.removeItem(PENDING_SHEET_STORAGE_KEY);
+                  localStorage.removeItem(PRESHEET_BACKUP_KEY);
+                } catch (e) {}
+                if (aiSaveStatusEl) {
+                  aiSaveStatusEl.textContent =
+                    "AI 리포트를 표시했고, 시트 전송을 요청했습니다(AR·AS·AT). 시트에서 행을 확인해 주세요.";
+                  aiSaveStatusEl.style.color = "#86efac";
+                }
+                alert("AI 분석이 완료되었고 시트 전송을 요청했습니다. AR·AS·AT열을 확인해 주세요.");
+              })
+              .catch(function (err) {
+                const sessionSnap = readSession();
+                var payloadForPending = null;
+                try {
+                  payloadForPending = buildSheetsRowPayload(sessionSnap, {
+                    sheetObserverComment: observerComment,
+                    sheetAiAnalysis: (sessionSnap.ai_accessibility_report && sessionSnap.ai_accessibility_report.fullText) || "pending"
+                  });
+                } catch (e) {}
+                savePendingSheetExport(err, {
+                  stage: err && err.message && String(err.message).indexOf("Gemini") !== -1 ? "gemini" : "sheets",
+                  session: sessionSnap,
+                  payload: payloadForPending,
+                  observerComment: observerComment,
+                  aiText: sessionSnap.ai_accessibility_report && sessionSnap.ai_accessibility_report.fullText
+                });
+                if (aiSaveStatusEl) {
+                  aiSaveStatusEl.textContent =
+                    "오류: " + (err && err.message ? err.message : "알 수 없음") + " — 로컬에 임시 저장했습니다(ga_pending_sheet_export_v1).";
+                  aiSaveStatusEl.style.color = "#f97373";
+                }
+                alert(
+                  "처리 중 오류가 발생했습니다. 세션·전송 예정 데이터는 브라우저 로컬 스토리지에 임시 저장되었습니다.\n\n" +
+                    (err && err.message ? err.message : "")
+                );
+              })
+              .finally(function () {
+                setAiAnalyzeButtonLoading(false);
+              });
+          });
+        }
+
+        const btnDlJson = document.getElementById("btn-download-json-only");
+        if (btnDlJson) {
+          btnDlJson.addEventListener("click", function () {
+            downloadSessionJson(readSession());
+          });
         }
 
         if (document.readyState === "loading") {

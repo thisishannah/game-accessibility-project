@@ -10,6 +10,9 @@
       body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: #e5e7eb; background: #020617; display: flex; flex-direction: column; align-items: center; padding: 20px; padding-top: 60px; }
       header { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
       .instruction { text-align: center; font-size: 14px; color: #9ca3af; margin-bottom: 16px; max-width: 420px; }
+      .instruction p { margin: 0 0 0.5em 0; }
+      .instruction p:last-child { margin-bottom: 0; }
+      .instruction .instruction-footnote { font-size: 11px; color: #94a3b8; margin-top: 0.25em; }
       .plate-wrap { background: #f5f0e8; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
       #plate-canvas { display: block; border-radius: 8px; }
       .input-row { display: flex; gap: 12px; align-items: center; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
@@ -34,9 +37,9 @@
     <main id="main-content" role="main" aria-labelledby="page-title-h1" tabindex="-1">
     <h1 id="page-title-h1" class="sr-only">기본 색약 검사 Ishihara 방식</h1>
     <div class="instruction">
-      아래 원형 이미지에 보이는 숫자를 입력하세요.<br>
-      숫자가 보이지 않으면 <strong>0</strong>을 입력하고 다음으로 넘어가세요.<br>
-      <span style="font-size: 11px; color: #94a3b8; display: block; margin-top: 6px;">※ 이 검사는 Ishihara 방식 1차 스크리닝용이며, 적록색각(1·2형)만 검출합니다. 임상 진단을 대체하지 않습니다. (COLOR_VISION_REFERENCES.md)</span>
+      <p>아래 원형 이미지에 보이는 숫자를 입력하세요.</p>
+      <p>숫자가 보이지 않으면 <strong>0</strong>을 입력하고 다음으로 넘어가세요.</p>
+      <p class="instruction-footnote">※ 이 검사는 Ishihara 방식 1차 스크리닝용이며, 적록색각(1·2형)만 검출합니다. 임상 진단을 대체하지 않습니다. (COLOR_VISION_REFERENCES.md)</p>
     </div>
 
     <div class="plate-wrap">
@@ -273,11 +276,31 @@
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           const color = (session.user_data && session.user_data.color_results) || {};
           const existing = color.color_confusion_matrix || {};
+          const ishiharaErrors = plateResults.filter(function (r) { return !r.correct; });
           existing.ishihara = {
             plateResults,
             classification,
             correctCount: plateResults.filter(r => r.correct).length,
             totalCount: PLATES.length,
+            error_pattern: {
+              source: "ishihara",
+              events: ishiharaErrors.map(function (r) {
+                return {
+                  source: "ishihara",
+                  confused_what_with_what: {
+                    expected_digit: r.expected,
+                    user_reported: r.userAnswer,
+                    plate_rg_axis: r.type
+                  },
+                  description:
+                    "판정 이미지의 숫자 " +
+                    r.expected +
+                    "을(를) " +
+                    r.userAnswer +
+                    "(으)로 응답(오인)"
+                };
+              })
+            },
             recordedAt: new Date().toISOString()
           };
           if (typeof GAStorage !== "undefined") {

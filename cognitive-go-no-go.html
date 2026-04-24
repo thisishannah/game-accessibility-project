@@ -300,6 +300,25 @@
             reactionTime: reactionTime || null,
             timestamp: Date.now()
           };
+          if (!success) {
+            if (currentStimulus === "go") {
+              trial.error_pattern = {
+                confused_what_with_what: {
+                  error_type: "omission",
+                  intended: "go_자극(초록)_클릭",
+                  mistaken_as: "반응_누락_또는_너무_늦음"
+                }
+              };
+            } else {
+              trial.error_pattern = {
+                confused_what_with_what: {
+                  error_type: "commission",
+                  intended: "no_go_자극(빨강)_클릭_금지",
+                  mistaken_as: "억제_실패_no_go를_go로_오인하여_클릭"
+                }
+              };
+            }
+          }
           trials.push(trial);
           
           if (success) {
@@ -402,6 +421,7 @@
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
           const cognitive = session.user_data.cognitive_results || {};
+          const failedTrials = trials.filter(function (t) { return !t.success; });
           cognitive.goNoGo = {
             totalTrials: TOTAL_TRIALS,
             successes: successfulTrials.length,
@@ -412,13 +432,25 @@
             noGoTrials: trials.filter(function(t) { return t.stimulus === "no-go"; }).length,
             goSuccesses: trials.filter(function(t) { return t.stimulus === "go" && t.success; }).length,
             noGoSuccesses: trials.filter(function(t) { return t.stimulus === "no-go" && t.success; }).length,
+            error_pattern: {
+              source: "go_no_go",
+              events: failedTrials.map(function (t) {
+                return {
+                  trial: t.trial,
+                  stimulus: t.stimulus,
+                  error_pattern: t.error_pattern || null
+                };
+              })
+            },
             trials: trials.map(function(t) {
-              return {
+              var row = {
                 trial: t.trial,
                 stimulus: t.stimulus,
                 success: t.success,
                 reactionTime: t.reactionTime
               };
+              if (t.error_pattern) row.error_pattern = t.error_pattern;
+              return row;
             }),
             recordedAt: new Date().toISOString()
           };

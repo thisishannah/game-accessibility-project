@@ -10,7 +10,9 @@
       body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: #e5e7eb; background: #020617; display: flex; flex-direction: column; align-items: center; padding: 20px; padding-top: 60px; }
       header { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
       .instruction-warning { font-size: 11px; color: #94a3b8; margin-bottom: 20px; text-align: center; }
-      .instruction-main { font-size: 18px; font-weight: 550; color: #e5e7eb; text-align: center; margin-bottom: 24px; width: 100%; max-width: 560px; line-height: 1.5; }
+      .instruction-main-wrap { width: 100%; max-width: 560px; margin-bottom: 24px; text-align: center; }
+      .instruction-main { font-size: 18px; font-weight: 550; color: #e5e7eb; margin: 0 0 0.45em 0; line-height: 1.5; }
+      .instruction-main:last-child { margin-bottom: 0; }
       .test-section { margin-bottom: 28px; width: 100%; max-width: 560px; }
       .test-section h2 { font-size: 15px; margin-bottom: 12px; color: #e5e7eb; }
       .canvas-container {
@@ -66,7 +68,10 @@
     <main id="main-content" role="main" aria-labelledby="page-title-h1" tabindex="-1">
     <h1 id="page-title-h1" class="sr-only">심층 색상 식별 검사</h1>
     <p class="instruction-warning">※ 스크리닝용 검사이며 임상 진단을 대체하지 않습니다. (COLOR_VISION_REFERENCES.md)</p>
-    <p class="instruction-main">경계선의 세로 무늬가 보이나요? 가장 붉은 기운이 도는 색상을 선택해 주세요.</p>
+    <div class="instruction-main-wrap">
+      <p class="instruction-main">경계선의 세로 무늬가 보이나요?</p>
+      <p class="instruction-main">가장 붉은 기운이 도는 색상을 선택해 주세요.</p>
+    </div>
 
     <div id="phase1" class="test-section">
       <p class="phase-badge">로직 1 — 명도 일치 경계선 (동일 sRGB 명도의 적·녹 세로 줄무늬, WCAG 2.1 상대 명도)</p>
@@ -289,12 +294,24 @@
             wrap.addEventListener("click", function () {
               document.querySelectorAll("#complementary-choices .choice-canvas-wrap").forEach(w => w.classList.remove("selected"));
               wrap.classList.add("selected");
+              const userOrigIndex = item.origIndex;
+              const isCorrect = idx === userCorrectShuffledIndex;
               complementaryConfusion.push({
                 pairLabel: pair.label,
                 options: pair.options.map(o => ({ h: o.h, s: o.s, v: o.v })),
-                correctIndex: pair.correctIndex,
-                userSelectedIndex: idx,
-                correct: idx === userCorrectShuffledIndex
+                correctOrigIndex: pair.correctIndex,
+                userSelectedShuffledIndex: idx,
+                userSelectedOrigIndex: userOrigIndex,
+                correct: isCorrect,
+                error_pattern: isCorrect ? null : {
+                  confused_what_with_what: {
+                    task: "보색_중_붉은_기운_최대_선택",
+                    pair_label: pair.label,
+                    correct_option: "origIndex_" + pair.correctIndex + "_가_정답(붉은_기운_최대)",
+                    user_chose: "origIndex_" + userOrigIndex,
+                    description: pair.label + " 쌍에서 정답(인덱스 " + pair.correctIndex + ") 대신 옵션 인덱스 " + userOrigIndex + " 선택"
+                  }
+                }
               });
               setTimeout(renderComplementary, 300);
             });
@@ -329,11 +346,25 @@
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           const color = (session.user_data && session.user_data.color_results) || {};
           const existing = color.color_confusion_matrix || {};
+          const compErrors = complementaryConfusion.filter(function (c) { return !c.correct; });
           existing.deepDiscrimination = {
             luminanceBoundary,
             complementaryConfusion,
             complementaryCorrectCount: complementaryConfusion.filter(c => c.correct).length,
             complementaryTotal: complementaryConfusion.length,
+            error_pattern: {
+              source: "deep_discrimination",
+              events: compErrors.map(function (c) {
+                return c.error_pattern || {
+                  confused_what_with_what: {
+                    task: "보색_중_붉은_기운_최대_선택",
+                    pair_label: c.pairLabel,
+                    correct_option: "origIndex_" + c.correctOrigIndex,
+                    user_chose: "origIndex_" + c.userSelectedOrigIndex
+                  }
+                };
+              })
+            },
             recordedAt: new Date().toISOString()
           };
           if (typeof GAStorage !== "undefined") {

@@ -24,7 +24,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 20px;
+        padding: 20px max(8px, env(safe-area-inset-left, 8px)) 20px max(8px, env(safe-area-inset-right, 8px));
       }
       header {
         position: absolute;
@@ -38,7 +38,7 @@
       }
       .aim-wrapper {
         width: 100%;
-        max-width: min(95vw, 1400px);
+        max-width: min(calc(100vw - 16px), 1920px);
         margin-top: 60px;
       }
       .aim-wrapper .info-panel-wrap {
@@ -47,7 +47,7 @@
       }
       .aim-instruction {
         margin: 0 auto 14px;
-        max-width: 640px;
+        max-width: min(900px, 100%);
         font-size: 15px;
         font-weight: 500;
         line-height: 1.55;
@@ -69,8 +69,8 @@
       }
       #game-area {
         width: 100%;
-        height: min(70vh, 700px);
-        min-height: 400px;
+        height: min(82vh, 960px);
+        min-height: 460px;
         background: #1a1a1a;
         border-radius: 16px;
         position: relative;
@@ -94,7 +94,7 @@
         border-radius: 16px;
         border: 1px solid rgba(51, 65, 85, 0.9);
         width: 100%;
-        max-width: min(95vw, 1400px);
+        max-width: min(calc(100vw - 16px), 1920px);
         display: none;
       }
       .result-item {
@@ -163,13 +163,59 @@
         let lastClickTime = 0;
         let failedClicks = 0;
         const TOTAL_TARGETS = 15;
+        const TARGET_WIDTH_PX = 40;
         const targetPositions = [];
 
-        function getRandomPosition() {
-          const padding = 30;
+        function computeFittsLawMetrics(positions, hitsWithTiming, targetWidthPx) {
+          const W = Math.max(1, targetWidthPx);
+          const trials = [];
+          for (let i = 1; i < positions.length && i < hitsWithTiming.length; i++) {
+            const p0 = positions[i - 1];
+            const p1 = positions[i];
+            const D = Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2));
+            const tRow = hitsWithTiming[i];
+            const mt = tRow && tRow.timeSinceLast;
+            if (mt == null || mt <= 0) continue;
+            const ID = Math.log2(D / W + 1);
+            const MTsec = mt / 1000;
+            const tp = MTsec > 0 ? ID / MTsec : null;
+            trials.push({
+              fromIndex: i - 1,
+              toIndex: i,
+              distancePx: Math.round(D * 100) / 100,
+              movementTimeMs: mt,
+              indexOfDifficulty: Math.round(ID * 1000) / 1000,
+              throughput_bps: tp != null ? Math.round(tp * 100) / 100 : null
+            });
+          }
+          if (trials.length === 0) return null;
+          const withTp = trials.filter(function (t) { return t.throughput_bps != null; });
+          const meanID = trials.reduce(function (a, b) { return a + b.indexOfDifficulty; }, 0) / trials.length;
+          const meanTp = withTp.length
+            ? withTp.reduce(function (a, b) { return a + b.throughput_bps; }, 0) / withTp.length
+            : null;
+          const sumID = trials.reduce(function (a, b) { return a + b.indexOfDifficulty; }, 0);
+          const sumMTsec = trials.reduce(function (a, b) { return a + b.movementTimeMs / 1000; }, 0);
           return {
-            x: padding + Math.random() * (gameArea.offsetWidth - padding * 2),
-            y: padding + Math.random() * (gameArea.offsetHeight - padding * 2)
+            formulation: "Shannon_ID_log2_D_over_W_plus_1",
+            targetWidthPx: W,
+            trials: trials,
+            meanIndexOfDifficulty: Math.round(meanID * 1000) / 1000,
+            meanThroughput_bps: meanTp != null ? Math.round(meanTp * 100) / 100 : null,
+            effectiveThroughput_bps: sumMTsec > 0 ? Math.round((sumID / sumMTsec) * 100) / 100 : null
+          };
+        }
+
+        function getRandomPosition() {
+          const TARGET_RADIUS = TARGET_WIDTH_PX / 2;
+          const margin = TARGET_RADIUS + 4;
+          const w = gameArea.clientWidth;
+          const h = gameArea.clientHeight;
+          const spanX = Math.max(0, w - margin * 2);
+          const spanY = Math.max(0, h - margin * 2);
+          return {
+            x: margin + Math.random() * spanX,
+            y: margin + Math.random() * spanY
           };
         }
 
@@ -201,7 +247,7 @@
           const targetX = parseFloat(target.style.left);
           const targetY = parseFloat(target.style.top);
           const dist = Math.sqrt(Math.pow(clickX - targetX, 2) + Math.pow(clickY - targetY, 2));
-          const TARGET_RADIUS = 20;
+          const TARGET_RADIUS = TARGET_WIDTH_PX / 2;
           if (dist <= TARGET_RADIUS) {
             const now = Date.now();
             const timeSinceLast = currentTarget === 0 ? 0 : now - lastClickTime;
@@ -254,6 +300,7 @@
           const totalTime = Date.now() - startTime;
           const intervals = targets.map(function (t) { return t.timeSinceLast; }).slice(1);
           const avgInterval = intervals.length > 0 ? intervals.reduce(function (a, b) { return a + b; }, 0) / intervals.length : 0;
+          const fittsLaw = computeFittsLawMetrics(targetPositions, targets, TARGET_WIDTH_PX);
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
           if (!session.user_data) session.user_data = {};
           const motor = session.user_data.motor_results || {};
@@ -263,6 +310,17 @@
             intervals: intervals,
             failedClicks: failedClicks,
             targets: targetPositions,
+            fittsLaw: fittsLaw,
+            error_pattern: failedClicks > 0 ? {
+              source: "motor_aim_trainer",
+              events: [{
+                confused_what_with_what: {
+                  intended: "현재_표적_원_내부_클릭",
+                  mistaken_as: "표적_외부_클릭_또는_오클릭",
+                  failed_click_count: failedClicks
+                }
+              }]
+            } : { source: "motor_aim_trainer", events: [] },
             recordedAt: new Date().toISOString()
           };
           if (typeof GAStorage !== "undefined") {

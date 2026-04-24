@@ -240,6 +240,58 @@
         row-gap: 2px;
       }
 
+      .field-label-row.field-label-row--tight {
+        align-items: center;
+        margin-bottom: 2px;
+        row-gap: 0;
+      }
+
+      .btn-restore-session {
+        flex-shrink: 0;
+        padding: 3px 11px;
+        min-height: 26px;
+        font-size: 11px;
+        font-weight: 650;
+        line-height: 1.2;
+        letter-spacing: 0.01em;
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(129, 140, 248, 0.55);
+        background: linear-gradient(180deg, rgba(67, 56, 202, 0.35), rgba(30, 27, 75, 0.92));
+        color: #e0e7ff;
+        cursor: pointer;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 2px 6px rgba(0, 0, 0, 0.35);
+        transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease,
+          transform 0.06s ease;
+      }
+
+      .btn-restore-session:hover {
+        border-color: rgba(165, 180, 252, 0.9);
+        background: linear-gradient(180deg, rgba(79, 70, 229, 0.45), rgba(49, 46, 129, 0.95));
+        color: #f5f5ff;
+      }
+
+      .btn-restore-session:focus-visible {
+        outline: none;
+        box-shadow: var(--shadow-focus);
+      }
+
+      .btn-restore-session:active {
+        transform: translateY(1px);
+      }
+
+      .field-hint-text {
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.5;
+        color: var(--text-muted);
+        margin: 0 0 8px;
+      }
+
+      .field-hint-text strong {
+        color: #c7d2fe;
+        font-weight: 650;
+      }
+
       label {
         font-size: 15px;
         font-weight: 600;
@@ -325,6 +377,93 @@
         border-color: rgba(129, 140, 248, 0.95);
         box-shadow: var(--shadow-focus);
         background: radial-gradient(circle at top, #020617 0, #020617 35%, #020617 100%);
+      }
+
+      select {
+        width: 100%;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-subtle);
+        background: radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%);
+        color: var(--text-main);
+        padding: 10px 36px 10px 12px;
+        font-size: 15px;
+        font-family: inherit;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease,
+          background 0.15s ease, transform 0.08s ease;
+      }
+
+      select:hover {
+        border-color: rgba(148, 163, 184, 0.95);
+        transform: translateY(-0.5px);
+      }
+
+      select:focus-visible {
+        border-color: rgba(129, 140, 248, 0.95);
+        box-shadow: var(--shadow-focus);
+        background: radial-gradient(circle at top, #020617 0, #020617 35%, #020617 100%);
+      }
+
+      select option {
+        background: #0f172a;
+        color: var(--text-main);
+      }
+
+      .viewing-distance-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .viewing-distance-slider {
+        flex: 0 1 200px;
+        max-width: 42%;
+        min-width: 120px;
+        accent-color: var(--accent);
+      }
+
+      .viewing-distance-input-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1 1 auto;
+        min-width: 7rem;
+      }
+
+      .viewing-distance-input-group input[type="number"] {
+        width: 4.75rem;
+        min-width: 0;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-subtle);
+        background: radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%);
+        color: var(--text-main);
+        padding: 8px 10px;
+        font-size: 15px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .viewing-distance-input-group input[type="number"]:hover {
+        border-color: rgba(148, 163, 184, 0.95);
+      }
+
+      .viewing-distance-input-group input[type="number"]:focus-visible {
+        border-color: rgba(129, 140, 248, 0.95);
+        box-shadow: var(--shadow-focus);
+      }
+
+      .viewing-distance-unit {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-muted);
+        flex-shrink: 0;
       }
 
       .error-text {
@@ -882,15 +1021,20 @@
                   </div>
 
                   <div>
-                    <div class="field-label-row">
+                    <div class="field-label-row field-label-row--tight">
                       <label for="user-id">
                         세션/참가자 ID
                         <span class="label-required">필수</span>
                       </label>
-                      <button type="button" class="btn-secondary" id="restore-session" style="padding: 4px 10px; font-size: 11px;">
+                      <button type="button" class="btn-restore-session" id="restore-session">
                         기존 작업 불러오기
                       </button>
                     </div>
+                    <p class="field-hint-text">
+                      처음 저장할 때 사용한 세션/참가자 ID를 입력한 뒤
+                      <strong>기존 작업 불러오기</strong>를 누르면, 이 브라우저에 저장된 입력과 측정
+                      진행 내역을 불러올 수 있습니다.
+                    </p>
                     <div class="input-shell">
                       <input
                         type="text"
@@ -933,18 +1077,31 @@
                         연령대
                         <span class="label-required">필수</span>
                       </label>
-                      <span class="label-helper">10대, 20대, 30대, 40대 이상 등</span>
                     </div>
                     <div class="input-shell">
-                      <input
-                        type="text"
+                      <select
                         id="age-range"
                         name="ageRange"
                         required
-                        autocomplete="off"
-                        placeholder="예: 20대 후반, 30대 초반"
                         aria-describedby="age-error"
-                      />
+                      >
+                        <option value="" disabled selected>
+                          본인의 연령을 선택해 주세요.
+                        </option>
+                        <option value="20대 초반">20대 초반</option>
+                        <option value="20대 중반">20대 중반</option>
+                        <option value="20대 후반">20대 후반</option>
+                        <option value="30대 초반">30대 초반</option>
+                        <option value="30대 중반">30대 중반</option>
+                        <option value="30대 후반">30대 후반</option>
+                        <option value="40대 초반">40대 초반</option>
+                        <option value="40대 중반">40대 중반</option>
+                        <option value="40대 후반">40대 후반</option>
+                        <option value="50대 초반">50대 초반</option>
+                        <option value="50대 중반">50대 중반</option>
+                        <option value="50대 후반">50대 후반</option>
+                        <option value="60대 이상">60대 이상</option>
+                      </select>
                     </div>
                     <p id="age-error" class="error-text" aria-live="polite"></p>
                   </div>
@@ -955,18 +1112,28 @@
                         정보 신뢰도
                         <span class="label-required">필수</span>
                       </label>
-                      <span class="label-helper">상: 직접 테스트, 중: 직접 관찰 데이터, 하: 크롤링 또는 간접 관찰 데이터</span>
                     </div>
+                    <p class="label-helper" id="reliability-helper">
+                      예: 상(본인 직접 테스트), 중(직접 관찰·인터뷰 후 대리 입력), 하(간접적으로 경험
+                      수집)
+                    </p>
                     <div class="input-shell">
-                      <input
-                        type="text"
+                      <select
                         id="reliability"
                         name="reliability"
                         required
-                        autocomplete="off"
-                        placeholder="예: 상, 중, 하"
-                        aria-describedby="reliability-error"
-                      />
+                        aria-describedby="reliability-error reliability-helper"
+                      >
+                        <option value="상" selected>
+                          상 : 본인이 직접 테스트에 참여하고 있음
+                        </option>
+                        <option value="중">
+                          중 : 테스트한 사람의 결과를 직접 관찰/인터뷰하여 대신 입력하고 있음
+                        </option>
+                        <option value="하">
+                          하 : 간접적으로 플레이 경험을 수집하여 입력하고 있음
+                        </option>
+                      </select>
                     </div>
                     <p
                       id="reliability-error"
@@ -1307,23 +1474,42 @@
                         시청 거리 (cm)
                       </label>
                       <span class="label-helper">
-                        유저와 모니터 사이 거리. 기본 60cm
+                        유저와 모니터 사이 거리(기본 60cm). 슬라이더가 불편하면 오른쪽 숫자란에 직접
+                        입력할 수 있습니다.
                       </span>
                     </div>
-                    <div class="input-shell" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="input-shell viewing-distance-row">
                       <input
                         type="range"
                         id="viewing-distance"
-                        name="viewingDistance"
                         min="30"
                         max="150"
                         step="5"
                         value="60"
-                        style="flex: 1; accent-color: var(--accent);"
-                        aria-describedby="viewing-distance-value"
+                        class="viewing-distance-slider"
+                        aria-describedby="viewing-distance-hint"
                       />
-                      <span id="viewing-distance-value" class="stat-value" style="min-width: 56px;" aria-live="polite">60 cm</span>
+                      <div class="viewing-distance-input-group">
+                        <label for="viewing-distance-input" class="screen-reader-only"
+                          >시청 거리(cm), 숫자로 직접 입력</label
+                        >
+                        <input
+                          type="number"
+                          id="viewing-distance-input"
+                          name="viewingDistance"
+                          min="30"
+                          max="150"
+                          step="5"
+                          value="60"
+                          inputmode="numeric"
+                          aria-describedby="viewing-distance-hint"
+                        />
+                        <span class="viewing-distance-unit" aria-hidden="true">cm</span>
+                      </div>
                     </div>
+                    <p id="viewing-distance-hint" class="label-helper" style="margin-top: 6px; margin-bottom: 0">
+                      30~150cm 범위이며 5cm 단위로 맞춰집니다.
+                    </p>
                   </div>
 
                   <div>
@@ -1386,7 +1572,9 @@
                         게임 내 FOV 설정
                       </label>
                       <span class="label-helper">
-                        게임 옵션에서 별도 시야각(FOV) 설정이 있는지 확인 후, 현재 값을 메모해주세요.
+                        시야각 장애나 멀미 때문에 플레이할 때마다 FOV를 조정하는 경우,
+                        <strong>해당 게임명과 함께</strong> 실제로 쓰고 있는 FOV 값(또는 기본·설정 없음)을
+                        적어 주세요. 그렇지 않다면 옵션 유무나 대략적인 값만 간단히 적어도 됩니다.
                       </span>
                     </div>
                     <div class="input-shell">
@@ -1395,7 +1583,7 @@
                         id="game-fov"
                         name="gameFov"
                         autocomplete="off"
-                        placeholder="예: FOV 90, 기본값(설정 없음) 등"
+                        placeholder="예: (게임명) FOV 95, 기본값 유지 등"
                         aria-describedby="game-fov-error"
                       />
                     </div>
@@ -1883,14 +2071,14 @@
                 "성별을 입력해주세요.";
               valid = false;
             }
-            if (!ageRange.value.trim()) {
+            if (!ageRange || !ageRange.value.trim()) {
               document.getElementById("age-error").textContent =
-                "연령대를 입력해주세요.";
+                "연령대를 선택해주세요.";
               valid = false;
             }
-            if (!reliability.value.trim()) {
+            if (!reliability || !reliability.value.trim()) {
               document.getElementById("reliability-error").textContent =
-                "정보 신뢰도를 상/중/하 등으로 입력해주세요.";
+                "정보 신뢰도를 선택해주세요.";
               valid = false;
             }
           } else if (step === 2) {
@@ -2050,14 +2238,43 @@
         form.addEventListener("input", () => {
           updateSummary();
         });
+        form.addEventListener("change", () => {
+          updateSummary();
+        });
 
-        const viewingDistanceEl = document.getElementById("viewing-distance");
-        if (viewingDistanceEl) {
-          viewingDistanceEl.addEventListener("input", function () {
-            const valEl = document.getElementById("viewing-distance-value");
-            if (valEl) valEl.textContent = this.value + " cm";
+        (function initViewingDistanceControls() {
+          const rangeEl = document.getElementById("viewing-distance");
+          const numEl = document.getElementById("viewing-distance-input");
+          if (!rangeEl || !numEl) return;
+
+          function snapCm(n) {
+            n = Math.min(150, Math.max(30, n));
+            return Math.round((n - 30) / 5) * 5 + 30;
+          }
+
+          function syncFromRange() {
+            const v = snapCm(parseInt(rangeEl.value, 10) || 60);
+            rangeEl.value = String(v);
+            numEl.value = String(v);
+          }
+
+          function syncFromNumber() {
+            const v = snapCm(parseInt(numEl.value, 10) || 60);
+            rangeEl.value = String(v);
+            numEl.value = String(v);
+          }
+
+          rangeEl.addEventListener("input", syncFromRange);
+          numEl.addEventListener("input", function () {
+            const raw = parseInt(numEl.value, 10);
+            if (!isNaN(raw)) {
+              const v = snapCm(raw);
+              rangeEl.value = String(v);
+            }
           });
-        }
+          numEl.addEventListener("change", syncFromNumber);
+          numEl.addEventListener("blur", syncFromNumber);
+        })();
 
         (function initGuidePopover() {
           const GUIDE_CONTENT = {
@@ -2201,10 +2418,15 @@
                 var ta = document.getElementById("disability-detail");
                 if (ta) ta.value = s.disabilityDetail;
               }
-              var vdEl = document.getElementById("viewing-distance");
-              if (vdEl) {
-                var vdValEl = document.getElementById("viewing-distance-value");
-                if (vdValEl) vdValEl.textContent = vdEl.value + " cm";
+              var vdRange = document.getElementById("viewing-distance");
+              var vdNum = document.getElementById("viewing-distance-input");
+              if (vdRange && vdNum) {
+                var vn = parseInt(String(vdRange.value).trim(), 10);
+                if (!isNaN(vn)) {
+                  vn = Math.min(150, Math.max(30, Math.round((vn - 30) / 5) * 5 + 30));
+                  vdRange.value = String(vn);
+                  vdNum.value = String(vn);
+                }
               }
               (document.getElementById("user-id-error") || {}).textContent = "";
               updateSummary();
