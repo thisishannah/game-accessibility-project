@@ -22,11 +22,10 @@ function normalizeGeminiModelName(name) {
 }
 
 /**
- * gemini-1.5-flash 등은 Generative Language API v1 엔드포인트에 항상 없을 수 있어,
- * SDK 기본(최신 안정)이 v1을 쓰는 환경에서는 404가 납니다. v1beta를 명시합니다.
- * @see RequestOptions.apiVersion in @google/generative-ai
+ * GA 안정 경로: Generative Language API v1.
+ * @see RequestOptions.apiVersion in @google/generative-ai ("v1" | "v1beta")
  */
-const GEMINI_REQUEST_OPTIONS = { apiVersion: "v1beta" };
+const GEMINI_REQUEST_OPTIONS = { apiVersion: "v1" };
 
 /**
  * @param {string} promptText
@@ -44,6 +43,7 @@ async function summaryGeminiGenerate(promptText, modelName, systemInstruction) {
   const genAI = new GoogleGenerativeAI(key);
   const SiText = typeof systemInstruction === "string" ? systemInstruction.trim() : "";
   const modelOpts = {
+    // id는 정확히 gemini-1.5-flash(기본). "models/..." 입력은 normalize에서 제거.
     model: normalizeGeminiModelName(modelName),
     generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
   };
