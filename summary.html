@@ -445,7 +445,7 @@
       </div>
     </div>
 
-    <script src="dist/summary-gemini-sdk.js?v=2"></script>
+    <script src="dist/summary-gemini-sdk.js?v=4"></script>
     <script src="ga-storage.js?v=3"></script>
     <script>
       (function () {
@@ -1586,8 +1586,8 @@
           return window.__summaryGeminiGenerate(promptText, GEMINI_MODEL, systemInstruction);
         }
 
-        /** 429·할당량 초과 시 대기 후 재시도 간격(ms) */
-        var GEMINI_QUOTA_RETRY_DELAY_MS = 30000;
+        /** 429·할당량 초과 시 재시도 전 대기 시간(ms) — 무료 티어 과다 호출 완화 */
+        var GEMINI_QUOTA_RETRY_DELAY_MS = 2000;
         /** 첫 요청 실패 후 추가 재시도 횟수 (예: 3이면 최대 4번 API 호출) */
         var GEMINI_QUOTA_MAX_RETRIES = 3;
 
@@ -1613,7 +1613,7 @@
         }
 
         /**
-         * 할당량(429) 등 일시 제한 시 안내 메시지 표시 → 30초 대기 → 자동 재시도.
+         * 할당량(429) 등 일시 제한 시 안내 메시지 표시 → 짧은 간격 대기 → 자동 재시도.
          */
         async function callGeminiGenerateContentWithQuotaRetry(promptText, statusEl) {
           var delayMs = GEMINI_QUOTA_RETRY_DELAY_MS;
