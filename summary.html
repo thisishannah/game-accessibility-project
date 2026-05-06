@@ -296,12 +296,9 @@
             <button type="button" class="btn-primary btn-primary-cta-large" id="btn-data-save-and-send">
               데이터 저장 및 전송하기
             </button>
-            <p class="text-xs text-muted" style="margin: 12px auto 0; max-width: 520px; line-height: 1.55;">
-              관찰자 코멘트·AI 분석 없이도 <strong>AR열(테스트 원본 JSON)</strong>과 요약 스칼라 열까지 시트로 전송됩니다. AS·AT는 빈 값·<code>pending</code>으로 기록됩니다.
-            </p>
-            <div class="primary-cta-subactions">
-              <button type="button" class="btn-secondary" id="btn-user-json-backup" aria-label="JSON 파일로 세션 백업 다운로드">
-                JSON 백업 받기
+            <div class="primary-cta-subactions" style="margin-top: 16px;">
+              <button type="button" class="btn-secondary" id="btn-user-json-backup" aria-label="지금 보고 있는 측정 결과 전체를 파일로 내려받기">
+                내 컴퓨터에 결과 저장하기
               </button>
             </div>
             <p id="primary-save-status" class="sheets-status" style="margin-top: 14px;" role="status"></p>
@@ -355,27 +352,16 @@
               <strong>전문가 시트 전송</strong> 시 AS열에 기록됩니다. 기본 「데이터 저장 및 전송하기」만 쓰면 비워 둘 수 있습니다.
             </p>
 
-            <div class="gemini-key-row" style="margin-top: 16px;">
-              <p class="text-xs text-muted" style="margin:0 0 8px; line-height:1.5;">
-                <strong>권장:</strong> 프로젝트 루트에서 <code>npm start</code> 후 이 페이지를 열면, <code>.env</code>의 키로
-                <code>/api/gemini</code> 프록시가 동작합니다(키가 브라우저에 노출되지 않음).
+            <div class="gemini-sdk-info" style="margin-top: 16px; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.35); background: rgba(15, 23, 42, 0.6);">
+              <p class="text-xs text-muted" style="margin: 0; line-height: 1.55;">
+                AI 분석은 브라우저에서 <strong>Google 공식 SDK</strong>(<code>@google/generative-ai</code>)로 호출합니다.
+                프로젝트 루트 <code>.env</code>에 <code>NEXT_PUBLIC_GEMINI_API_KEY</code>를 넣은 뒤 터미널에서
+                <code>npm install</code> · <code>npm run build:summary-gemini</code>를 실행하면
+                <code>dist/summary-gemini-sdk.js</code>가 생성됩니다. 이 파일에는 키가 포함되므로 Git에는 올리지 마세요.
               </p>
-              <label for="gemini-api-key" class="text-sm" style="display:block; margin-bottom:6px; font-weight:600;">API 키 직접 입력 (선택)</label>
-              <input
-                type="password"
-                id="gemini-api-key"
-                class="summary-api-key-input"
-                autocomplete="off"
-                placeholder="프록시 실패 시에만 입력 (Google AI Studio)"
-                aria-describedby="gemini-key-hint"
-              />
-              <p id="gemini-key-hint" class="text-xs text-muted" style="margin-top:6px;">
-                로컬 서버 없이 파일만 연 경우에만 사용합니다. 입력값은 Gemini API로만 전송됩니다.
+              <p class="text-xs text-muted" style="margin: 10px 0 0; line-height: 1.55;">
+                같은 폴더의 <strong><code>instructions.txt</code></strong>는 분석 요청 시 Gemini <strong>System Instruction</strong>으로 자동 불러와 적용됩니다. 진단 기준을 바꾼 뒤에는 페이지를 새로고침하면 다시 로드됩니다.
               </p>
-              <label class="text-xs text-muted" style="display:flex; align-items:center; gap:8px; margin-top:8px; cursor:pointer;">
-                <input type="checkbox" id="gemini-remember-key" />
-                폴백용 키를 이 브라우저에 임시 저장
-              </label>
             </div>
 
             <div id="ai-insight-result-wrap" style="margin-top: 20px; display: none;" aria-live="polite">
@@ -446,19 +432,20 @@
       </div>
     </main>
 
-    <!-- Sticky Footer: 주 액션 + JSON 백업 -->
+    <!-- Sticky Footer: 주 액션 + 보조 저장 -->
     <div class="sticky-footer" id="sticky-footer">
       <p id="validation-msg" class="validation-error" style="display:none;"></p>
       <div class="sticky-footer-actions">
         <button type="button" class="btn-primary btn-sticky-primary" id="sticky-btn-data-send">
           데이터 저장 및 전송하기
         </button>
-        <button type="button" class="btn-secondary" id="final-submit">
-          JSON 백업
+        <button type="button" class="btn-secondary" id="final-submit" aria-label="지금 보고 있는 측정 결과 전체를 파일로 내려받기">
+          내 컴퓨터에 저장
         </button>
       </div>
     </div>
 
+    <script src="dist/summary-gemini-sdk.js?v=1"></script>
     <script src="ga-storage.js?v=3"></script>
     <script>
       (function () {
@@ -479,10 +466,30 @@
         const GEMINI_MODEL = "gemini-2.0-flash";
         const PENDING_SHEET_STORAGE_KEY = "ga_pending_sheet_export_v1";
         const PRESHEET_BACKUP_KEY = "ga_presheet_backup_v1";
-        const GEMINI_KEY_STORAGE = "ga_gemini_api_key_optional";
+
+        /** AI 분석 본문(화면 상태). 응답 수신 직후 갱신되어 즉시 렌더링됩니다. */
+        var aiResult = "";
 
         function readSession() {
           return (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+        }
+
+        /** aiResult 갱신 + AI 분석 영역 즉시 반영 */
+        function applyAiResultToView(text) {
+          aiResult = text != null ? String(text) : "";
+          var trimmed = aiResult.trim();
+          var aiWrap = document.getElementById("ai-insight-result-wrap");
+          var aiResultEl = document.getElementById("ai-insight-result");
+          var aiPh = document.getElementById("ai-insight-placeholder");
+          if (trimmed) {
+            if (aiWrap) aiWrap.style.display = "block";
+            if (aiResultEl) aiResultEl.textContent = aiResult;
+            if (aiPh) aiPh.style.display = "none";
+          } else {
+            if (aiWrap) aiWrap.style.display = "none";
+            if (aiResultEl) aiResultEl.textContent = "";
+            if (aiPh) aiPh.style.display = "block";
+          }
         }
 
         function escapeHtml(str) {
@@ -1411,17 +1418,10 @@
           if (taComment && session.observer_report && session.observer_report.summary_page_observer_comment) {
             taComment.value = session.observer_report.summary_page_observer_comment;
           }
-          const aiWrap = document.getElementById("ai-insight-result-wrap");
-          const aiResultEl = document.getElementById("ai-insight-result");
-          const aiPh = document.getElementById("ai-insight-placeholder");
           if (session.ai_accessibility_report && session.ai_accessibility_report.fullText) {
-            if (aiWrap) aiWrap.style.display = "block";
-            if (aiResultEl) aiResultEl.textContent = session.ai_accessibility_report.fullText;
-            if (aiPh) aiPh.style.display = "none";
+            applyAiResultToView(session.ai_accessibility_report.fullText);
           } else {
-            if (aiWrap) aiWrap.style.display = "none";
-            if (aiResultEl) aiResultEl.textContent = "";
-            if (aiPh) aiPh.style.display = "block";
+            applyAiResultToView("");
           }
 
           const id = session.userId || session.id || "-";
@@ -1573,66 +1573,55 @@
         }
 
         /**
-         * 1) 동일 출처 /api/gemini 프록시(.env 키) 우선
-         * 2) 실패 시 선택 입력한 API 키로 브라우저에서 직접 호출(폴백)
+         * @google/generative-ai — 빌드된 dist/summary-gemini-sdk.js 의 window.__summaryGeminiGenerate 사용
+         * systemInstruction: 프로젝트 루트 instructions.txt 내용
          */
-        async function callGeminiGenerateContent(promptText, apiKeyOptional) {
-          var proxyRes = null;
-          try {
-            proxyRes = await fetch("/api/gemini", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ prompt: promptText, model: GEMINI_MODEL })
-            });
-          } catch (e) {
-            proxyRes = null;
-          }
-          if (proxyRes && proxyRes.ok) {
-            var proxyData = await proxyRes.json().catch(function () {
-              return {};
-            });
-            if (proxyData.text && String(proxyData.text).trim()) return String(proxyData.text);
-            if (proxyData.error) throw new Error(String(proxyData.error));
-          }
-          if (proxyRes && !proxyRes.ok) {
-            var errBody = await proxyRes.json().catch(function () {
-              return {};
-            });
-            var errMsg = errBody.error || proxyRes.status + " " + proxyRes.statusText;
-            var key = (apiKeyOptional || "").trim();
-            if (!key) throw new Error("로컬 프록시 오류: " + errMsg + " — `npm start`와 .env 키를 확인하거나, 아래에 API 키를 입력하세요.");
-          }
-
-          var apiKey = (apiKeyOptional || "").trim();
-          if (!apiKey) {
+        async function callGeminiGenerateContent(promptText) {
+          if (typeof window.__summaryGeminiGenerate !== "function") {
             throw new Error(
-              "Gemini 호출에 실패했습니다. 터미널에서 `npm start` 후 http://localhost:8080/summary.html 로 열었는지 확인하거나, 아래에 API 키를 입력하세요."
+              "Gemini SDK를 불러오지 못했습니다. 프로젝트 루트에서 npm install 후 npm run build:summary-gemini 를 실행하고 dist/summary-gemini-sdk.js 가 있는지 확인하세요."
             );
           }
-          var url =
-            "https://generativelanguage.googleapis.com/v1beta/models/" +
-            encodeURIComponent(GEMINI_MODEL) +
-            ":generateContent?key=" +
-            encodeURIComponent(apiKey);
-          var res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: promptText }] }],
-              generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
-            })
-          });
-          var data = await res.json().catch(function () {
-            return {};
-          });
-          if (!res.ok) {
-            var msg = (data.error && data.error.message) || res.status + " " + res.statusText;
-            throw new Error(msg || "Gemini API 요청 실패");
+          var systemInstruction = await loadProjectInstructions();
+          return window.__summaryGeminiGenerate(promptText, GEMINI_MODEL, systemInstruction);
+        }
+
+        /** 프로젝트 루트 instructions.txt (Gemini System Instruction). same-origin fetch, 결과 캐시 */
+        var _projectInstructionsCache = null;
+        var _projectInstructionsPromise = null;
+
+        async function loadProjectInstructions() {
+          if (_projectInstructionsCache !== null) {
+            return _projectInstructionsCache;
           }
-          var parts = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
-          var text = parts ? parts.map(function (p) { return p.text || ""; }).join("") : "";
-          if (!text.trim()) throw new Error("Gemini 응답에 본문이 없습니다.");
-          return text;
+          if (_projectInstructionsPromise) {
+            return _projectInstructionsPromise;
+          }
+          var url = new URL("instructions.txt", window.location.href).toString();
+          _projectInstructionsPromise = fetch(url, { cache: "no-store" })
+            .then(function (res) {
+              if (!res.ok) {
+                throw new Error("instructions.txt HTTP " + res.status);
+              }
+              return res.text();
+            })
+            .then(function (text) {
+              var trimmed = text != null ? String(text).trim() : "";
+              _projectInstructionsCache = trimmed;
+              return trimmed;
+            })
+            .catch(function (err) {
+              console.warn("instructions.txt 로드 실패 — System Instruction 없이 진행합니다.", err);
+              _projectInstructionsCache = "";
+              return "";
+            });
+          return _projectInstructionsPromise;
+        }
+
+        /** 캐시 초기화(재로딩 필요 시 테스트용) */
+        function clearProjectInstructionsCache() {
+          _projectInstructionsCache = null;
+          _projectInstructionsPromise = null;
         }
 
         const DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxpzl0a9g-zJJ_vH0MghogtE6DNts036TudVKGzIETHjeek4z2WycCZL_Gj35j6qwsE/exec";
@@ -1690,7 +1679,7 @@
           } catch (e) {}
           alert("전송 시도 완료");
           if (statusEl) {
-            statusEl.textContent = "요청이 전송되었습니다(AR·AS·AT 형식). AS는 비어 있고 AT는 pending입니다.";
+            statusEl.textContent = "전송 요청을 보냈습니다. 기록이 반영되는 데 잠시 걸릴 수 있습니다.";
             statusEl.style.color = "#86efac";
           }
           if (triggerBtn) {
@@ -1867,23 +1856,8 @@
 
         function init() {
           const session = readSession();
-          const gk = document.getElementById("gemini-api-key");
-          const rem = document.getElementById("gemini-remember-key");
-          if (gk) {
-            try {
-              var stored = localStorage.getItem(GEMINI_KEY_STORAGE);
-              if (stored) {
-                gk.value = stored;
-                if (rem) rem.checked = true;
-              }
-            } catch (e) {}
-          }
-          var taObs = document.getElementById("summary-observer-comment");
-          var prev = session.observer_report && session.observer_report.summary_page_observer_comment;
-          if (taObs && prev && !String(taObs.value || "").trim()) {
-            taObs.value = String(prev);
-          }
           render(session);
+          loadProjectInstructions();
         }
 
         const AI_ANALYZE_BTN_DEFAULT = "AI 분석 시작";
@@ -1935,7 +1909,6 @@
               alert("file:// 환경에서는 Gemini·시트 전송이 동작하지 않을 수 있습니다. localhost로 열어 주세요.");
               return;
             }
-            const apiKeyFallback = (document.getElementById("gemini-api-key") && document.getElementById("gemini-api-key").value.trim()) || "";
             var collected = collectResultsForAiAnalysis();
             var session = collected.session;
             var observerComment = collected.observerComment;
@@ -1945,12 +1918,6 @@
               return;
             }
 
-            const remember = document.getElementById("gemini-remember-key") && document.getElementById("gemini-remember-key").checked;
-            try {
-              if (remember) localStorage.setItem(GEMINI_KEY_STORAGE, apiKeyFallback);
-              else localStorage.removeItem(GEMINI_KEY_STORAGE);
-            } catch (e) {}
-
             setAiAnalyzeButtonLoading(true, "gemini");
             if (aiSaveStatusEl) {
               aiSaveStatusEl.textContent = "";
@@ -1958,8 +1925,9 @@
             }
 
             const promptText = buildGeminiAccessibilityPrompt(session, observerComment);
-            callGeminiGenerateContent(promptText, apiKeyFallback)
+            callGeminiGenerateContent(promptText)
               .then(function (reportText) {
+                applyAiResultToView(reportText);
                 const aiMeta = {
                   fullText: reportText,
                   model: GEMINI_MODEL,
@@ -1981,12 +1949,6 @@
                   sheetAiAnalysis: reportText
                 });
 
-                const aiWrap = document.getElementById("ai-insight-result-wrap");
-                const aiResultEl = document.getElementById("ai-insight-result");
-                const aiPh = document.getElementById("ai-insight-placeholder");
-                if (aiWrap) aiWrap.style.display = "block";
-                if (aiResultEl) aiResultEl.textContent = reportText;
-                if (aiPh) aiPh.style.display = "none";
                 document.getElementById("json-preview").textContent = JSON.stringify(sessionAfter, null, 2);
 
                 setAiAnalyzeButtonLoading(true, "sheet");
