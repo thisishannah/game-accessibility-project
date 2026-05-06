@@ -865,7 +865,7 @@
       </div>
     </main>
 
-    <script src="ga-storage.js?v=2"></script>
+    <script src="ga-storage.js?v=3"></script>
     <script>
       (function () {
         const userSummaryEl = document.getElementById("user-summary");
@@ -1109,6 +1109,9 @@
         }
 
         const session = readSession();
+        if (typeof GAStorage !== "undefined" && GAStorage.syncHubProgressFromUserData) {
+          GAStorage.syncHubProgressFromUserData(session);
+        }
         const primaryKeys = updateUserSummary(session);
         const completion = updateProgressUI();
         updateCompletion(primaryKeys, completion);

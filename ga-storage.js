@@ -23,13 +23,98 @@
     } catch (e) {}
   }
 
+  function recordedAtMs(obj) {
+    if (!obj || typeof obj !== "object") return 0;
+    var t = obj.recordedAt;
+    if (t) {
+      var ms = Date.parse(t);
+      return isNaN(ms) ? 0 : ms;
+    }
+    return 0;
+  }
+
+  /** 동일 카테고리 내 한 항목(테스트 결과)끼리 더 최신·더 완전한 쪽 선택 */
+  function pickRicherResult(va, vb) {
+    if (va == null || va === undefined) return vb;
+    if (vb == null || vb === undefined) return va;
+    if (Array.isArray(va) && Array.isArray(vb)) {
+      if (vb.length !== va.length) return vb.length > va.length ? vb : va;
+      return vb;
+    }
+    if (typeof va !== "object" || typeof vb !== "object") return vb;
+    var tb = recordedAtMs(vb);
+    var ta = recordedAtMs(va);
+    if (tb > ta) return vb;
+    if (ta > tb) return va;
+    try {
+      return JSON.stringify(vb).length > JSON.stringify(va).length ? vb : va;
+    } catch (e) {
+      return vb;
+    }
+  }
+
+  function mergeCategoryObjects(a, b) {
+    a = a && typeof a === "object" ? a : {};
+    b = b && typeof b === "object" ? b : {};
+    var keys = {};
+    Object.keys(a).forEach(function (k) {
+      keys[k] = true;
+    });
+    Object.keys(b).forEach(function (k) {
+      keys[k] = true;
+    });
+    var out = {};
+    Object.keys(keys).forEach(function (k) {
+      out[k] = pickRicherResult(a[k], b[k]);
+    });
+    return out;
+  }
+
+  /** localStorage·sessionStorage 각각의 user_data를 합쳐 유실 방지 */
+  function mergeUserDataDeep(udL, udR) {
+    var cats = [
+      "vision_results",
+      "motor_results",
+      "cognitive_results",
+      "hearing_results",
+      "color_results",
+      "audio_results"
+    ];
+    var out = {};
+    cats.forEach(function (cat) {
+      out[cat] = mergeCategoryObjects(
+        udL && udL[cat],
+        udR && udR[cat]
+      );
+    });
+    return out;
+  }
+
+  /**
+   * sessionStorage가 오래된 탭 스냅샷일 수 있어, localStorage와 병합합니다.
+   * 프로필 필드는 localStorage 쪽이 덮어쓰도록 해 영구 저장본을 우선합니다.
+   */
+  function mergeTwoStoredSessions(ssVal, lsVal) {
+    if (!ssVal && !lsVal) return null;
+    if (!ssVal) return lsVal;
+    if (!lsVal) return ssVal;
+    var profile = Object.assign({}, ssVal, lsVal);
+    profile.user_data = mergeUserDataDeep(ssVal.user_data, lsVal.user_data);
+    return profile;
+  }
+
   function readSession() {
     var s = safeGet(sessionStorage, SESSION_KEY);
-    if (s) return s;
     var l = safeGet(localStorage, SESSION_KEY);
-    if (l) {
-      safeSet(sessionStorage, SESSION_KEY, l);
-      return l;
+    var merged = mergeTwoStoredSessions(s, l);
+    if (merged && typeof merged === "object" && Object.keys(merged).length > 0) {
+      safeSet(sessionStorage, SESSION_KEY, merged);
+      safeSet(localStorage, SESSION_KEY, merged);
+      var id = merged.userId || merged.id;
+      if (id) {
+        safeSet(localStorage, SESSION_BY_ID_PREFIX + id, merged);
+      }
+      return merged;
     }
     var u = safeGet(sessionStorage, "user_data");
     if (u && typeof u === "object" && Object.keys(u).length > 0) return u;
@@ -158,6 +243,107 @@
     });
   }
 
+  /** hub.html 진행률 바와 동일한 완료 판정 (user_data 기준, *_hub.html와 맞춤) */
+  function countVisualTestsDone(ud) {
+    var v = (ud && ud.vision_results) || {};
+    var n = 0;
+    if (v.reactionTime && v.reactionTime.trials && v.reactionTime.trials.length >= 4) n++;
+    if (v.fontReadability && v.fontReadability.minFontSize) n++;
+    if (v.aimTrainer && v.aimTrainer.targets && v.aimTrainer.targets.length >= 15) n++;
+    if (Array.isArray(v.fovResults) && v.fovResults.length > 0) n++;
+    else if (v.fovResults && typeof v.fovResults === "object" && Object.keys(v.fovResults).length > 0) n++;
+    if (v.contrastSensitivity && v.contrastSensitivity.contrast_threshold != null) n++;
+    return n;
+  }
+
+  function countMotorTestsDone(ud) {
+    var m = (ud && ud.motor_results) || {};
+    var n = 0;
+    if (m.reactionTime && m.reactionTime.trials && m.reactionTime.trials.length >= 4) n++;
+    if (m.aimTrainer && m.aimTrainer.targets && m.aimTrainer.targets.length >= 15) n++;
+    if (m.holdDuration && m.holdDuration.keyboard && m.holdDuration.mouse) n++;
+    if (m.simultaneousInput && m.simultaneousInput.maxKeys !== undefined) n++;
+    if (m.precision && m.precision.averageError !== undefined) n++;
+    if (m.burstSpeed && m.burstSpeed.keyboard && m.burstSpeed.mouse) n++;
+    if (m.fatigue && m.fatigue.fatigueIndex !== undefined) n++;
+    if (m.switching_latency && m.switching_latency.trials && m.switching_latency.trials.length >= 8) n++;
+    return n;
+  }
+
+  function countAudioTestsDone(ud) {
+    var h = (ud && ud.hearing_results) || {};
+    var n = 0;
+    if (h.reactionTime && h.reactionTime.trials && h.reactionTime.trials.length >= 4) n++;
+    if (Boolean(h.hearingInputSaved && h.source) && typeof h.overallDb === "number" && !isNaN(h.overallDb)) n++;
+    if (h.speechClarityTest && h.speechClarityPercent != null) n++;
+    if (h.articulationTest && h.articulationTest.matchRate != null) n++;
+    return n;
+  }
+
+  function countColorTestsDone(ud) {
+    var c = (ud && ud.color_results) || {};
+    var cm = c.color_confusion_matrix || {};
+    var n = 0;
+    if (c.reactionTime && c.reactionTime.trials && c.reactionTime.trials.length >= 4) n++;
+    if (cm.ishihara && (cm.ishihara.classification != null || (cm.ishihara.plateResults && cm.ishihara.plateResults.length > 0))) n++;
+    if (cm.deepDiscrimination && (cm.deepDiscrimination.luminanceBoundary != null || cm.deepDiscrimination.complementaryConfusion != null)) n++;
+    return n;
+  }
+
+  function countCognitiveTestsDone(ud) {
+    var c = (ud && ud.cognitive_results) || {};
+    var n = 0;
+    if (c.reactionTime && c.reactionTime.trials && c.reactionTime.trials.length >= 4) n++;
+    if (c.sequenceMemory && c.sequenceMemory.averageReactionTime !== undefined) n++;
+    if (c.goNoGo && c.goNoGo.successRate !== undefined) n++;
+    if (c.dividedAttention && c.dividedAttention.averageReactionTime !== undefined) n++;
+    if (c.readingSpeed && c.readingSpeed.successRate !== undefined) n++;
+    return n;
+  }
+
+  /**
+   * 메인 허브는 ga_progress_* 캐시만 보면 실제 측정값(user_data)과 어긋날 수 있음.
+   * 허브 진입 시 user_data로 진척도를 다시 맞춥니다.
+   */
+  function syncHubProgressFromUserData(session) {
+    var ud = (session && session.user_data) || {};
+    var v = countVisualTestsDone(ud);
+    writeProgress("visual", {
+      label: "시야각 측정 포함 총 5개 테스트",
+      current: v,
+      total: 5,
+      completedAt: v >= 5 ? new Date().toISOString() : undefined
+    });
+    var mo = countMotorTestsDone(ud);
+    writeProgress("motor", {
+      label: "에임 트레이너 포함 총 8개 테스트",
+      current: mo,
+      total: 8,
+      completedAt: mo >= 8 ? new Date().toISOString() : undefined
+    });
+    var a = countAudioTestsDone(ud);
+    writeProgress("audio", {
+      label: "언어 명료도 포함 총 4개 테스트",
+      current: a,
+      total: 4,
+      completedAt: a >= 4 ? new Date().toISOString() : undefined
+    });
+    var co = countColorTestsDone(ud);
+    writeProgress("color", {
+      label: "색약 검사 포함 총 3개 테스트",
+      current: co,
+      total: 3,
+      completedAt: co >= 3 ? new Date().toISOString() : undefined
+    });
+    var cg = countCognitiveTestsDone(ud);
+    writeProgress("cognitive", {
+      label: "순서 기억 포함 총 5개 테스트",
+      current: cg,
+      total: 5,
+      completedAt: cg >= 5 ? new Date().toISOString() : undefined
+    });
+  }
+
   global.GAStorage = {
     readSession: readSession,
     writeSession: writeSession,
@@ -169,5 +355,6 @@
     writeDraftVision: writeDraftVision,
     clearDraftVision: clearDraftVision,
     clearAllProgress: clearAllProgress,
+    syncHubProgressFromUserData: syncHubProgressFromUserData
   };
 })(typeof window !== "undefined" ? window : this);

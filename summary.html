@@ -97,6 +97,97 @@
         animation: ai-spin 0.7s linear infinite;
         flex-shrink: 0;
       }
+      /* 사용자 요약 + 주요 CTA */
+      .user-result-summary {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg, 20px);
+      }
+      .user-primary-cta-wrap {
+        margin-top: 8px;
+        margin-bottom: 8px;
+        padding: 24px 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(129, 140, 248, 0.35);
+        background: rgba(15, 23, 42, 0.55);
+        text-align: center;
+      }
+      .btn-primary-cta-large {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+        padding: 14px 28px;
+        font-size: 1.08rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        box-shadow: 0 8px 28px rgba(99, 102, 241, 0.35);
+      }
+      .primary-cta-subactions {
+        margin-top: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+      }
+      .expert-teaser-wrap {
+        margin: 28px 0 16px;
+        text-align: center;
+      }
+      .btn-expert-reveal {
+        background: transparent;
+        border: none;
+        color: var(--neon-blue, #93c5fd);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 8px;
+      }
+      .btn-expert-reveal:hover {
+        background: rgba(99, 102, 241, 0.12);
+      }
+      .btn-expert-reveal:focus-visible {
+        outline: 2px solid rgba(129, 140, 248, 0.9);
+        outline-offset: 2px;
+      }
+      .expert-panel {
+        margin-top: 8px;
+        padding: 20px 18px 24px;
+        border-radius: 14px;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        background: rgba(30, 27, 20, 0.55);
+        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.5);
+      }
+      .expert-panel .expert-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #fcd34d;
+        margin-bottom: 12px;
+      }
+      .sticky-footer-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 560px;
+      }
+      .btn-sticky-primary {
+        flex: 1 1 260px;
+        min-height: 48px;
+        font-weight: 700;
+        font-size: 1rem;
+      }
     </style>
   </head>
   <body class="summary-report">
@@ -116,97 +207,141 @@
           <div class="header-meta" id="user-summary">세션 정보 로딩 중...</div>
         </header>
 
-        <!-- 1. 상단: User Profile & System Spec -->
-        <section class="panel" aria-label="사용자 프로필 및 시스템 스펙">
-          <div class="section-title" style="margin-bottom: 16px; color: var(--neon-blue);">
-            User Profile & System Spec
-          </div>
-          <div class="profile-card" id="profile-card"></div>
-        </section>
+        <div class="user-result-summary">
+          <!-- 기본 요약: 사용자 정보 -->
+          <section class="panel" aria-label="사용자 정보">
+            <div class="section-title" style="margin-bottom: 16px; color: var(--neon-blue);">
+              사용자 정보
+            </div>
+            <p class="text-xs text-muted" style="margin: -8px 0 12px; line-height: 1.5;">
+              프로필·환경 설정 요약입니다.
+            </p>
+            <div class="profile-card" id="profile-card"></div>
+          </section>
 
-        <!-- 2. 중단: Diagnostic Data 2x2 그리드 -->
-        <section class="panel" aria-label="진단 데이터">
-          <div class="section-title" style="margin-bottom: 16px; color: var(--neon-blue);">
-            Diagnostic Data
-          </div>
-          <div class="diagnostic-grid">
-            <div class="diag-card" id="diag-vision">
-              <div class="diag-card-header">
-                <span class="diag-card-title">시각</span>
-                <span class="badge" id="vision-badge">—</span>
-              </div>
-              <div class="diag-card-body">
-                <div class="fov-canvas-wrap" id="fov-canvas-wrap">
-                  <canvas id="fov-canvas" style="max-width:100%; max-height:100%;" role="img" aria-label="시야각(FOV) 9포인트 측정 결과 시각화"></canvas>
-                  <div id="fov-placeholder" class="ai-insight-placeholder" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; margin:0;">
-                    FOV 데이터 없음
-                  </div>
+          <!-- 기본 요약: 테스트 결과 전체 -->
+          <section class="panel" aria-label="테스트 결과 전체 요약">
+            <div class="section-title" style="margin-bottom: 16px; color: var(--neon-blue);">
+              테스트 결과 전체 요약
+            </div>
+            <p class="text-xs text-muted" style="margin: -8px 0 12px; line-height: 1.5;">
+              카테고리별 진단 카드입니다. 아래 버튼으로 측정 데이터(AR열 포함)를 시트에 보낼 수 있습니다.
+            </p>
+            <div class="diagnostic-grid">
+              <div class="diag-card" id="diag-vision">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">시각</span>
+                  <span class="badge" id="vision-badge">—</span>
                 </div>
-                <div id="vision-stats" style="margin-top: 12px;"></div>
-              </div>
-            </div>
-
-            <div class="diag-card" id="diag-motor">
-              <div class="diag-card-header">
-                <span class="diag-card-title">운동</span>
-                <span class="badge" id="motor-badge">—</span>
-              </div>
-              <div class="diag-card-body">
-                <div class="gauge-wrap" id="motor-gauge-wrap">
-                  <div class="gauge-ring" id="motor-gauge-ring" style="--gauge-percent: 0;">
-                    <div class="gauge-inner" id="motor-gauge-value">—</div>
+                <div class="diag-card-body">
+                  <div class="fov-canvas-wrap" id="fov-canvas-wrap">
+                    <canvas id="fov-canvas" style="max-width:100%; max-height:100%;" role="img" aria-label="시야각(FOV) 9포인트 측정 결과 시각화"></canvas>
+                    <div id="fov-placeholder" class="ai-insight-placeholder" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; margin:0;">
+                      FOV 데이터 없음
+                    </div>
                   </div>
-                  <span style="font-size: 11px; color: var(--text-muted);">반응속도 대비 에임 효율</span>
+                  <div id="vision-stats" style="margin-top: 12px;"></div>
                 </div>
-                <div id="motor-stats" style="margin-top: 12px;"></div>
               </div>
-            </div>
 
-            <div class="diag-card" id="diag-cognitive">
-              <div class="diag-card-header">
-                <span class="diag-card-title">인지</span>
-                <span class="badge" id="cognitive-badge">—</span>
+              <div class="diag-card" id="diag-motor">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">운동</span>
+                  <span class="badge" id="motor-badge">—</span>
+                </div>
+                <div class="diag-card-body">
+                  <div class="gauge-wrap" id="motor-gauge-wrap">
+                    <div class="gauge-ring" id="motor-gauge-ring" style="--gauge-percent: 0;">
+                      <div class="gauge-inner" id="motor-gauge-value">—</div>
+                    </div>
+                    <span style="font-size: 11px; color: var(--text-muted);">반응속도 대비 에임 효율</span>
+                  </div>
+                  <div id="motor-stats" style="margin-top: 12px;"></div>
+                </div>
               </div>
-              <div class="diag-card-body" id="cognitive-body">
-                <div id="cognitive-stats"></div>
-              </div>
-            </div>
 
-            <div class="diag-card" id="diag-hearing">
-              <div class="diag-card-header">
-                <span class="diag-card-title">청각언어</span>
-                <span class="badge" id="hearing-badge">—</span>
+              <div class="diag-card" id="diag-cognitive">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">인지</span>
+                  <span class="badge" id="cognitive-badge">—</span>
+                </div>
+                <div class="diag-card-body" id="cognitive-body">
+                  <div id="cognitive-stats"></div>
+                </div>
               </div>
-              <div class="diag-card-body" id="hearing-body">
-                <div id="hearing-stats"></div>
-              </div>
-            </div>
 
-            <div class="diag-card" id="diag-color">
-              <div class="diag-card-header">
-                <span class="diag-card-title">색각/색채</span>
-                <span class="badge" id="color-badge">—</span>
+              <div class="diag-card" id="diag-hearing">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">청각언어</span>
+                  <span class="badge" id="hearing-badge">—</span>
+                </div>
+                <div class="diag-card-body" id="hearing-body">
+                  <div id="hearing-stats"></div>
+                </div>
               </div>
-              <div class="diag-card-body" id="color-body">
-                <div id="color-stats"></div>
+
+              <div class="diag-card" id="diag-color">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">색각/색채</span>
+                  <span class="badge" id="color-badge">—</span>
+                </div>
+                <div class="diag-card-body" id="color-body">
+                  <div id="color-stats"></div>
+                </div>
               </div>
             </div>
+          </section>
+
+          <div class="user-primary-cta-wrap">
+            <button type="button" class="btn-primary btn-primary-cta-large" id="btn-data-save-and-send">
+              데이터 저장 및 전송하기
+            </button>
+            <p class="text-xs text-muted" style="margin: 12px auto 0; max-width: 520px; line-height: 1.55;">
+              관찰자 코멘트·AI 분석 없이도 <strong>AR열(테스트 원본 JSON)</strong>과 요약 스칼라 열까지 시트로 전송됩니다. AS·AT는 빈 값·<code>pending</code>으로 기록됩니다.
+            </p>
+            <div class="primary-cta-subactions">
+              <button type="button" class="btn-secondary" id="btn-user-json-backup" aria-label="JSON 파일로 세션 백업 다운로드">
+                JSON 백업 받기
+              </button>
+            </div>
+            <p id="primary-save-status" class="sheets-status" style="margin-top: 14px;" role="status"></p>
           </div>
-        </section>
+        </div>
 
-        <!-- 3. 하단: Observer & AI Insight -->
-        <section class="panel" aria-label="관찰자 및 AI 인사이트">
-          <div class="section-title" style="margin-bottom: 16px; color: var(--neon-blue);">
-            Observer & AI Insight
+        <div class="expert-teaser-wrap">
+          <button
+            type="button"
+            class="btn-expert-reveal"
+            id="btn-toggle-expert-panel"
+            aria-expanded="false"
+            aria-controls="expert-analysis-region"
+          >
+            관찰자 코멘트 및 AI 정밀 분석
+          </button>
+        </div>
+
+        <!-- 전문가 분석 뷰 (기본 숨김) -->
+        <section
+          id="expert-analysis-region"
+          class="expert-panel"
+          aria-label="관찰자 및 AI 정밀 분석"
+          hidden
+        >
+          <span class="expert-badge">관리자·전문가용</span>
+          <div class="section-title" style="margin-bottom: 12px; color: #fcd34d;">
+            관찰자 코멘트 및 AI 정밀 분석
           </div>
-          
+          <p class="text-xs text-muted" style="margin-bottom: 16px; line-height: 1.5;">
+            아래 영역은 참관자·연구자용입니다. 코멘트(AS)·AI 리포트(AT)를 채운 뒤 시트로 보내면 한 행에 함께 반영됩니다.
+          </p>
+
           <div id="observer-report-section">
             <div id="expert-opinions"></div>
           </div>
 
           <div class="summary-final-block" style="margin-top: 20px;">
             <label for="summary-observer-comment" class="text-sm" style="display:block; margin-bottom:8px; font-weight:600; color: var(--text-main);">
-              관찰자 코멘트 <span class="text-muted" style="font-weight:500;">(시트 AS열·Gemini 참고)</span>
+              관찰자 코멘트 <span class="text-muted" style="font-weight:500;">(시트 AS열)</span>
             </label>
             <textarea
               id="summary-observer-comment"
@@ -217,7 +352,7 @@
               aria-describedby="summary-observer-hint"
             ></textarea>
             <p id="summary-observer-hint" class="text-xs text-muted" style="margin-top:6px;">
-              전송 시 스프레드시트 <strong>AR열</strong>에 전체 테스트(raw) JSON, <strong>AS열</strong>에 이 코멘트, <strong>AT열</strong>에 AI 리포트가 기록됩니다. 시트로 보내기 직전에 브라우저 로컬에도 임시 백업됩니다.
+              <strong>전문가 시트 전송</strong> 시 AS열에 기록됩니다. 기본 「데이터 저장 및 전송하기」만 쓰면 비워 둘 수 있습니다.
             </p>
 
             <div class="gemini-key-row" style="margin-top: 16px;">
@@ -273,53 +408,58 @@
               <span id="ai-analysis-loading-text">분석 중...</span>
             </div>
             <p id="ai-save-status" class="sheets-status" style="margin-top: 12px;" role="status"></p>
+
+            <div class="panel mt-md" style="margin-top: 20px; background: rgba(0,0,0,0.2); border: 1px solid rgba(148,163,184,0.25);">
+              <div class="section-title mb-sm">전문가용 시트 전송</div>
+              <p class="text-xs text-muted mb-sm">
+                입력한 관찰자 코멘트와 세션에 저장된 AI 리포트(없으면 <code>pending</code>)를 AS·AT에 넣어 한 번에 전송합니다. AI 분석 직후 자동 전송과 동일한 형식입니다.
+              </p>
+              <button type="button" class="btn-primary" id="btn-expert-sheets-send">
+                코멘트·AI 결과 반영하여 시트 전송
+              </button>
+              <p class="text-xs text-muted mt-sm mb-sm">JSON 파일로 오프라인 전송이 필요하면 아래를 사용하세요.</p>
+              <div class="flex gap-md flex-wrap items-center">
+                <label class="btn-secondary" style="margin:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                  <span>JSON 파일 업로드하여 전송</span>
+                  <input type="file" id="upload-json-input" accept=".json,application/json" style="display:none;">
+                </label>
+              </div>
+              <p id="sheets-status" class="sheets-status" style="margin-top:10px;" role="status"></p>
+            </div>
+
+            <div class="btn-row" style="margin-top: 24px;">
+              <button type="button" class="btn-secondary" id="back-to-observer">
+                <span class="btn-icon" aria-hidden="true">◀</span>
+                <span>관찰자 리포트 작성하기</span>
+              </button>
+            </div>
           </div>
         </section>
 
-        <!-- JSON 미리보기 -->
+        <!-- JSON 미리보기 (전문가 영역 열었을 때 바로 아래에 두기 위해 전문가 블록 뒤로 이동) -->
         <details class="mt-lg" style="margin-top: 24px;">
           <summary class="cursor-pointer text-sm text-muted">
             전체 JSON 데이터 보기 (복사·저장용)
           </summary>
           <pre id="json-preview" class="summary-json" style="max-height: 200px; margin-top: 8px;"></pre>
         </details>
-
-        <!-- 구글 시트 전송 -->
-        <div class="panel mt-md">
-          <div class="section-title mb-sm">구글 시트 전송 (빠른 모드)</div>
-          <p class="text-xs text-muted mb-sm">
-            <strong>AS·AT·AR(번들)</strong>을 한 번에 맞추려면 위 <strong>「AI 분석 시작」</strong>을 사용하세요. 아래 전송은 AI 없이 진행되며 AS는 비어 있고 AT는 <code>pending</code>, AR에는 테스트 JSON만 들어갑니다.
-          </p>
-          <div class="flex gap-md flex-wrap items-center">
-            <button type="button" class="btn-primary sheets-button" id="send-to-sheets">전송</button>
-            <label class="btn-secondary" style="margin:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-              <span>JSON 파일 업로드하여 전송</span>
-              <input type="file" id="upload-json-input" accept=".json,application/json" style="display:none;">
-            </label>
-          </div>
-          <p class="text-xs text-muted mt-xs">회사에서 전송 실패 시 다운로드한 JSON을 선택하면, 구글이 접속 가능한 환경에서 업로드 후 전송할 수 있습니다.</p>
-          <p id="sheets-status" class="sheets-status"></p>
-        </div>
-
-        <div class="btn-row" style="margin-top: 24px;">
-          <button type="button" class="btn-secondary" id="back-to-observer">
-            <span class="btn-icon" aria-hidden="true">◀</span>
-            <span>관찰자 리포트 작성하기</span>
-          </button>
-        </div>
       </div>
     </main>
 
-    <!-- Sticky Footer: 최종 전송 버튼 -->
+    <!-- Sticky Footer: 주 액션 + JSON 백업 -->
     <div class="sticky-footer" id="sticky-footer">
       <p id="validation-msg" class="validation-error" style="display:none;"></p>
-      <button type="button" class="btn-primary" id="final-submit">
-        <span class="btn-icon" aria-hidden="true">✓</span>
-        <span>JSON 백업 다운로드</span>
-      </button>
+      <div class="sticky-footer-actions">
+        <button type="button" class="btn-primary btn-sticky-primary" id="sticky-btn-data-send">
+          데이터 저장 및 전송하기
+        </button>
+        <button type="button" class="btn-secondary" id="final-submit">
+          JSON 백업
+        </button>
+      </div>
     </div>
 
-    <script src="ga-storage.js?v=2"></script>
+    <script src="ga-storage.js?v=3"></script>
     <script>
       (function () {
         const FOCUS_POINTS = [
@@ -1496,20 +1636,79 @@
         }
 
         const DEPLOYED_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxpzl0a9g-zJJ_vH0MghogtE6DNts036TudVKGzIETHjeek4z2WycCZL_Gj35j6qwsE/exec";
-        const sendToSheetsBtn = document.getElementById("send-to-sheets");
+        const primarySaveStatusEl = document.getElementById("primary-save-status");
         const sheetsStatusEl = document.getElementById("sheets-status");
-        const sendBtnOriginalText = sendToSheetsBtn ? sendToSheetsBtn.textContent : "전송";
+        const btnDataSaveAndSend = document.getElementById("btn-data-save-and-send");
+        const stickyBtnDataSend = document.getElementById("sticky-btn-data-send");
+        const btnExpertSheetsSend = document.getElementById("btn-expert-sheets-send");
+        const btnUserJsonBackup = document.getElementById("btn-user-json-backup");
+        const expertPanel = document.getElementById("expert-analysis-region");
+        const btnToggleExpert = document.getElementById("btn-toggle-expert-panel");
 
-        function doSheetsSubmit() {
+        const PRIMARY_SEND_LABEL = "데이터 저장 및 전송하기";
+        const EXPERT_SEND_LABEL = "코멘트·AI 결과 반영하여 시트 전송";
+
+        function runDefaultSheetExport(options) {
+          options = options || {};
+          var statusEl = options.statusEl || primarySaveStatusEl;
+          var triggerBtn = options.triggerBtn || null;
+          var btnIdleLabel = options.btnIdleLabel || PRIMARY_SEND_LABEL;
+          if (window.location.protocol === "file:") {
+            if (statusEl) {
+              statusEl.textContent = "파일 직접 열기(file://)에서는 전송이 불가합니다. localhost로 접속해 주세요.";
+              statusEl.style.color = "#f97373";
+            }
+            return;
+          }
+          var session = readSession();
+          var errs = validateSession(session);
+          if (errs.length > 0) {
+            if (statusEl) {
+              statusEl.textContent = "유효성 검사 실패: " + errs.join(" ");
+              statusEl.style.color = "#f97373";
+            }
+            return;
+          }
+          if (triggerBtn) {
+            triggerBtn.disabled = true;
+            triggerBtn.textContent = "전송 중...";
+          }
+          if (statusEl) {
+            statusEl.textContent = "";
+            statusEl.style.color = "inherit";
+          }
+          var payload = buildSheetsRowPayload(session);
+          savePreSheetBackup(payload, session, { stage: "primary_user_send", observerComment: "", aiReportPreview: null });
+          fetch(DEPLOYED_SHEETS_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {},
+            body: JSON.stringify(payload)
+          });
+          try {
+            localStorage.removeItem(PRESHEET_BACKUP_KEY);
+          } catch (e) {}
+          alert("전송 시도 완료");
+          if (statusEl) {
+            statusEl.textContent = "요청이 전송되었습니다(AR·AS·AT 형식). AS는 비어 있고 AT는 pending입니다.";
+            statusEl.style.color = "#86efac";
+          }
+          if (triggerBtn) {
+            triggerBtn.disabled = false;
+            triggerBtn.textContent = btnIdleLabel;
+          }
+        }
+
+        function runExpertSheetExport() {
           if (window.location.protocol === "file:") {
             if (sheetsStatusEl) {
-              sheetsStatusEl.textContent = "파일 직접 열기(file://)에서는 전송이 불가합니다. 터미널에서 'python3 -m http.server 8080' 후 localhost:8080 으로 접속해 주세요.";
+              sheetsStatusEl.textContent = "file:// 환경에서는 전송이 불가합니다. localhost로 접속해 주세요.";
               sheetsStatusEl.style.color = "#f97373";
             }
             return;
           }
-          const session = readSession();
-          const errs = validateSession(session);
+          var session = readSession();
+          var errs = validateSession(session);
           if (errs.length > 0) {
             if (sheetsStatusEl) {
               sheetsStatusEl.textContent = "유효성 검사 실패: " + errs.join(" ");
@@ -1517,33 +1716,82 @@
             }
             return;
           }
-          if (sendToSheetsBtn) {
-            sendToSheetsBtn.disabled = true;
-            sendToSheetsBtn.textContent = "전송 중...";
+          var ta = document.getElementById("summary-observer-comment");
+          var comment = ta && ta.value ? String(ta.value).trim() : "";
+          var aiText = (session.ai_accessibility_report && session.ai_accessibility_report.fullText) || "";
+          var atVal = aiText && String(aiText).trim() ? String(aiText) : "pending";
+
+          if (btnExpertSheetsSend) {
+            btnExpertSheetsSend.disabled = true;
+            btnExpertSheetsSend.textContent = "전송 중...";
           }
           if (sheetsStatusEl) {
             sheetsStatusEl.textContent = "";
             sheetsStatusEl.style.color = "inherit";
           }
 
-          const payload = buildSheetsRowPayload(session);
-          savePreSheetBackup(payload, session, { stage: "quick_sheet_send", observerComment: "", aiReportPreview: null });
+          var payload = buildSheetsRowPayload(session, {
+            sheetObserverComment: comment,
+            sheetAiAnalysis: atVal
+          });
+          savePreSheetBackup(payload, session, {
+            stage: "expert_sheet_send",
+            observerComment: comment,
+            aiReportPreview: atVal.length > 500 ? atVal.slice(0, 500) + "…" : atVal
+          });
           fetch(DEPLOYED_SHEETS_URL, {
             method: "POST",
             mode: "no-cors",
             headers: {},
-            body: JSON.stringify(payload),
+            body: JSON.stringify(payload)
           });
           try {
             localStorage.removeItem(PRESHEET_BACKUP_KEY);
           } catch (e) {}
-          alert("전송 시도 완료");
-          if (sheetsStatusEl) sheetsStatusEl.textContent = "전송이 요청되었습니다(AR·AS·AT 열 형식). JSON 다운로드를 추가로 받아 두시면 좋습니다.";
-          if (sendToSheetsBtn) { sendToSheetsBtn.disabled = false; sendToSheetsBtn.textContent = sendBtnOriginalText; }
+          alert("전송 시도 완료 (AS·AT 반영)");
+          if (sheetsStatusEl) {
+            sheetsStatusEl.textContent = "요청이 전송되었습니다. AS·AT·AR을 시트에서 확인해 주세요.";
+            sheetsStatusEl.style.color = "#86efac";
+          }
+          if (btnExpertSheetsSend) {
+            btnExpertSheetsSend.disabled = false;
+            btnExpertSheetsSend.textContent = EXPERT_SEND_LABEL;
+          }
         }
 
-        if (sendToSheetsBtn) {
-          sendToSheetsBtn.addEventListener("click", doSheetsSubmit);
+        if (btnDataSaveAndSend) {
+          btnDataSaveAndSend.addEventListener("click", function () {
+            runDefaultSheetExport({ statusEl: primarySaveStatusEl, triggerBtn: btnDataSaveAndSend, btnIdleLabel: PRIMARY_SEND_LABEL });
+          });
+        }
+        if (stickyBtnDataSend) {
+          stickyBtnDataSend.addEventListener("click", function () {
+            runDefaultSheetExport({ statusEl: primarySaveStatusEl, triggerBtn: stickyBtnDataSend, btnIdleLabel: PRIMARY_SEND_LABEL });
+          });
+        }
+        if (btnExpertSheetsSend) {
+          btnExpertSheetsSend.addEventListener("click", runExpertSheetExport);
+        }
+        if (btnUserJsonBackup) {
+          btnUserJsonBackup.addEventListener("click", function () {
+            downloadSessionJson(readSession());
+          });
+        }
+
+        if (btnToggleExpert && expertPanel) {
+          btnToggleExpert.addEventListener("click", function () {
+            var isHidden = expertPanel.hasAttribute("hidden");
+            if (isHidden) {
+              expertPanel.removeAttribute("hidden");
+              btnToggleExpert.setAttribute("aria-expanded", "true");
+              setTimeout(function () {
+                expertPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 50);
+            } else {
+              expertPanel.setAttribute("hidden", "");
+              btnToggleExpert.setAttribute("aria-expanded", "false");
+            }
+          });
         }
 
         const uploadInput = document.getElementById("upload-json-input");
@@ -1629,6 +1877,11 @@
                 if (rem) rem.checked = true;
               }
             } catch (e) {}
+          }
+          var taObs = document.getElementById("summary-observer-comment");
+          var prev = session.observer_report && session.observer_report.summary_page_observer_comment;
+          if (taObs && prev && !String(taObs.value || "").trim()) {
+            taObs.value = String(prev);
           }
           render(session);
         }
