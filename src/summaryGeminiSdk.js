@@ -1,3 +1,4 @@
+// FORCE_UPDATE_v2
 /**
  * 결과 페이지용 Gemini 브라우저 SDK (Vite 빌드 시 NEXT_PUBLIC_GEMINI_API_KEY 주입)
  *
@@ -7,7 +8,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-
 /** 프로젝트 기본 모델 id(접두사 없이; 앞의 models/는 사용 시 제거). */
 const GEMINI_MODEL_ID = "gemini-2.5-flash";
 
@@ -68,3 +68,4 @@ async function summaryGeminiGenerate(promptText, modelName, instructionPlainText
 if (typeof window !== "undefined") {
   window.__summaryGeminiGenerate = summaryGeminiGenerate;
 }
+// Last Build: 2026-05-06 15:45

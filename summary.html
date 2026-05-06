@@ -357,7 +357,7 @@
                 AI 분석은 브라우저에서 <strong>Google 공식 SDK</strong>(<code>@google/generative-ai</code>)로 호출합니다.
                 프로젝트 루트 <code>.env</code>에 <code>NEXT_PUBLIC_GEMINI_API_KEY</code>를 넣은 뒤 터미널에서
                 <code>npm install</code> · <code>npm run build:summary-gemini</code>를 실행하면
-                <code>dist/summary-gemini-sdk.js</code>가 생성됩니다. 이 파일에는 키가 포함되므로 Git에는 올리지 마세요.
+                <code>dist/summary-gemini-sdk-final.js</code>가 생성됩니다. 이 파일에는 키가 포함되므로 Git에는 올리지 마세요.
               </p>
               <p class="text-xs text-muted" style="margin: 10px 0 0; line-height: 1.55;">
                 같은 폴더의 <strong><code>instructions.txt</code></strong>는 읽은 뒤 프롬프트 맨 앞에 <strong>[Instruction]</strong> 블록으로 붙이고, 이어서 분석 본문이 전달됩니다. <code>systemInstruction</code> 필드는 사용하지 않습니다. 진단 기준을 바꾼 뒤에는 페이지를 새로고침하면 다시 로드됩니다.
@@ -445,7 +445,7 @@
       </div>
     </div>
 
-    <script src="dist/summary-gemini-sdk.js?v=3"></script>
+    <script src="dist/summary-gemini-sdk-final.js"></script>
     <script src="ga-storage.js?v=3"></script>
     <script>
       (function () {
@@ -1573,13 +1573,13 @@
         }
 
         /**
-         * @google/generative-ai — 빌드된 dist/summary-gemini-sdk.js 의 window.__summaryGeminiGenerate 사용
+         * @google/generative-ai — 빌드된 dist/summary-gemini-sdk-final.js 의 window.__summaryGeminiGenerate 사용
          * instructions.txt 는 일반 문자열로 SDK에 넘기며, 프롬프트 맨 앞에 [Instruction]과 줄바꿈으로 합쳐짐(systemInstruction 미사용).
          */
         async function callGeminiGenerateContent(promptText) {
           if (typeof window.__summaryGeminiGenerate !== "function") {
             throw new Error(
-              "Gemini SDK를 불러오지 못했습니다. 프로젝트 루트에서 npm install 후 npm run build:summary-gemini 를 실행하고 dist/summary-gemini-sdk.js 가 있는지 확인하세요."
+              "Gemini SDK를 불러오지 못했습니다. 프로젝트 루트에서 npm install 후 npm run build:summary-gemini 를 실행하고 dist/summary-gemini-sdk-final.js 가 있는지 확인하세요."
             );
           }
           var projectInstructions = await loadProjectInstructions();

@@ -3,6 +3,3 @@
 .env.*.local
 
 node_modules/
-
-# 브라우저 번들에 API 키가 박히므로 저장소에 올리지 마세요.
-dist/summary-gemini-sdk.js

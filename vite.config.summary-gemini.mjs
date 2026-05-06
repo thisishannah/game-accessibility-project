@@ -15,14 +15,14 @@ export default defineConfig(({ mode }) => {
       lib: {
         entry: resolve(__dirname, "src/summaryGeminiSdk.js"),
         name: "SummaryGeminiSdk",
-        fileName: () => "summary-gemini-sdk",
+        fileName: () => "summary-gemini-sdk-final",
         formats: ["iife"]
       },
       outDir: resolve(__dirname, "dist"),
       emptyOutDir: false,
       rollupOptions: {
         output: {
-          entryFileNames: "summary-gemini-sdk.js",
+          entryFileNames: "summary-gemini-sdk-final.js",
           extend: true
         }
       }
