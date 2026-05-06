@@ -5,6 +5,29 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
+const DEFAULT_GEMINI_MODEL = "gemini-1.5-flash";
+
+/**
+ * SDK는 model 필드에 id만 기대합니다. "models/..." 접두사가 붙으면 404가 날 수 있습니다.
+ * @param {string} [name]
+ * @returns {string}
+ */
+function normalizeGeminiModelName(name) {
+  const raw = typeof name === "string" ? name.trim() : "";
+  if (!raw) {
+    return DEFAULT_GEMINI_MODEL;
+  }
+  const id = raw.replace(/^models\/+/i, "").trim();
+  return id || DEFAULT_GEMINI_MODEL;
+}
+
+/**
+ * gemini-1.5-flash 등은 Generative Language API v1 엔드포인트에 항상 없을 수 있어,
+ * SDK 기본(최신 안정)이 v1을 쓰는 환경에서는 404가 납니다. v1beta를 명시합니다.
+ * @see RequestOptions.apiVersion in @google/generative-ai
+ */
+const GEMINI_REQUEST_OPTIONS = { apiVersion: "v1beta" };
+
 /**
  * @param {string} promptText
  * @param {string} [modelName]
@@ -21,13 +44,13 @@ async function summaryGeminiGenerate(promptText, modelName, systemInstruction) {
   const genAI = new GoogleGenerativeAI(key);
   const SiText = typeof systemInstruction === "string" ? systemInstruction.trim() : "";
   const modelOpts = {
-    model: modelName || "gemini-1.5-flash",
+    model: normalizeGeminiModelName(modelName),
     generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
   };
   if (SiText) {
     modelOpts.systemInstruction = SiText;
   }
-  const model = genAI.getGenerativeModel(modelOpts);
+  const model = genAI.getGenerativeModel(modelOpts, GEMINI_REQUEST_OPTIONS);
   const result = await model.generateContent(promptText);
   const text = result.response.text();
   if (!text || !String(text).trim()) {
