@@ -360,7 +360,7 @@
                 <code>dist/summary-gemini-sdk.js</code>가 생성됩니다. 이 파일에는 키가 포함되므로 Git에는 올리지 마세요.
               </p>
               <p class="text-xs text-muted" style="margin: 10px 0 0; line-height: 1.55;">
-                같은 폴더의 <strong><code>instructions.txt</code></strong>는 분석 요청 시 프롬프트 맨 앞(<strong>System:</strong> 블록)에 자동으로 합쳐집니다. 진단 기준을 바꾼 뒤에는 페이지를 새로고침하면 다시 로드됩니다.
+                같은 폴더의 <strong><code>instructions.txt</code></strong>는 분석 요청 시 프롬프트 맨 앞에 붙고, 이어서 <strong>[분석할 데이터]:</strong> 블록에 본문이 전달됩니다. 진단 기준을 바꾼 뒤에는 페이지를 새로고침하면 다시 로드됩니다.
               </p>
             </div>
 
@@ -445,7 +445,7 @@
       </div>
     </div>
 
-    <script src="dist/summary-gemini-sdk.js?v=7"></script>
+    <script src="dist/summary-gemini-sdk.js?v=8"></script>
     <script src="ga-storage.js?v=3"></script>
     <script>
       (function () {
@@ -1574,7 +1574,7 @@
 
         /**
          * @google/generative-ai — 빌드된 dist/summary-gemini-sdk.js 의 window.__summaryGeminiGenerate 사용
-         * instructions.txt 내용은 SDK에서 프롬프트 앞(System: … / User: …)으로 합쳐 전달됩니다.
+         * instructions.txt 내용은 SDK에서 프롬프트 맨 앞에 붙이고, 아래에 [분석할 데이터]: 와 본문을 이어 붙입니다.
          */
         async function callGeminiGenerateContent(promptText) {
           if (typeof window.__summaryGeminiGenerate !== "function") {
@@ -1650,7 +1650,7 @@
           }
         }
 
-        /** 프로젝트 루트 instructions.txt (분석 프롬프트 System: 블록). same-origin fetch, 결과 캐시 */
+        /** 프로젝트 루트 instructions.txt (프롬프트 상단에 prepend). same-origin fetch, 결과 캐시 */
         var _projectInstructionsCache = null;
         var _projectInstructionsPromise = null;
 
@@ -1675,7 +1675,7 @@
               return trimmed;
             })
             .catch(function (err) {
-              console.warn("instructions.txt 로드 실패 — 지침 없이 User 프롬프트만 전송합니다.", err);
+              console.warn("instructions.txt 로드 실패 — 지침 없이 분석 본문만 전송합니다.", err);
               _projectInstructionsCache = "";
               return "";
             });

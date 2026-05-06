@@ -28,9 +28,9 @@ function normalizeGeminiModelName(name) {
 const GEMINI_REQUEST_OPTIONS = { apiVersion: "v1" };
 
 /**
- * @param {string} promptText — 사용자(분석) 데이터 본문
+ * @param {string} promptText — 분석할 데이터(텍스트 또는 이미 직렬화된 본문)
  * @param {string} [modelName]
- * @param {string} [projectInstructions] — instructions.txt 등 (System: … 프롬프트 앞부분에 합침)
+ * @param {string} [projectInstructions] — instructions.txt 등 (맨 앞에 붙임, systemInstruction 미사용)
  * @returns {Promise<string>}
  */
 async function summaryGeminiGenerate(promptText, modelName, projectInstructions) {
@@ -42,10 +42,10 @@ async function summaryGeminiGenerate(promptText, modelName, projectInstructions)
   }
   const genAI = new GoogleGenerativeAI(key);
   const instr = typeof projectInstructions === "string" ? projectInstructions.trim() : "";
-  const userPart = promptText != null ? String(promptText) : "";
+  const dataPart = promptText != null ? String(promptText) : "";
   const fullPrompt = instr
-    ? "System: " + instr + "\n\nUser: " + userPart
-    : userPart;
+    ? instr + "\n\n[분석할 데이터]:\n" + dataPart
+    : dataPart;
   const modelOpts = {
     // id는 정확히 gemini-1.5-flash(기본). "models/..." 입력은 normalize에서 제거.
     model: normalizeGeminiModelName(modelName),
