@@ -28,12 +28,12 @@ function normalizeGeminiModelName(name) {
 const GEMINI_REQUEST_OPTIONS = { apiVersion: "v1" };
 
 /**
- * @param {string} promptText
+ * @param {string} promptText — 사용자(분석) 데이터 본문
  * @param {string} [modelName]
- * @param {string} [systemInstruction] — 프로젝트 instructions.txt 등 시스템 지시문
+ * @param {string} [projectInstructions] — instructions.txt 등 (System: … 프롬프트 앞부분에 합침)
  * @returns {Promise<string>}
  */
-async function summaryGeminiGenerate(promptText, modelName, systemInstruction) {
+async function summaryGeminiGenerate(promptText, modelName, projectInstructions) {
   const key = typeof API_KEY === "string" ? API_KEY.trim() : "";
   if (!key) {
     throw new Error(
@@ -41,17 +41,18 @@ async function summaryGeminiGenerate(promptText, modelName, systemInstruction) {
     );
   }
   const genAI = new GoogleGenerativeAI(key);
-  const SiText = typeof systemInstruction === "string" ? systemInstruction.trim() : "";
+  const instr = typeof projectInstructions === "string" ? projectInstructions.trim() : "";
+  const userPart = promptText != null ? String(promptText) : "";
+  const fullPrompt = instr
+    ? "System: " + instr + "\n\nUser: " + userPart
+    : userPart;
   const modelOpts = {
     // id는 정확히 gemini-1.5-flash(기본). "models/..." 입력은 normalize에서 제거.
     model: normalizeGeminiModelName(modelName),
     generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
   };
-  if (SiText) {
-    modelOpts.systemInstruction = SiText;
-  }
   const model = genAI.getGenerativeModel(modelOpts, GEMINI_REQUEST_OPTIONS);
-  const result = await model.generateContent(promptText);
+  const result = await model.generateContent(fullPrompt);
   const text = result.response.text();
   if (!text || !String(text).trim()) {
     throw new Error("Gemini 응답에 본문이 없습니다.");
