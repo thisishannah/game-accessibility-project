@@ -9,7 +9,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 /** 프로젝트 기본 모델 id(접두사 없이; 앞의 models/는 사용 시 제거). */
-const GEMINI_MODEL_ID = "gemini-1.5-flash";
+const GEMINI_MODEL_ID = "gemini-2.5-flash";
 
 /** REST용 model 파라미터는 id만 허용. models/ 로 시작하면 제거. */
 function stripModelsModelPrefix(name) {
