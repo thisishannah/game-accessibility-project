@@ -21,7 +21,7 @@ async function summaryGeminiGenerate(promptText, modelName, systemInstruction) {
   const genAI = new GoogleGenerativeAI(key);
   const SiText = typeof systemInstruction === "string" ? systemInstruction.trim() : "";
   const modelOpts = {
-    model: modelName || "gemini-2.0-flash",
+    model: modelName || "gemini-1.5-flash",
     generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
   };
   if (SiText) {

@@ -445,7 +445,7 @@
       </div>
     </div>
 
-    <script src="dist/summary-gemini-sdk.js?v=1"></script>
+    <script src="dist/summary-gemini-sdk.js?v=2"></script>
     <script src="ga-storage.js?v=3"></script>
     <script>
       (function () {
@@ -463,7 +463,7 @@
 
         const AVG_REACTION_MS = 280;
         const AVG_AIM_INTERVAL_MS = 450;
-        const GEMINI_MODEL = "gemini-2.0-flash";
+        const GEMINI_MODEL = "gemini-1.5-flash";
         const PENDING_SHEET_STORAGE_KEY = "ga_pending_sheet_export_v1";
         const PRESHEET_BACKUP_KEY = "ga_presheet_backup_v1";
 
@@ -1586,6 +1586,70 @@
           return window.__summaryGeminiGenerate(promptText, GEMINI_MODEL, systemInstruction);
         }
 
+        /** 429·할당량 초과 시 대기 후 재시도 간격(ms) */
+        var GEMINI_QUOTA_RETRY_DELAY_MS = 30000;
+        /** 첫 요청 실패 후 추가 재시도 횟수 (예: 3이면 최대 4번 API 호출) */
+        var GEMINI_QUOTA_MAX_RETRIES = 3;
+
+        function sleepMs(ms) {
+          return new Promise(function (resolve) {
+            setTimeout(resolve, ms);
+          });
+        }
+
+        function isGeminiQuotaOrRateLimitError(err) {
+          if (!err) return false;
+          var status = err.status || err.statusCode || err.code;
+          if (status === 429) return true;
+          var msg = String(err.message != null ? err.message : err);
+          if (/429|Too Many Requests|RESOURCE_EXHAUSTED|Quota exceeded|quota exceeded|rate limit|rate-limit|overloaded|할당/i.test(msg)) {
+            return true;
+          }
+          if (err.error && (err.error.status === "RESOURCE_EXHAUSTED" || err.error.code === 429)) return true;
+          try {
+            if (JSON.stringify(err).indexOf("429") !== -1) return true;
+          } catch (e) {}
+          return false;
+        }
+
+        /**
+         * 할당량(429) 등 일시 제한 시 안내 메시지 표시 → 30초 대기 → 자동 재시도.
+         */
+        async function callGeminiGenerateContentWithQuotaRetry(promptText, statusEl) {
+          var delayMs = GEMINI_QUOTA_RETRY_DELAY_MS;
+          var maxRetries = GEMINI_QUOTA_MAX_RETRIES;
+          var loadTextEl = document.getElementById("ai-analysis-loading-text");
+          for (var attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+              return await callGeminiGenerateContent(promptText);
+            } catch (err) {
+              if (!isGeminiQuotaOrRateLimitError(err) || attempt === maxRetries) {
+                throw err;
+              }
+              var retryNum = attempt + 1;
+              var friendly =
+                "일시적으로 AI 사용 한도에 도달했습니다. 잠시 후 다시 시도해 주세요. " +
+                Math.round(delayMs / 1000) +
+                "초 뒤 자동으로 다시 요청합니다. (" +
+                retryNum +
+                "/" +
+                maxRetries +
+                ")";
+              if (statusEl) {
+                statusEl.textContent = friendly;
+                statusEl.style.color = "#fbbf24";
+              }
+              if (loadTextEl) loadTextEl.textContent = friendly;
+              await sleepMs(delayMs);
+              if (statusEl) {
+                statusEl.textContent = "AI 분석을 다시 요청하는 중입니다…";
+                statusEl.style.color = "inherit";
+              }
+              if (loadTextEl) loadTextEl.textContent = "분석 중...";
+            }
+          }
+        }
+
         /** 프로젝트 루트 instructions.txt (Gemini System Instruction). same-origin fetch, 결과 캐시 */
         var _projectInstructionsCache = null;
         var _projectInstructionsPromise = null;
@@ -1925,7 +1989,7 @@
             }
 
             const promptText = buildGeminiAccessibilityPrompt(session, observerComment);
-            callGeminiGenerateContent(promptText)
+            callGeminiGenerateContentWithQuotaRetry(promptText, aiSaveStatusEl)
               .then(function (reportText) {
                 applyAiResultToView(reportText);
                 const aiMeta = {
