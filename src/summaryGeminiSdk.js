@@ -5,7 +5,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-const DEFAULT_GEMINI_MODEL = "gemini-1.5-flash";
+/** Gemini 1.5 계열 단종 대비: Generative Language API 기준 안정 Flash 모델 */
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
 
 /**
  * SDK는 model 필드에 id만 기대합니다. "models/..." 접두사가 붙으면 404가 날 수 있습니다.
@@ -47,7 +48,7 @@ async function summaryGeminiGenerate(promptText, modelName, projectInstructions)
     ? instr + "\n\n[분석할 데이터]:\n" + dataPart
     : dataPart;
   const modelOpts = {
-    // id는 정확히 gemini-1.5-flash(기본). "models/..." 입력은 normalize에서 제거.
+    // 기본 id는 gemini-2.5-flash. "models/..." 입력은 normalize에서 제거.
     model: normalizeGeminiModelName(modelName),
     generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
   };
