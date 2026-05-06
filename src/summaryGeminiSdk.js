@@ -8,8 +8,16 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-/** 프로젝트 고정 모델 id(접두사 없이). */
+/** 프로젝트 기본 모델 id(접두사 없이; 앞의 models/는 사용 시 제거). */
 const GEMINI_MODEL_ID = "gemini-1.5-flash";
+
+/** REST용 model 파라미터는 id만 허용. models/ 로 시작하면 제거. */
+function stripModelsModelPrefix(name) {
+  return String(name == null ? "" : name)
+    .trim()
+    .replace(/^models\/+/i, "")
+    .trim();
+}
 
 /**
  * GA 안정 경로: Generative Language API v1.
@@ -19,11 +27,11 @@ const GEMINI_REQUEST_OPTIONS = { apiVersion: "v1" };
 
 /**
  * @param {string} promptText — 실제 분석 질문·데이터 본문
- * @param {string} [_ignoredModelName] — 호환용(무시). 모델은 항상 gemini-1.5-flash.
+ * @param {string} [modelName] — 호출부 모델명(선택). 비면 GEMINI_MODEL_ID. models/ 접두사는 제거.
  * @param {string} [instructionPlainText] — instructions.txt 등 일반 문자열
  * @returns {Promise<string>}
  */
-async function summaryGeminiGenerate(promptText, _ignoredModelName, instructionPlainText) {
+async function summaryGeminiGenerate(promptText, modelName, instructionPlainText) {
   const key = typeof API_KEY === "string" ? API_KEY.trim() : "";
   if (!key) {
     throw new Error(
@@ -39,8 +47,13 @@ async function summaryGeminiGenerate(promptText, _ignoredModelName, instructionP
     ? "[Instruction]\n" + instructionText + "\n\n" + questionBody
     : questionBody;
 
+  const resolvedModel =
+    stripModelsModelPrefix(modelName) ||
+    stripModelsModelPrefix(GEMINI_MODEL_ID) ||
+    GEMINI_MODEL_ID;
+
   const modelOpts = {
-    model: GEMINI_MODEL_ID,
+    model: resolvedModel,
     generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
   };
   const model = genAI.getGenerativeModel(modelOpts, GEMINI_REQUEST_OPTIONS);
