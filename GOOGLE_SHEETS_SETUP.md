@@ -14,8 +14,10 @@ summary.html의 "구글 시트 전송" 기능을 사용하려면 Google Apps Scr
 - **A~AM (39열)**: 요약 스칼라·`color_confusion_matrix`까지.
 - **AN~AQ (40~43열)**: `sheet_column_align_pad_*` — 빈 셀(열 번호 맞춤용).
 - **AR열 = `sheet_AR_test_data`**: 전체 테스트 raw·`observer_report`·`ai_precursor_metrics`를 묶은 JSON **문자열**.
-- **AS열 = `sheet_AS_observer_comment`**: 관찰자 코멘트(요약 페이지 textarea). 없으면 빈 문자열.
-- **AT열 = `sheet_AT_ai_report`**: Gemini 종합 리포트 본문. AI 없이 전송 시 `"pending"`.
+- **AS열 = `sheet_AS_ai_report`**: Gemini 종합 리포트 본문. AI 없이 전송 시 `"pending"`.
+- **AT열 = `sheet_AT_observer_quit_reason`**: 이탈/포기 사유(선택, 비어 있을 수 있음).
+- **AU열 = `sheet_AU_observer_alt_behavior`**: 대체 행동 양상(선택).
+- **AV열 = `sheet_AV_observer_accessibility_summary`**: 핵심 접근성 문제 요약(선택).
 
 ```
 timestamp | user_id | age | gender | monitor_inch | resolution | viewing_distance | disability_type |
@@ -29,7 +31,7 @@ input_device | assistive_device |
 calibration_mm_per_px |
 color_rt_avg | color_blindness_type | color_confusion_detail | color_confusion_score | color_confusion_matrix |
 sheet_column_align_pad_40 | sheet_column_align_pad_41 | sheet_column_align_pad_42 | sheet_column_align_pad_43 |
-sheet_AR_test_data | sheet_AS_observer_comment | sheet_AT_ai_report
+sheet_AR_test_data | sheet_AS_ai_report | sheet_AT_observer_quit_reason | sheet_AU_observer_alt_behavior | sheet_AV_observer_accessibility_summary
 ```
 
 - **요약 필드**: vision_rt_avg, motor_rt_avg 등 수치

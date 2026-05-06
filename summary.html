@@ -329,89 +329,107 @@
             관찰자 코멘트 및 AI 정밀 분석
           </div>
           <p class="text-xs text-muted" style="margin-bottom: 16px; line-height: 1.5;">
-            아래 영역은 참관자·연구자용입니다. 코멘트(AS)·AI 리포트(AT)를 채운 뒤 시트로 보내면 한 행에 함께 반영됩니다.
+            아래 영역은 참관자·연구자용입니다. <strong>AI 분석 결과(AS열)</strong>를 먼저 확인한 뒤, 필요 시 관찰자 리포트(AT~AV열, 선택 입력)를 채우고 시트로 보내면 한 행에 함께 반영됩니다.
           </p>
+            <div
+              id="sheet-ar-length-warning"
+              role="alert"
+              aria-live="polite"
+              hidden
+              style="display:none; margin-bottom: 8px; padding: 12px 14px; border-radius: 10px; font-size: 12px; line-height: 1.55;"
+            ></div>
+            <p id="sheet-ar-length-meta" class="text-xs text-muted" style="margin: 0 0 14px; line-height: 1.45;" aria-live="polite"></p>
 
           <div id="observer-report-section">
-            <div id="expert-opinions"></div>
-          </div>
-
-          <div class="summary-final-block" style="margin-top: 20px;">
-            <label for="summary-observer-comment" class="text-sm" style="display:block; margin-bottom:8px; font-weight:600; color: var(--text-main);">
-              관찰자 코멘트 <span class="text-muted" style="font-weight:500;">(시트 AS열)</span>
-            </label>
-            <textarea
-              id="summary-observer-comment"
-              class="summary-observer-textarea"
-              rows="5"
-              maxlength="8000"
-              placeholder="현장에서 관찰한 플레이 패턴, 어려움, 보조기기 사용 등을 적어 주세요."
-              aria-describedby="summary-observer-hint"
-            ></textarea>
-            <p id="summary-observer-hint" class="text-xs text-muted" style="margin-top:6px;">
-              <strong>전문가 시트 전송</strong> 시 AS열에 기록됩니다. 기본 「데이터 저장 및 전송하기」만 쓰면 비워 둘 수 있습니다.
-            </p>
-
-            <div class="gemini-sdk-info" style="margin-top: 16px; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.35); background: rgba(15, 23, 42, 0.6);">
-              <p class="text-xs text-muted" style="margin: 0; line-height: 1.55;">
-                AI 분석은 브라우저에서 <strong>Google 공식 SDK</strong>(<code>@google/generative-ai</code>)로 호출합니다.
-                프로젝트 루트 <code>.env</code>에 <code>NEXT_PUBLIC_GEMINI_API_KEY</code>를 넣은 뒤 터미널에서
-                <code>npm install</code> · <code>npm run build:summary-gemini</code>를 실행하면
-                <code>dist/summary-gemini-sdk-final.js</code>가 생성됩니다. 이 파일에는 키가 포함되므로 Git에는 올리지 마세요.
-              </p>
-              <p class="text-xs text-muted" style="margin: 10px 0 0; line-height: 1.55;">
-                같은 폴더의 <strong><code>instructions.txt</code></strong>는 읽은 뒤 프롬프트 맨 앞에 <strong>[Instruction]</strong> 블록으로 붙이고, 이어서 분석 본문이 전달됩니다. <code>systemInstruction</code> 필드는 사용하지 않습니다. 진단 기준을 바꾼 뒤에는 페이지를 새로고침하면 다시 로드됩니다.
-              </p>
-            </div>
-
-            <div id="ai-insight-result-wrap" style="margin-top: 20px; display: none;" aria-live="polite">
-              <div class="section-title text-sm" style="margin-bottom: 8px; color: var(--neon-blue);">AI 분석 결과</div>
-              <div id="ai-insight-result" class="ai-report-box"></div>
-            </div>
-            <div class="ai-insight-placeholder text-muted text-sm" id="ai-insight-placeholder" style="margin-top: 16px;">
-              AI 분석 후 결과가 위에 표시됩니다.
-            </div>
-
-            <div class="flex gap-md flex-wrap items-center" style="margin-top: 20px;">
-              <button type="button" class="btn-primary btn-ai-row" id="btn-ai-analyze-and-save" aria-busy="false">
-                <span class="ai-btn-spinner" id="ai-btn-spinner" aria-hidden="true"></span>
-                <span id="btn-ai-analyze-label">AI 분석 시작</span>
-              </button>
-              <button type="button" class="btn-secondary" id="btn-download-json-only">
-                JSON만 다운로드
-              </button>
-            </div>
-            <div
-              id="ai-analysis-loading"
-              class="ai-analysis-loading-panel"
-              data-visible="false"
-              role="status"
-              aria-live="polite"
-              aria-busy="false"
-              hidden
-            >
-              <span class="ai-analysis-loading-spinner" aria-hidden="true"></span>
-              <span id="ai-analysis-loading-text">분석 중...</span>
-            </div>
-            <p id="ai-save-status" class="sheets-status" style="margin-top: 12px;" role="status"></p>
-
-            <div class="panel mt-md" style="margin-top: 20px; background: rgba(0,0,0,0.2); border: 1px solid rgba(148,163,184,0.25);">
-              <div class="section-title mb-sm">전문가용 시트 전송</div>
-              <p class="text-xs text-muted mb-sm">
-                입력한 관찰자 코멘트와 세션에 저장된 AI 리포트(없으면 <code>pending</code>)를 AS·AT에 넣어 한 번에 전송합니다. AI 분석 직후 자동 전송과 동일한 형식입니다.
-              </p>
-              <button type="button" class="btn-primary" id="btn-expert-sheets-send">
-                코멘트·AI 결과 반영하여 시트 전송
-              </button>
-              <p class="text-xs text-muted mt-sm mb-sm">JSON 파일로 오프라인 전송이 필요하면 아래를 사용하세요.</p>
-              <div class="flex gap-md flex-wrap items-center">
-                <label class="btn-secondary" style="margin:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                  <span>JSON 파일 업로드하여 전송</span>
-                  <input type="file" id="upload-json-input" accept=".json,application/json" style="display:none;">
-                </label>
+            <div class="summary-final-block" style="margin-top: 0;">
+              <div id="ai-insight-result-wrap" style="margin-top: 0; display: none;" aria-live="polite">
+                <div class="section-title text-sm" style="margin-bottom: 8px; color: var(--neon-blue);">AI 분석 결과</div>
+                <div id="ai-insight-result" class="ai-report-box"></div>
               </div>
-              <p id="sheets-status" class="sheets-status" style="margin-top:10px;" role="status"></p>
+              <div class="ai-insight-placeholder text-muted text-sm" id="ai-insight-placeholder" style="margin-top: 12px;">
+                AI 분석 후 결과가 위에 표시됩니다.
+              </div>
+
+              <div class="flex gap-md flex-wrap items-center" style="margin-top: 20px;">
+                <button type="button" class="btn-primary btn-ai-row" id="btn-ai-analyze-and-save" aria-busy="false">
+                  <span class="ai-btn-spinner" id="ai-btn-spinner" aria-hidden="true"></span>
+                  <span id="btn-ai-analyze-label">AI 분석 시작</span>
+                </button>
+                <button type="button" class="btn-secondary" id="btn-download-json-only">
+                  JSON만 다운로드
+                </button>
+              </div>
+              <div
+                id="ai-analysis-loading"
+                class="ai-analysis-loading-panel"
+                data-visible="false"
+                role="status"
+                aria-live="polite"
+                aria-busy="false"
+                hidden
+              >
+                <span class="ai-analysis-loading-spinner" aria-hidden="true"></span>
+                <span id="ai-analysis-loading-text">분석 중...</span>
+              </div>
+              <p id="ai-save-status" class="sheets-status" style="margin-top: 12px;" role="status"></p>
+
+              <div class="panel mt-md" style="margin-top: 20px; background: rgba(0,0,0,0.2); border: 1px solid rgba(148,163,184,0.25);">
+                <div class="section-title mb-sm">전문가용 시트 전송</div>
+                <p class="text-xs text-muted mb-sm">
+                  세션에 저장된 <strong>AI 리포트</strong>(AS열)와 <strong>관찰자 리포트</strong>(AT~AV열, 비어 있어도 됨)를 한 번에 전송합니다.
+                </p>
+                <button type="button" class="btn-primary" id="btn-expert-sheets-send">
+                  코멘트·AI 결과 반영하여 시트 전송
+                </button>
+                <p class="text-xs text-muted mt-sm mb-sm">JSON 파일로 오프라인 전송이 필요하면 아래를 사용하세요.</p>
+                <div class="flex gap-md flex-wrap items-center">
+                  <label class="btn-secondary" style="margin:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                    <span>JSON 파일 업로드하여 전송</span>
+                    <input type="file" id="upload-json-input" accept=".json,application/json" style="display:none;">
+                  </label>
+                </div>
+                <p id="sheets-status" class="sheets-status" style="margin-top:10px;" role="status"></p>
+              </div>
             </div>
+
+            <div class="summary-final-block" style="margin-top: 24px;">
+              <div class="section-title text-sm" style="margin-bottom: 12px; color: var(--text-main);">관찰자 리포트 <span class="text-muted" style="font-weight:500;">(선택 · 시트 AT~AV열)</span></div>
+              <label for="summary-observer-quit" class="text-sm" style="display:block; margin-bottom:6px; font-weight:600; color: var(--text-main);">
+                이탈/포기 사유 <span class="text-muted" style="font-weight:500;">(AT열)</span>
+              </label>
+              <textarea
+                id="summary-observer-quit"
+                class="summary-observer-textarea"
+                rows="3"
+                maxlength="8000"
+                placeholder="플레이 포기·좌절 구간의 구체적 이유(없으면 비워 두세요)."
+                aria-label="이탈 포기 사유"
+              ></textarea>
+              <label for="summary-observer-alt" class="text-sm" style="display:block; margin: 14px 0 6px; font-weight:600; color: var(--text-main);">
+                대체 행동 양상 <span class="text-muted" style="font-weight:500;">(AU열)</span>
+              </label>
+              <textarea
+                id="summary-observer-alt"
+                class="summary-observer-textarea"
+                rows="3"
+                maxlength="8000"
+                placeholder="불리함을 극복하기 위해 반복한 행동(없으면 비워 두세요)."
+                aria-label="대체 행동 양상"
+              ></textarea>
+              <label for="summary-observer-summary" class="text-sm" style="display:block; margin: 14px 0 6px; font-weight:600; color: var(--text-main);">
+                핵심 접근성 문제 요약 <span class="text-muted" style="font-weight:500;">(AV열)</span>
+              </label>
+              <textarea
+                id="summary-observer-summary"
+                class="summary-observer-textarea"
+                rows="4"
+                maxlength="8000"
+                placeholder="측정·관찰을 종합한 핵심 의견(없으면 비워 두세요)."
+                aria-label="핵심 접근성 문제 요약"
+              ></textarea>
+            </div>
+
+            <div id="expert-opinions" style="margin-top: 20px;"></div>
 
             <div class="btn-row" style="margin-top: 24px;">
               <button type="button" class="btn-secondary" id="back-to-observer">
@@ -466,12 +484,45 @@
         const GEMINI_MODEL = "gemini-2.5-flash";
         const PENDING_SHEET_STORAGE_KEY = "ga_pending_sheet_export_v1";
         const PRESHEET_BACKUP_KEY = "ga_presheet_backup_v1";
+        /** Google 스프레드시트 단일 셀 상한(문자). 초과 시 잘림·저장 실패 가능 */
+        var SHEET_AR_CELL_MAX_CHARS = 50000;
+        /** 이 길이 이상이면 관찰자에게 주의(한도 근접) 안내 */
+        var SHEET_AR_WARN_APPROACH_CHARS = 45000;
 
         /** AI 분석 본문(화면 상태). 응답 수신 직후 갱신되어 즉시 렌더링됩니다. */
         var aiResult = "";
 
         function readSession() {
           return (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};
+        }
+
+        var _observerPersistTimer = null;
+        function persistObserverReportFromUi() {
+          if (typeof GAStorage === "undefined") return;
+          var q = document.getElementById("summary-observer-quit");
+          var a = document.getElementById("summary-observer-alt");
+          var s = document.getElementById("summary-observer-summary");
+          var session = readSession();
+          var or = Object.assign({}, session.observer_report || {});
+          or.quitReason = q && q.value != null ? String(q.value).trim() : "";
+          or.altBehavior = a && a.value != null ? String(a.value).trim() : "";
+          or.analysisSummary = s && s.value != null ? String(s.value).trim() : "";
+          GAStorage.writeSession({ observer_report: or });
+          try {
+            document.getElementById("json-preview").textContent = JSON.stringify(readSession(), null, 2);
+          } catch (e) {}
+          try {
+            renderExpertOpinions(readSession().observer_report || null);
+          } catch (e2) {}
+          scheduleUpdateSheetArLengthWarning();
+        }
+
+        function schedulePersistObserverReportFromUi() {
+          if (_observerPersistTimer) clearTimeout(_observerPersistTimer);
+          _observerPersistTimer = setTimeout(function () {
+            _observerPersistTimer = null;
+            persistObserverReportFromUi();
+          }, 400);
         }
 
         /** aiResult 갱신 + AI 분석 영역 즉시 반영 */
@@ -722,8 +773,8 @@
           }
           const items = [
             { label: "이탈/포기 사유", text: observer.quitReason },
-            { label: "대체 행동 패턴", text: observer.altBehavior },
-            { label: "핵심 분석 요약", text: observer.analysisSummary }
+            { label: "대체 행동 양상", text: observer.altBehavior },
+            { label: "핵심 접근성 문제 요약", text: observer.analysisSummary }
           ].filter(i => i.text);
           el.innerHTML = items.map(i =>
             `<div class="expert-opinion"><div class="expert-opinion-label">${escapeHtml(i.label)}</div><div class="expert-opinion-text">"${escapeHtml(i.text)}"</div></div>`
@@ -966,8 +1017,8 @@
          * A~AM(39열): 요약 스칼라·color_confusion_matrix까지.
          * AN~AQ(40~43열): 정렬용 빈 패딩(시트 AR=44열에 테스트 묶음이 오도록).
          * AR: sheet_AR_test_data — 전체 테스트 raw JSON(문자열).
-         * AS: sheet_AS_observer_comment — 관찰자 코멘트.
-         * AT: sheet_AT_ai_report — AI 리포트 본문 또는 "pending".
+         * AS: sheet_AS_ai_report — AI 리포트 본문 또는 "pending".
+         * AT~AV: 관찰자 리포트 3필드(선택, 비어 있을 수 있음).
          */
         const SHEETS_HEADER_ORDER = [
           "timestamp", "user_id", "age", "gender", "monitor_inch", "resolution", "viewing_distance", "disability_type",
@@ -986,13 +1037,15 @@
           "sheet_column_align_pad_42",
           "sheet_column_align_pad_43",
           "sheet_AR_test_data",
-          "sheet_AS_observer_comment",
-          "sheet_AT_ai_report"
+          "sheet_AS_ai_report",
+          "sheet_AT_observer_quit_reason",
+          "sheet_AU_observer_alt_behavior",
+          "sheet_AV_observer_accessibility_summary"
         ];
 
         /**
          * 구글 시트 헤더 순서에 맞춘 전송용 객체 생성. SHEETS_HEADER_ORDER와 시트 첫 행 헤더가 일치해야 함.
-         * @param {object} [sheetOptions] — { sheetObserverComment, sheetAiAnalysis } → AS·AT열
+         * @param {object} [sheetOptions] — AS·AT~AV열 덮어쓰기(미주입 시 session에서 읽음)
          */
         function buildSheetsRowPayload(session, sheetOptions) {
           sheetOptions = sheetOptions || {};
@@ -1187,29 +1240,42 @@
             session.observer_report && typeof session.observer_report === "object"
               ? session.observer_report
               : {};
-          let observer_report = Object.keys(baseObserver).length ? Object.assign({}, baseObserver) : null;
-          const commentTrim =
-            sheetOptions.sheetObserverComment != null ? String(sheetOptions.sheetObserverComment).trim() : "";
-          if (commentTrim) {
-            observer_report = Object.assign({}, observer_report || {});
-            observer_report.summary_page_observer_comment = commentTrim;
-          }
+
+          const sessionAiText =
+            session.ai_accessibility_report && session.ai_accessibility_report.fullText
+              ? String(session.ai_accessibility_report.fullText).trim()
+              : "";
+          const sheet_AS_ai_report =
+            sheetOptions.sheet_AS_ai_report !== undefined && sheetOptions.sheet_AS_ai_report !== null
+              ? String(sheetOptions.sheet_AS_ai_report)
+              : sessionAiText
+                ? sessionAiText
+                : "pending";
+          const sheet_AT_observer_quit_reason =
+            sheetOptions.sheet_AT_observer_quit_reason !== undefined && sheetOptions.sheet_AT_observer_quit_reason !== null
+              ? String(sheetOptions.sheet_AT_observer_quit_reason)
+              : String((baseObserver && baseObserver.quitReason) || "");
+          const sheet_AU_observer_alt_behavior =
+            sheetOptions.sheet_AU_observer_alt_behavior !== undefined && sheetOptions.sheet_AU_observer_alt_behavior !== null
+              ? String(sheetOptions.sheet_AU_observer_alt_behavior)
+              : String((baseObserver && baseObserver.altBehavior) || "");
+          const sheet_AV_observer_accessibility_summary =
+            sheetOptions.sheet_AV_observer_accessibility_summary !== undefined &&
+            sheetOptions.sheet_AV_observer_accessibility_summary !== null
+              ? String(sheetOptions.sheet_AV_observer_accessibility_summary)
+              : String((baseObserver && baseObserver.analysisSummary) || "");
+
+          const observer_report = Object.assign({}, baseObserver, {
+            quitReason: sheet_AT_observer_quit_reason,
+            altBehavior: sheet_AU_observer_alt_behavior,
+            analysisSummary: sheet_AV_observer_accessibility_summary
+          });
           if (session.ai_accessibility_report && typeof session.ai_accessibility_report === "object") {
-            observer_report = Object.assign({}, observer_report || {});
             observer_report.ai_accessibility_report_meta = {
               generatedAt: session.ai_accessibility_report.generatedAt || null,
               model: session.ai_accessibility_report.model || null
             };
           }
-
-          const sheet_AS_observer_comment =
-            sheetOptions.sheetObserverComment !== undefined && sheetOptions.sheetObserverComment !== null
-              ? String(sheetOptions.sheetObserverComment)
-              : "";
-          const sheet_AT_ai_report =
-            sheetOptions.sheetAiAnalysis !== undefined && sheetOptions.sheetAiAnalysis !== null
-              ? String(sheetOptions.sheetAiAnalysis)
-              : "pending";
           const ai_precursor_metrics = buildAiPrecursorMetrics(
             vision,
             motor,
@@ -1290,8 +1356,10 @@
             sheet_column_align_pad_42: "",
             sheet_column_align_pad_43: "",
             sheet_AR_test_data,
-            sheet_AS_observer_comment,
-            sheet_AT_ai_report,
+            sheet_AS_ai_report,
+            sheet_AT_observer_quit_reason,
+            sheet_AU_observer_alt_behavior,
+            sheet_AV_observer_accessibility_summary,
           };
           const ordered = {};
           SHEETS_HEADER_ORDER.forEach(function (k) {
@@ -1301,6 +1369,99 @@
             if (!(k in ordered)) ordered[k] = raw[k];
           });
           return ordered;
+        }
+
+        /**
+         * 시트 AR열에 들어갈 JSON 문자열 글자 수(Unicode 코드 유닛 기준, String.length와 동일).
+         * @returns {number} 길이, 오류 시 -1
+         */
+        function getSheetArTestDataCharLength(session, sheetOptions) {
+          try {
+            var row = buildSheetsRowPayload(session, sheetOptions || {});
+            var ar = row.sheet_AR_test_data;
+            return typeof ar === "string" ? ar.length : 0;
+          } catch (e) {
+            return -1;
+          }
+        }
+
+        /**
+         * 관찰자·전문가 영역: AR 번들이 셀 한도를 넘거나 근접할 때 경고 표시.
+         */
+        function updateSheetArLengthWarning() {
+          var box = document.getElementById("sheet-ar-length-warning");
+          var meta = document.getElementById("sheet-ar-length-meta");
+          if (!box) return;
+          var session = readSession();
+          var len = getSheetArTestDataCharLength(session, {});
+          var maxS = SHEET_AR_CELL_MAX_CHARS.toLocaleString();
+          if (meta) {
+            if (len < 0) {
+              meta.textContent = "";
+            } else {
+              meta.textContent =
+                "AR열 번들(JSON) 예상 길이: " + len.toLocaleString() + "자 · 스프레드시트 셀 한도 약 " + maxS + "자";
+            }
+          }
+          if (len < 0) {
+            box.hidden = false;
+            box.style.display = "block";
+            box.style.border = "1px solid rgba(248, 113, 113, 0.65)";
+            box.style.background = "rgba(127, 29, 29, 0.4)";
+            box.style.color = "#fecaca";
+            box.innerHTML =
+              "<strong>확인 실패</strong> — 전송용 AR 데이터를 만들지 못했습니다. 세션·측정 데이터에 문제가 없는지 JSON 미리보기로 확인해 주세요.";
+            return;
+          }
+          if (len >= SHEET_AR_CELL_MAX_CHARS) {
+            box.hidden = false;
+            box.style.display = "block";
+            box.style.border = "1px solid rgba(248, 113, 113, 0.65)";
+            box.style.background = "rgba(127, 29, 29, 0.4)";
+            box.style.color = "#fecaca";
+            box.innerHTML =
+              "<strong>경고</strong> — AR열 데이터가 약 " +
+              maxS +
+              "자를 넘었습니다. 구글 시트에 <strong>잘리거나 저장되지 않을 수 있습니다</strong>. 원시 측정 데이터 축소·재측정, 또는 <strong>JSON만 다운로드</strong> 후 별도 보관을 검토해 주세요.";
+            return;
+          }
+          if (len >= SHEET_AR_WARN_APPROACH_CHARS) {
+            box.hidden = false;
+            box.style.display = "block";
+            box.style.border = "1px solid rgba(251, 191, 36, 0.55)";
+            box.style.background = "rgba(120, 53, 15, 0.4)";
+            box.style.color = "#fef3c7";
+            box.innerHTML =
+              "<strong>주의</strong> — AR열 JSON이 " +
+              len.toLocaleString() +
+              "자로 셀 한도에 가깝습니다. 관찰자 입력(AT~AV)을 짧게 유지하고, 전송 후 시트에서 AR 열이 끝까지 들어갔는지 확인해 주세요.";
+            return;
+          }
+          box.hidden = true;
+          box.style.display = "none";
+          box.innerHTML = "";
+        }
+
+        var _sheetArWarnTimer = null;
+        function scheduleUpdateSheetArLengthWarning() {
+          if (_sheetArWarnTimer) clearTimeout(_sheetArWarnTimer);
+          _sheetArWarnTimer = setTimeout(function () {
+            _sheetArWarnTimer = null;
+            updateSheetArLengthWarning();
+          }, 650);
+        }
+
+        /** AR 초과 시 전송 여부 확인 */
+        function confirmSheetExportIfArTooLong(session, sheetOptions) {
+          var len = getSheetArTestDataCharLength(session, sheetOptions || {});
+          if (len >= SHEET_AR_CELL_MAX_CHARS) {
+            return window.confirm(
+              "AR열(JSON) 길이가 약 " +
+                SHEET_AR_CELL_MAX_CHARS.toLocaleString() +
+                "자를 넘어, 스프레드시트에 제대로 저장되지 않을 수 있습니다. 그래도 전송을 시도할까요?"
+            );
+          }
+          return true;
         }
 
         /** 세션 저장소 비우기 (전송 완료 후 호출) */
@@ -1414,9 +1575,21 @@
           renderExpertOpinions(session.observer_report);
           document.getElementById("json-preview").textContent = JSON.stringify(session, null, 2);
 
-          const taComment = document.getElementById("summary-observer-comment");
-          if (taComment && session.observer_report && session.observer_report.summary_page_observer_comment) {
-            taComment.value = session.observer_report.summary_page_observer_comment;
+          const taQuit = document.getElementById("summary-observer-quit");
+          const taAlt = document.getElementById("summary-observer-alt");
+          const taSummary = document.getElementById("summary-observer-summary");
+          if (taQuit || taAlt || taSummary) {
+            const or = session.observer_report || {};
+            if (taQuit) taQuit.value = or.quitReason || "";
+            if (taAlt) taAlt.value = or.altBehavior || "";
+            if (taSummary) {
+              taSummary.value =
+                or.analysisSummary ||
+                (!or.quitReason && !or.altBehavior && or.summary_page_observer_comment
+                  ? or.summary_page_observer_comment
+                  : "") ||
+                "";
+            }
           }
           if (session.ai_accessibility_report && session.ai_accessibility_report.fullText) {
             applyAiResultToView(session.ai_accessibility_report.fullText);
@@ -1430,6 +1603,7 @@
             : (session.disabilityType || "-");
           document.getElementById("user-summary").innerHTML =
             "세션 <strong>" + escapeHtml(id) + "</strong> · 장애 <strong>" + escapeHtml(disability) + "</strong>";
+          scheduleUpdateSheetArLengthWarning();
         }
 
         function downloadSessionJson(session) {
@@ -1536,7 +1710,7 @@
           };
         }
 
-        function buildGeminiAccessibilityPrompt(session, observerComment) {
+        function buildGeminiAccessibilityPrompt(session) {
           const pack = buildGeminiDiagnosticsPayload(session);
           const expert = session.observer_report || {};
           const testJsonBlock = JSON.stringify(pack, null, 2);
@@ -1550,16 +1724,16 @@
             2
           );
           const pageComment =
-            observerComment && observerComment.trim() ? observerComment.trim() : "(없음 — 아래 관찰자 코멘트 박스에 입력된 내용이 없습니다.)";
+            "(관찰자 리포트는 상단 AT~AV 입력란 또는 observer_report에서 입력됩니다.)";
 
           return (
             "너는 세계 최고의 게임 접근성 컨설턴트야. 'Smile Play Ally' 프로젝트의 데이터를 분석해야 해.\n\n" +
             "## 입력 데이터\n\n" +
             "### [사용자의 시야/색각/인지 테스트 요약 JSON]\n" +
             testJsonBlock +
-            "\n\n### [관찰자 리포트 폼(이탈·대체 행동·핵심 요약)]\n" +
+            "\n\n### [관찰자 리포트 폼(이탈·대체 행동·핵심 접근성 요약)]\n" +
             observerFormBlock +
-            "\n\n### [관찰자 코멘트 — 결과 화면 하단 텍스트 영역]\n" +
+            "\n\n### [참고]\n" +
             pageComment +
             "\n\n## 출력 형식 (반드시 아래 세 섹션 제목을 사용하고, 한국어 마크다운으로 작성)\n\n" +
             "### 1. 플레이어의 주요 시각적/인지적 특성 요약\n" +
@@ -1713,6 +1887,7 @@
             }
             return;
           }
+          persistObserverReportFromUi();
           var session = readSession();
           var errs = validateSession(session);
           if (errs.length > 0) {
@@ -1729,6 +1904,13 @@
           if (statusEl) {
             statusEl.textContent = "";
             statusEl.style.color = "inherit";
+          }
+          if (!confirmSheetExportIfArTooLong(session, {})) {
+            if (triggerBtn) {
+              triggerBtn.disabled = false;
+              triggerBtn.textContent = btnIdleLabel;
+            }
+            return;
           }
           var payload = buildSheetsRowPayload(session);
           savePreSheetBackup(payload, session, { stage: "primary_user_send", observerComment: "", aiReportPreview: null });
@@ -1760,6 +1942,7 @@
             }
             return;
           }
+          persistObserverReportFromUi();
           var session = readSession();
           var errs = validateSession(session);
           if (errs.length > 0) {
@@ -1769,8 +1952,6 @@
             }
             return;
           }
-          var ta = document.getElementById("summary-observer-comment");
-          var comment = ta && ta.value ? String(ta.value).trim() : "";
           var aiText = (session.ai_accessibility_report && session.ai_accessibility_report.fullText) || "";
           var atVal = aiText && String(aiText).trim() ? String(aiText) : "pending";
 
@@ -1783,13 +1964,20 @@
             sheetsStatusEl.style.color = "inherit";
           }
 
-          var payload = buildSheetsRowPayload(session, {
-            sheetObserverComment: comment,
-            sheetAiAnalysis: atVal
-          });
+          var payloadOpts = { sheet_AS_ai_report: atVal };
+          if (!confirmSheetExportIfArTooLong(session, payloadOpts)) {
+            if (btnExpertSheetsSend) {
+              btnExpertSheetsSend.disabled = false;
+              btnExpertSheetsSend.textContent = EXPERT_SEND_LABEL;
+            }
+            return;
+          }
+
+          var payload = buildSheetsRowPayload(session, payloadOpts);
+          var o = session.observer_report || {};
           savePreSheetBackup(payload, session, {
             stage: "expert_sheet_send",
-            observerComment: comment,
+            observerComment: [o.quitReason, o.altBehavior, o.analysisSummary].filter(Boolean).join(" | "),
             aiReportPreview: atVal.length > 500 ? atVal.slice(0, 500) + "…" : atVal
           });
           fetch(DEPLOYED_SHEETS_URL, {
@@ -1801,9 +1989,9 @@
           try {
             localStorage.removeItem(PRESHEET_BACKUP_KEY);
           } catch (e) {}
-          alert("전송 시도 완료 (AS·AT 반영)");
+          alert("전송 시도 완료 (AS·AT~AV 반영)");
           if (sheetsStatusEl) {
-            sheetsStatusEl.textContent = "요청이 전송되었습니다. AS·AT·AR을 시트에서 확인해 주세요.";
+            sheetsStatusEl.textContent = "요청이 전송되었습니다. AS·AT~AV·AR 열을 시트에서 확인해 주세요.";
             sheetsStatusEl.style.color = "#86efac";
           }
           if (btnExpertSheetsSend) {
@@ -1835,9 +2023,10 @@
           btnToggleExpert.addEventListener("click", function () {
             var isHidden = expertPanel.hasAttribute("hidden");
             if (isHidden) {
-              expertPanel.removeAttribute("hidden");
-              btnToggleExpert.setAttribute("aria-expanded", "true");
-              setTimeout(function () {
+            expertPanel.removeAttribute("hidden");
+            btnToggleExpert.setAttribute("aria-expanded", "true");
+            scheduleUpdateSheetArLengthWarning();
+            setTimeout(function () {
                 expertPanel.scrollIntoView({ behavior: "smooth", block: "start" });
               }, 50);
             } else {
@@ -1922,19 +2111,22 @@
           const session = readSession();
           render(session);
           loadProjectInstructions();
+          ["summary-observer-quit", "summary-observer-alt", "summary-observer-summary"].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener("input", schedulePersistObserverReportFromUi);
+            el.addEventListener("blur", persistObserverReportFromUi);
+          });
         }
 
         const AI_ANALYZE_BTN_DEFAULT = "AI 분석 시작";
 
         /**
-         * 결과 화면이 보유한 세션(테스트 결과) + 관찰자 코멘트를 한 번에 수집합니다.
+         * 결과 화면이 보유한 세션(테스트 결과) + 관찰자 리포트(AT~AV)를 한 번에 반영합니다.
          */
         function collectResultsForAiAnalysis() {
-          const ta = document.getElementById("summary-observer-comment");
-          return {
-            session: readSession(),
-            observerComment: (ta && ta.value) ? String(ta.value) : ""
-          };
+          persistObserverReportFromUi();
+          return { session: readSession() };
         }
 
         function setAiAnalyzeButtonLoading(isLoading, phase) {
@@ -1946,8 +2138,11 @@
           if (!btn) return;
           btn.disabled = !!isLoading;
           btn.setAttribute("aria-busy", isLoading ? "true" : "false");
-          var taObs = document.getElementById("summary-observer-comment");
-          if (taObs) taObs.disabled = !!isLoading;
+          var taObsIds = ["summary-observer-quit", "summary-observer-alt", "summary-observer-summary"];
+          taObsIds.forEach(function (tid) {
+            var el = document.getElementById(tid);
+            if (el) el.disabled = !!isLoading;
+          });
           const showGeminiWait = !!isLoading && phase === "gemini";
           if (spin) spin.setAttribute("data-visible", showGeminiWait ? "true" : "false");
           if (loadPanel) {
@@ -1973,10 +2168,10 @@
               alert("file:// 환경에서는 Gemini·시트 전송이 동작하지 않을 수 있습니다. localhost로 열어 주세요.");
               return;
             }
+            persistObserverReportFromUi();
             var collected = collectResultsForAiAnalysis();
             var session = collected.session;
-            var observerComment = collected.observerComment;
-            const errs = validateSession(session);
+            var errs = validateSession(session);
             if (errs.length > 0) {
               alert("유효성 검사 실패: " + errs.join(" "));
               return;
@@ -1988,7 +2183,7 @@
               aiSaveStatusEl.style.color = "inherit";
             }
 
-            const promptText = buildGeminiAccessibilityPrompt(session, observerComment);
+            const promptText = buildGeminiAccessibilityPrompt(session);
             callGeminiGenerateContentWithQuotaRetry(promptText, aiSaveStatusEl)
               .then(function (reportText) {
                 applyAiResultToView(reportText);
@@ -1999,28 +2194,33 @@
                 };
                 var sessionAfter;
                 if (typeof GAStorage !== "undefined") {
-                  var orMerged = Object.assign({}, session.observer_report || {});
-                  if (observerComment.trim()) orMerged.summary_page_observer_comment = observerComment.trim();
                   sessionAfter = GAStorage.writeSession({
-                    observer_report: orMerged,
                     ai_accessibility_report: aiMeta
                   });
                 } else {
                   sessionAfter = readSession();
                 }
-                const payload = buildSheetsRowPayload(sessionAfter, {
-                  sheetObserverComment: observerComment,
-                  sheetAiAnalysis: reportText
-                });
+                const payload = buildSheetsRowPayload(sessionAfter);
 
                 document.getElementById("json-preview").textContent = JSON.stringify(sessionAfter, null, 2);
 
                 setAiAnalyzeButtonLoading(true, "sheet");
+                var oSnap = sessionAfter.observer_report || {};
                 savePreSheetBackup(payload, sessionAfter, {
                   stage: "pre_sheet_after_ai",
-                  observerComment: observerComment,
+                  observerComment: [oSnap.quitReason, oSnap.altBehavior, oSnap.analysisSummary].filter(Boolean).join(" | "),
                   aiReportPreview: reportText.length > 500 ? reportText.slice(0, 500) + "…" : reportText
                 });
+
+                if (!confirmSheetExportIfArTooLong(sessionAfter, {})) {
+                  if (aiSaveStatusEl) {
+                    aiSaveStatusEl.textContent =
+                      "AI 리포트는 세션에 저장되었습니다. AR열 JSON이 약 5만 자를 넘어 시트 전송은 취소되었습니다. JSON 다운로드·데이터 축소를 검토해 주세요.";
+                    aiSaveStatusEl.style.color = "#fbbf24";
+                  }
+                  scheduleUpdateSheetArLengthWarning();
+                  return Promise.resolve({ skipSheet: true });
+                }
 
                 try {
                   return fetch(DEPLOYED_SHEETS_URL, {
@@ -2028,37 +2228,43 @@
                     mode: "no-cors",
                     headers: {},
                     body: JSON.stringify(payload)
+                  }).then(function () {
+                    return { skipSheet: false };
                   });
                 } catch (fetchErr) {
                   throw fetchErr;
                 }
               })
-              .then(function () {
+              .then(function (sheetResult) {
+                if (sheetResult && sheetResult.skipSheet) {
+                  alert(
+                    "AI 분석은 완료되어 세션에 저장되었습니다. AR 데이터 길이 경고로 인해 이번에는 시트 전송을 하지 않았습니다."
+                  );
+                  return;
+                }
                 try {
                   localStorage.removeItem(PENDING_SHEET_STORAGE_KEY);
                   localStorage.removeItem(PRESHEET_BACKUP_KEY);
                 } catch (e) {}
                 if (aiSaveStatusEl) {
                   aiSaveStatusEl.textContent =
-                    "AI 리포트를 표시했고, 시트 전송을 요청했습니다(AR·AS·AT). 시트에서 행을 확인해 주세요.";
+                    "AI 리포트를 세션에 저장했고 시트 전송을 요청했습니다(AS·AT~AV·AR). 시트에서 행을 확인해 주세요.";
                   aiSaveStatusEl.style.color = "#86efac";
                 }
-                alert("AI 분석이 완료되었고 시트 전송을 요청했습니다. AR·AS·AT열을 확인해 주세요.");
+                alert("AI 분석이 완료되었고 시트 전송을 요청했습니다. AS·AT~AV 열을 확인해 주세요.");
               })
               .catch(function (err) {
                 const sessionSnap = readSession();
                 var payloadForPending = null;
                 try {
-                  payloadForPending = buildSheetsRowPayload(sessionSnap, {
-                    sheetObserverComment: observerComment,
-                    sheetAiAnalysis: (sessionSnap.ai_accessibility_report && sessionSnap.ai_accessibility_report.fullText) || "pending"
-                  });
+                  payloadForPending = buildSheetsRowPayload(sessionSnap);
                 } catch (e) {}
+                var oCtx = sessionSnap.observer_report || {};
                 savePendingSheetExport(err, {
                   stage: err && err.message && String(err.message).indexOf("Gemini") !== -1 ? "gemini" : "sheets",
                   session: sessionSnap,
                   payload: payloadForPending,
-                  observerComment: observerComment,
+                  observerComment: [oCtx.quitReason, oCtx.altBehavior, oCtx.analysisSummary].filter(Boolean).join(" | "),
                   aiText: sessionSnap.ai_accessibility_report && sessionSnap.ai_accessibility_report.fullText
                 });
                 if (aiSaveStatusEl) {

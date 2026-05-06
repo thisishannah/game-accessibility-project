@@ -59,8 +59,10 @@ FAKE_PAYLOAD = {
     "sheet_column_align_pad_42": "",
     "sheet_column_align_pad_43": "",
     "sheet_AR_test_data": '{"_schema":"ga_sheet_AR_test_bundle_v1","_test":"fake"}',
-    "sheet_AS_observer_comment": "",
-    "sheet_AT_ai_report": "pending",
+    "sheet_AS_ai_report": "pending",
+    "sheet_AT_observer_quit_reason": "",
+    "sheet_AU_observer_alt_behavior": "",
+    "sheet_AV_observer_accessibility_summary": "",
 }
 
 

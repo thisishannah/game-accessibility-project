@@ -255,7 +255,6 @@
               <div class="field-label-row">
                 <label for="quit-reason">
                   이탈/포기 사유
-                  <span class="label-required">필수</span>
                 </label>
                 <span class="label-helper">플레이 포기·좌절 구간의 구체적 이유</span>
               </div>
@@ -272,8 +271,7 @@
             <div class="field-group">
               <div class="field-label-row">
                 <label for="alt-behavior">
-                  대체 행동 패턴
-                  <span class="label-required">필수</span>
+                  대체 행동 양상
                 </label>
                 <span class="label-helper">불리함을 극복하기 위해 반복한 행동</span>
               </div>
@@ -290,8 +288,7 @@
             <div class="field-group">
               <div class="field-label-row">
                 <label for="analysis-summary">
-                  핵심 분석 요약
-                  <span class="label-required">필수</span>
+                  핵심 접근성 문제 요약
                 </label>
                 <span class="label-helper">영상 분석 에이전트 결과 + 관찰을 종합한 최종 의견</span>
               </div>
@@ -369,32 +366,16 @@
         }
 
         function validate() {
-          const quit = document.getElementById("quit-reason");
-          const alt = document.getElementById("alt-behavior");
-          const summary = document.getElementById("analysis-summary");
           document.getElementById("quit-reason-error").textContent = "";
           document.getElementById("alt-behavior-error").textContent = "";
           document.getElementById("analysis-summary-error").textContent = "";
-          let valid = true;
-          if (!quit.value.trim()) {
-            document.getElementById("quit-reason-error").textContent = "이탈/포기 사유를 입력해 주세요.";
-            valid = false;
-          }
-          if (!alt.value.trim()) {
-            document.getElementById("alt-behavior-error").textContent = "대체 행동 패턴을 입력해 주세요.";
-            valid = false;
-          }
-          if (!summary.value.trim()) {
-            document.getElementById("analysis-summary-error").textContent = "핵심 분석 요약을 입력해 주세요.";
-            valid = false;
-          }
-          return valid;
+          return true;
         }
 
         form.addEventListener("submit", (e) => {
           e.preventDefault();
           if (!validate()) {
-            showStatus("필수 항목을 모두 입력해 주세요.", true);
+            showStatus("저장 중 오류가 발생했습니다.", true);
             return;
           }
           const observerReport = {
@@ -403,7 +384,8 @@
             analysisSummary: document.getElementById("analysis-summary").value.trim(),
             recordedAt: new Date().toISOString(),
           };
-          writeSession({ observer_report: observerReport });
+          const prev = readSession().observer_report || {};
+          writeSession({ observer_report: Object.assign({}, prev, observerReport) });
           showStatus("관찰자 리포트가 저장되었습니다. 최종 요약 페이지로 이동합니다...", false);
           setTimeout(() => {
             window.location.href = "summary.html";
@@ -415,6 +397,24 @@
         });
 
         updateUserSummary();
+        (function preloadObserverForm() {
+          const s = readSession();
+          const or = s && s.observer_report;
+          if (!or) return;
+          const q = document.getElementById("quit-reason");
+          const a = document.getElementById("alt-behavior");
+          const sum = document.getElementById("analysis-summary");
+          if (q && or.quitReason) q.value = or.quitReason;
+          if (a && or.altBehavior) a.value = or.altBehavior;
+          if (sum) {
+            sum.value =
+              or.analysisSummary ||
+              (!or.quitReason && !or.altBehavior && or.summary_page_observer_comment
+                ? or.summary_page_observer_comment
+                : "") ||
+              "";
+          }
+        })();
       })();
     </script>
   </body>
