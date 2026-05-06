@@ -1,26 +1,15 @@
 /**
  * 결과 페이지용 Gemini 브라우저 SDK (Vite 빌드 시 NEXT_PUBLIC_GEMINI_API_KEY 주입)
+ *
+ * 주의: getGenerativeModel 옵션에 systemInstruction 절대 넣지 않음(400 방지).
+ * 지침은 finalPrompt 문자열 앞부분에만 합침.
  */
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-/** Gemini 1.5 계열 단종 대비: Generative Language API 기준 안정 Flash 모델 */
-const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
-
-/**
- * SDK는 model 필드에 id만 기대합니다. "models/..." 접두사가 붙으면 404가 날 수 있습니다.
- * @param {string} [name]
- * @returns {string}
- */
-function normalizeGeminiModelName(name) {
-  const raw = typeof name === "string" ? name.trim() : "";
-  if (!raw) {
-    return DEFAULT_GEMINI_MODEL;
-  }
-  const id = raw.replace(/^models\/+/i, "").trim();
-  return id || DEFAULT_GEMINI_MODEL;
-}
+/** 프로젝트 고정 모델 id(접두사 없이). */
+const GEMINI_MODEL_ID = "gemini-1.5-flash";
 
 /**
  * GA 안정 경로: Generative Language API v1.
@@ -29,12 +18,12 @@ function normalizeGeminiModelName(name) {
 const GEMINI_REQUEST_OPTIONS = { apiVersion: "v1" };
 
 /**
- * @param {string} promptText — 분석할 데이터(텍스트 또는 이미 직렬화된 본문)
- * @param {string} [modelName]
- * @param {string} [projectInstructions] — instructions.txt 등 (맨 앞에 붙임, systemInstruction 미사용)
+ * @param {string} promptText — 실제 분석 질문·데이터 본문
+ * @param {string} [_ignoredModelName] — 호환용(무시). 모델은 항상 gemini-1.5-flash.
+ * @param {string} [instructionPlainText] — instructions.txt 등 일반 문자열
  * @returns {Promise<string>}
  */
-async function summaryGeminiGenerate(promptText, modelName, projectInstructions) {
+async function summaryGeminiGenerate(promptText, _ignoredModelName, instructionPlainText) {
   const key = typeof API_KEY === "string" ? API_KEY.trim() : "";
   if (!key) {
     throw new Error(
@@ -42,18 +31,20 @@ async function summaryGeminiGenerate(promptText, modelName, projectInstructions)
     );
   }
   const genAI = new GoogleGenerativeAI(key);
-  const instr = typeof projectInstructions === "string" ? projectInstructions.trim() : "";
-  const dataPart = promptText != null ? String(promptText) : "";
-  const fullPrompt = instr
-    ? instr + "\n\n[분석할 데이터]:\n" + dataPart
-    : dataPart;
+  const instructionText =
+    typeof instructionPlainText === "string" ? instructionPlainText.trim() : "";
+  const questionBody = promptText != null ? String(promptText) : "";
+
+  const finalPrompt = instructionText
+    ? "[Instruction]\n" + instructionText + "\n\n" + questionBody
+    : questionBody;
+
   const modelOpts = {
-    // 기본 id는 gemini-2.5-flash. "models/..." 입력은 normalize에서 제거.
-    model: normalizeGeminiModelName(modelName),
+    model: GEMINI_MODEL_ID,
     generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
   };
   const model = genAI.getGenerativeModel(modelOpts, GEMINI_REQUEST_OPTIONS);
-  const result = await model.generateContent(fullPrompt);
+  const result = await model.generateContent(finalPrompt);
   const text = result.response.text();
   if (!text || !String(text).trim()) {
     throw new Error("Gemini 응답에 본문이 없습니다.");
