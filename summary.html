@@ -2059,7 +2059,7 @@
           if (!apiKey) {
             throw new Error("Gemini API 키를 입력한 뒤 다시 시도해 주세요.");
           }
-          var projectInstructions = await loadProjectInstructions();
+          var projectInstructions = await loadProjectInstructions({ force: true });
           return window.generateSummary(apiKey, combinedPayload, GEMINI_MODEL, projectInstructions);
         }
 
@@ -2128,19 +2128,30 @@
           }
         }
 
-        /** 프로젝트 루트 instructions.txt (프롬프트 상단에 prepend). same-origin fetch, 결과 캐시 */
+        /** 프로젝트 루트 instructions.txt (프롬프트 상단에 prepend). same-origin fetch, 기본은 메모리 캐시 */
         var _projectInstructionsCache = null;
         var _projectInstructionsPromise = null;
 
-        async function loadProjectInstructions() {
+        /**
+         * @param {{ force?: boolean }} [opts] — force true면 캐시 무시·HTTP 캐시 우회용 쿼리 후 재요청 (지침 수정 직후 반영)
+         */
+        async function loadProjectInstructions(opts) {
+          opts = opts || {};
+          if (opts.force) {
+            _projectInstructionsCache = null;
+            _projectInstructionsPromise = null;
+          }
           if (_projectInstructionsCache !== null) {
             return _projectInstructionsCache;
           }
           if (_projectInstructionsPromise) {
             return _projectInstructionsPromise;
           }
-          var url = new URL("instructions.txt", window.location.href).toString();
-          _projectInstructionsPromise = fetch(url, { cache: "no-store" })
+          var url = new URL("instructions.txt", window.location.href);
+          if (opts.force) {
+            url.searchParams.set("_", String(Date.now()));
+          }
+          _projectInstructionsPromise = fetch(url.toString(), { cache: "no-store" })
             .then(function (res) {
               if (!res.ok) {
                 throw new Error("instructions.txt HTTP " + res.status);
