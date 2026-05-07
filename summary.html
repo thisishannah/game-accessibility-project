@@ -328,8 +328,8 @@
               데이터 저장 및 전송하기
             </button>
             <div class="primary-cta-subactions" style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
-              <button type="button" class="btn-secondary" id="btn-user-json-backup" aria-label="지금 보고 있는 측정 결과 전체를 파일로 내려받기">
-                내 컴퓨터에 결과 저장하기
+              <button type="button" class="btn-secondary" id="btn-user-json-backup" aria-label="결과를 브라우저에 저장하고 JSON 파일로 받기">
+                결과 확정 및 데이터 파일 받기
               </button>
               <button type="button" class="btn-secondary" id="btn-download-participant-localstorage" aria-label="이 브라우저에 저장된 참여자 측정 데이터를 JSON으로 내려받기">
                 테스트 데이터 다운로드
@@ -505,8 +505,8 @@
         <button type="button" class="btn-primary btn-sticky-primary" id="sticky-btn-data-send">
           데이터 저장 및 전송하기
         </button>
-        <button type="button" class="btn-secondary" id="final-submit" aria-label="지금 보고 있는 측정 결과 전체를 파일로 내려받기">
-          내 컴퓨터에 저장
+        <button type="button" class="btn-secondary" id="final-submit" aria-label="결과를 브라우저에 저장하고 JSON 파일로 받기">
+          결과 확정 및 데이터 파일 받기
         </button>
       </div>
     </div>
@@ -1767,6 +1767,59 @@
           }
         }
 
+        /** 관찰자 코멘트 반영 후 세션을 session/localStorage(+ga_session_id)에 다시 기록하고 허브 진행률을 맞춤 */
+        function persistCurrentSessionToStorage() {
+          persistObserverCommentFromTextarea();
+          var s = readSession();
+          if (typeof GAStorage !== "undefined" && GAStorage.writeSession) {
+            s = GAStorage.writeSession(s);
+          }
+          if (typeof GAStorage !== "undefined" && GAStorage.syncHubProgressFromUserData) {
+            GAStorage.syncHubProgressFromUserData(s);
+          }
+          return readSession();
+        }
+
+        /**
+         * 결과 확정: localStorage 등에 저장 + 동일 스냅샷을 JSON으로 즉시 다운로드.
+         * 유효성 경고가 있어도 저장·다운로드는 수행하고 안내만 표시합니다.
+         */
+        function finalizeResultsAndDownloadJson() {
+          var msgEl = document.getElementById("validation-msg");
+          try {
+            var session = persistCurrentSessionToStorage();
+            var errs = validateSession(session);
+            if (msgEl) {
+              msgEl.style.display = "block";
+              msgEl.classList.toggle("validation-error", errs.length > 0);
+              if (errs.length > 0) {
+                msgEl.style.color = "#fbbf24";
+                msgEl.textContent = "저장·파일 생성 완료. 시트 전송 전 참고: " + errs.join(" ");
+              } else {
+                msgEl.style.color = "#86efac";
+                msgEl.textContent = "브라우저에 저장했습니다. JSON 파일을 다운로드했습니다.";
+              }
+            }
+            var blob = new Blob([JSON.stringify(session, null, 2)], { type: "application/json" });
+            var a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "ga_report_" + (session.userId || session.id || "export") + "_" + new Date().toISOString().slice(0, 10) + ".json";
+            a.click();
+            URL.revokeObjectURL(a.href);
+            var jp = document.getElementById("json-preview");
+            if (jp) jp.textContent = JSON.stringify(session, null, 2);
+            return true;
+          } catch (e) {
+            if (msgEl) {
+              msgEl.textContent = "저장/다운로드 오류: " + (e.message || "알 수 없음");
+              msgEl.style.display = "block";
+              msgEl.classList.add("validation-error");
+              msgEl.style.color = "";
+            }
+            return false;
+          }
+        }
+
         /** 현재 참여자와 연관된 localStorage 항목(API 키·임시 전송본 제외) + 병합 세션 스냅샷 */
         function downloadParticipantLocalStorageBundle() {
           var msgEl = document.getElementById("validation-msg");
@@ -1830,9 +1883,12 @@
           }
         }
 
-        document.getElementById("final-submit").addEventListener("click", () => {
-          downloadSessionJson(readSession());
-        });
+        var finalSubmitBtn = document.getElementById("final-submit");
+        if (finalSubmitBtn) {
+          finalSubmitBtn.addEventListener("click", function () {
+            finalizeResultsAndDownloadJson();
+          });
+        }
 
         function savePendingSheetExport(err, context) {
           try {
@@ -2230,7 +2286,7 @@
         }
         if (btnUserJsonBackup) {
           btnUserJsonBackup.addEventListener("click", function () {
-            downloadSessionJson(readSession());
+            finalizeResultsAndDownloadJson();
           });
         }
         if (btnDownloadParticipantLocalstorage) {
