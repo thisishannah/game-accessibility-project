@@ -1206,11 +1206,8 @@ body {
 .summary-report {
   --report-accent: var(--neon-blue);
   --report-accent-soft: var(--neon-blue-soft);
-}
-
-.summary-report .shell {
-  max-width: 1200px;
-  padding-bottom: 100px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .summary-report .profile-card {
