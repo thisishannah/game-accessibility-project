@@ -45,13 +45,13 @@
       }
       .instruction {
         text-align: center;
-        font-size: 16px;
+        font-size: 19px;
         font-weight: 650;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        white-space: pre-line;
+        line-height: 1.55;
         margin-bottom: 20px;
         color: var(--text-main);
-        min-height: 140px;
+        min-height: 80px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -119,7 +119,7 @@
         margin-bottom: 24px;
       }
       .intro-body {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 650;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         line-height: 1.4;
@@ -129,7 +129,21 @@
         white-space: pre-line;
       }
       .intro-body p { margin: 0; }
-      .intro-body strong { color: var(--text-main); }
+      .intro-body .go-no-go-instruction-text {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 650;
+        line-height: 1.55;
+        color: var(--text-main);
+      }
+      .instruction-word-go {
+        color: var(--ok);
+        font-weight: 700;
+      }
+      .instruction-word-nogo {
+        color: var(--danger);
+        font-weight: 700;
+      }
       .info-panel {
         text-align: center;
         font-size: 20px;
@@ -203,10 +217,10 @@
       <h1 id="page-title-h1" class="sr-only">반응 통제 테스트</h1>
       <div class="intro-panel" id="intro-panel">
         <div class="intro-body">
-          <p><strong>초록색 원</strong>이 나오면 클릭하고,
-<strong>빨간색 원</strong>이 나오면 클릭하지 마세요.</p>
-          <p>반응 억제와 적응력을 측정하는 테스트입니다.</p>
-          <p>준비되면 <strong>「시작하기」</strong> 버튼을 눌러 주세요.</p>
+          <p class="go-no-go-instruction-text">
+            <span class="instruction-word-go">초록색</span> 원이 나타나면 원을 클릭하세요.
+            <span class="instruction-word-nogo">빨간색</span> 원은 클릭하지 마세요.
+          </p>
         </div>
         <button class="btn-primary" id="ready-btn" style="width: auto; padding: 12px 30px; margin: 0 auto; display: block;">시작하기</button>
       </div>
@@ -239,6 +253,10 @@
         const resultsContent = document.getElementById("results-content");
         const saveBtn = document.getElementById("save-btn");
         const retryBtn = document.getElementById("retry-btn");
+
+        const INSTRUCTION_HTML =
+          '<span class="instruction-word-go">초록색</span> 원이 나타나면 원을 클릭하세요. ' +
+          '<span class="instruction-word-nogo">빨간색</span> 원은 클릭하지 마세요.';
 
         const TOTAL_TRIALS = 20;
         const GO_PROBABILITY = 0.55; // 55% 초록색, 45% 빨간색 (No-Go 많아질수록 억제 난이도 상승)
@@ -349,7 +367,7 @@
           circleContainer.style.display = "flex";
           instruction.style.display = "block";
           infoPanel.style.display = "block";
-          instruction.textContent = "아래 나타나는 원을 클릭해 주세요.\n\n초록색 원: 클릭\n빨간색 원: 클릭하지 마세요";
+          instruction.innerHTML = INSTRUCTION_HTML;
           testActive = true;
           currentTrial = 0;
           trials = [];

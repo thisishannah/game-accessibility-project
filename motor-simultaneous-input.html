@@ -47,12 +47,12 @@
       }
       .instruction {
         text-align: center;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 650;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         font-weight: 600;
         margin-bottom: 20px;
-        min-height: 80px;
+        min-height: 92px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -303,7 +303,7 @@
           "<p>가능하지 않은 경우, 하단의 [이 문제 건너뛰기]버튼을 눌러 다음 문제로 넘어가실 수 있습니다.</p>";
         const INSTRUCTION_MOUSE_AND_KEYBOARD =
           "<p>한 손으로는 마우스를 조작하고, 다른 한 손으로는 키보드를 작동합니다.</p>" +
-          "<p>마우스 좌 또는 우클릭을 유지한채로 키보드 버튼 2개 또는 3개를 동시에 누르세요.</p>";
+          "<p>화면 <strong>아무 곳에서나</strong> 마우스 <strong>좌 또는 우 버튼을 누른 채 유지</strong>하고, 키보드 키 3개를 동시에 누르세요.</p>";
         let successfulCombinations = [];
         let failedCombinations = [];
         let skippedCombinations = [];
@@ -329,8 +329,8 @@
           keyCombination.className = "key-combination";
           if (currentTest.mouseIncluded) {
             keyCombination.classList.add("mouse-target");
-            keyCombination.style.cursor = "pointer";
-            keyCombination.title = "이 영역에서 마우스 좌클릭 또는 우클릭을 누른 채 키보드 키를 동시에 누르세요";
+            keyCombination.style.cursor = "default";
+            keyCombination.title = "화면 아무 곳에서나 마우스 좌·우 클릭을 유지한 채 키보드 키를 동시에 누르세요";
           } else {
             keyCombination.classList.remove("mouse-target");
             keyCombination.style.cursor = "";
@@ -370,11 +370,20 @@
           updateKeyDisplay();
         }
 
+        /** 시험 중 UI(건너뛰기·헤더 링크 등) 클릭은 마우스 입력으로 치지 않음 */
+        function shouldIgnoreMouseForTest(e) {
+          if (!e || !e.target || !e.target.closest) return true;
+          return !!e.target.closest(
+            "button, a, input, textarea, select, header, .skip-actions, .results-panel, #skip-actions"
+          );
+        }
+
         function handleMouseDown(e) {
           if (testCompleted) return;
           if (e.button !== 0 && e.button !== 2) return;
           const currentTest = TEST_SEQUENCE[currentTestIndex];
           if (!currentTest.mouseIncluded) return;
+          if (shouldIgnoreMouseForTest(e)) return;
           e.preventDefault();
           if (e.button === 0) mouseLeftHeld = true;
           if (e.button === 2) mouseRightHeld = true;
@@ -385,10 +394,25 @@
 
         function handleMouseUp(e) {
           if (e.button !== 0 && e.button !== 2) return;
+          const currentTest = TEST_SEQUENCE[currentTestIndex];
+          if (!currentTest || !currentTest.mouseIncluded) {
+            mouseLeftHeld = false;
+            mouseRightHeld = false;
+            mousePressed = false;
+            return;
+          }
           if (e.button === 0) mouseLeftHeld = false;
           if (e.button === 2) mouseRightHeld = false;
           mousePressed = mouseLeftHeld || mouseRightHeld;
           updateKeyDisplay();
+        }
+
+        function handleContextMenu(e) {
+          if (testCompleted) return;
+          const currentTest = TEST_SEQUENCE[currentTestIndex];
+          if (!currentTest || !currentTest.mouseIncluded) return;
+          if (shouldIgnoreMouseForTest(e)) return;
+          e.preventDefault();
         }
 
         function checkCombination() {
@@ -613,12 +637,9 @@
           }
         });
 
-        keyCombination.addEventListener("mousedown", handleMouseDown);
-        keyCombination.addEventListener("contextmenu", function (e) {
-          const currentTest = TEST_SEQUENCE[currentTestIndex];
-          if (currentTest && currentTest.mouseIncluded) e.preventDefault();
-        });
-        document.addEventListener("mouseup", handleMouseUp);
+        document.addEventListener("mousedown", handleMouseDown, true);
+        document.addEventListener("mouseup", handleMouseUp, true);
+        document.addEventListener("contextmenu", handleContextMenu, true);
 
         saveBtn.addEventListener("click", function () {
           const session = (typeof GAStorage !== "undefined" && GAStorage.readSession()) || {};

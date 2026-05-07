@@ -34,34 +34,104 @@
   outline-offset: 2px;
 }
 
-/* 허브로 돌아가기 버튼: 검사 페이지 공통 */
+/* 허브로 돌아가기 버튼: 검사 페이지 공통 — 종료·결과 화면에서도 잘 보이도록 대비·크기 강화 */
 .back-btn,
 nav a.back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 12px 24px;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
   border-radius: var(--radius-pill, 999px);
-  border: 2px solid rgba(148, 163, 184, 0.6);
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.9), rgba(124, 58, 237, 0.9));
+  border: 2px solid rgba(255, 255, 255, 0.38);
+  background: linear-gradient(145deg, #5b4df5 0%, #7c3aed 48%, #6d28d9 100%);
   color: #fff;
   text-decoration: none;
-  font-size: 15px;
-  font-weight: 600;
-  min-height: 48px;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  min-height: 52px;
+  min-width: 44px;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.25),
+    0 10px 32px rgba(79, 70, 229, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s, filter 0.15s;
 }
 .back-btn:hover,
 nav a.back-btn:hover {
-  border-color: rgba(148, 163, 184, 0.9);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
-  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 6px 10px rgba(0, 0, 0, 0.3),
+    0 14px 40px rgba(79, 70, 229, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+  filter: brightness(1.05);
 }
 .back-btn:focus-visible,
 nav a.back-btn:focus-visible {
-  outline: 2px solid var(--focus-ring-color);
-  outline-offset: 2px;
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: 3px;
+}
+
+/* 결과 패널·관찰자 평가·FOV 측정 완료 안내가 떴을 때 상단 허브 복귀를 한 단계 더 강조 */
+body:has(#results-panel[style*="display: block"]) header .back-btn,
+body:has(#results-panel[style*="display:block"]) header .back-btn,
+body:has(#observer-area[style*="display: block"]) header .back-btn,
+body:has(#observer-area[style*="display:block"]) header .back-btn,
+body:has(#admin-layer h2.accent-title) header .back-btn {
+  border-color: rgba(253, 224, 71, 0.75);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.28),
+    0 12px 40px rgba(79, 70, 229, 0.72),
+    0 0 0 3px rgba(253, 224, 71, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+/* 영역 허브·관찰자 보고: 하단 ‘허브로 돌아가기’를 검사 페이지와 같은 시각적 중요도로 */
+#back-to-hub.btn-secondary,
+button#back-to-hub.btn-secondary,
+a#back-to-hub.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 30px;
+  min-height: 52px;
+  border-radius: var(--radius-pill, 999px);
+  border: 2px solid rgba(255, 255, 255, 0.38);
+  background: linear-gradient(145deg, #5b4df5 0%, #7c3aed 48%, #6d28d9 100%);
+  color: #fff !important;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.25),
+    0 10px 32px rgba(79, 70, 229, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s, filter 0.15s;
+}
+#back-to-hub.btn-secondary:hover:not(:disabled),
+button#back-to-hub.btn-secondary:hover:not(:disabled),
+a#back-to-hub.btn-secondary:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: linear-gradient(145deg, #6d5ff7 0%, #8b5cf6 48%, #7c3aed 100%);
+  box-shadow:
+    0 6px 10px rgba(0, 0, 0, 0.3),
+    0 14px 40px rgba(79, 70, 229, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+#back-to-hub.btn-secondary:focus-visible,
+button#back-to-hub.btn-secondary:focus-visible,
+a#back-to-hub.btn-secondary:focus-visible {
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: 3px;
 }
 
 /* WCAG 2.2: 포커스가 가려지지 않도록 강한 포커스 링 */
@@ -87,6 +157,14 @@ textarea:focus-visible,
     transition-duration: 0.01ms !important;
   }
   .skip-link { transition: none; }
+  .back-btn:hover,
+  nav a.back-btn:hover,
+  #back-to-hub.btn-secondary:hover:not(:disabled),
+  button#back-to-hub.btn-secondary:hover:not(:disabled),
+  a#back-to-hub.btn-secondary:hover:not(:disabled) {
+    transform: none;
+    filter: none;
+  }
 }
 
 :root {
@@ -1455,18 +1533,19 @@ body {
   }
 }
 
-/* 테스트 페이지 공통: 시각 허브와 동일한 글씨체·크기(16px, system-ui) */
+/* 테스트 페이지 공통: 시각 허브와 동일한 글씨체·크기(18px, system-ui) */
 .ga-test-intro-body,
 .ga-test-intro-body p {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 650;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  line-height: 1.4;
+  line-height: 1.45;
   white-space: pre-line;
 }
 .ga-test-instruction {
-  font-size: 16px !important;
+  font-size: 18px !important;
   font-weight: 650 !important;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   white-space: pre-line;
+  line-height: 1.45 !important;
 }

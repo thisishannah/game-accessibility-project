@@ -15,5 +15,5 @@ app.use(express.static(path.join(__dirname)));
 app.listen(PORT, function () {
   console.log("Smile Play Ally — 로컬 서버: http://localhost:" + PORT);
   console.log("예: http://localhost:" + PORT + "/summary.html");
-  console.log("AI 분석: .env에 NEXT_PUBLIC_GEMINI_API_KEY 설정 후 npm run build:summary-gemini");
+  console.log("AI 분석: summary.html 전문가 영역에서 Gemini API 키를 입력한 뒤 실행합니다.");
 });

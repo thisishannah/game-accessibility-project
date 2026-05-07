@@ -45,13 +45,13 @@
       }
       .instruction {
         text-align: center;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 650;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         font-weight: 600;
         margin-bottom: 20px;
         color: var(--text-main);
-        min-height: 80px;
+        min-height: 92px;
         white-space: pre-line;
         display: flex;
         align-items: center;
@@ -88,7 +88,7 @@
         margin-bottom: 24px;
       }
       .intro-body {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 650;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         line-height: 1.4;
@@ -202,7 +202,7 @@
       <h1 id="page-title-h1" class="sr-only">핵심 파악 테스트</h1>
       <div class="intro-panel" id="intro-panel">
         <div class="intro-body">
-          <p>처음에 <strong>2초간</strong> 보여주는 문장을 기억했다가,
+          <p>처음에 <strong>2.5초간</strong> 보여주는 문장을 기억했다가,
 그 다음에 나오는 <strong>핵심 키워드</strong> 중에서 문장과 연관 있는 것을 골라 주세요.</p>
           <p>각 문장마다 4개의 키워드가 제시되며,
 그중 하나만 정답입니다.</p>
@@ -290,7 +290,7 @@
           setTimeout(function() {
             sentenceDisplay.classList.add("hidden");
             showOptions();
-          }, 2000);
+          }, 2500);
         }
 
         function showOptions() {
@@ -367,7 +367,7 @@
           introPanel.style.display = "none";
           sentenceDisplay.style.display = "flex";
           instruction.style.display = "block";
-          instruction.textContent = "2초간 문장을 기억한 뒤,\n연관 키워드를 선택하세요";
+          instruction.textContent = "2.5초간 문장을 기억한 뒤,\n연관 키워드를 선택하세요";
           testActive = true;
           currentTrial = 0;
           trials = [];
