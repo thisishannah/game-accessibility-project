@@ -520,23 +520,11 @@
           <pre id="json-preview" class="summary-json" style="max-height: 200px; margin-top: 8px;"></pre>
         </details>
 
-        <section class="panel" aria-label="관찰자 코멘트" style="margin-top: 28px; margin-bottom: 8px;">
-          <div class="section-title" style="margin-bottom: 12px; color: var(--neon-blue);">관찰자 코멘트</div>
-          <p class="text-xs text-muted" style="margin: 0 0 12px; line-height: 1.5;">
-            참여자 데이터를 확인한 뒤 관찰 소견을 입력하세요. 입력 내용은 세션에 저장되며 시트 전송 시 관찰자 코멘트 요약에 포함됩니다.
-          </p>
-          <label for="observer-session-comment" class="text-xs text-muted" style="display: block; margin-bottom: 8px;">코멘트</label>
-          <textarea
-            id="observer-session-comment"
-            class="summary-observer-textarea"
-            rows="5"
-            autocomplete="off"
-            spellcheck="true"
-            placeholder="예: 보조기기 사용 여부, 과제 중 태도, 접근성 관련 특이사항 등"
-          ></textarea>
-        </section>
+        <p class="text-xs text-muted" style="margin: 24px 0 0; line-height: 1.55; max-width: 44rem;">
+          관찰 소견(AT~AV)·코멘트는 아래 <strong>「관찰자 리포트 작성하기」</strong>에서만 입력·저장합니다. 저장 후 이 페이지로 돌아오면 카드와 AI 분석에 반영됩니다.
+        </p>
 
-        <section class="panel summary-import-panel" aria-label="참여자 데이터 불러오기" style="margin-top: 20px;">
+        <section class="panel summary-import-panel" aria-label="참여자 데이터 불러오기" style="margin-top: 16px;">
           <div class="section-title" style="margin-bottom: 10px; color: var(--neon-blue);">
             참여자 데이터 불러오기
           </div>
@@ -680,14 +668,16 @@
           if (id) localStorage.setItem("ga_session_" + String(id), json);
         }
 
-        function applyImportedLocalStorageEntries(entries) {
+        function applyImportedLocalStorageEntries(entries, opts) {
           if (!entries || typeof entries !== "object") return;
+          opts = opts || {};
+          var omit = opts.omitKeys || {};
           var exclude = {};
           exclude[GEMINI_API_KEY_STORAGE_KEY] = true;
           exclude[PENDING_SHEET_STORAGE_KEY] = true;
           exclude[PRESHEET_BACKUP_KEY] = true;
           Object.keys(entries).forEach(function (k) {
-            if (!k || exclude[k]) return;
+            if (!k || exclude[k] || omit[k]) return;
             try {
               var val = entries[k];
               var str = typeof val === "string" ? val : JSON.stringify(val);
@@ -705,9 +695,14 @@
             throw new Error("세션(user_data) 형식을 찾을 수 없습니다.");
           }
           replaceSessionStorageWithImport(session);
+          var explicitSession =
+            data.session != null && typeof data.session === "object" && typeof data.session.user_data === "object";
           if (data.localStorageEntries && typeof data.localStorageEntries === "object") {
-            applyImportedLocalStorageEntries(data.localStorageEntries);
+            applyImportedLocalStorageEntries(data.localStorageEntries, {
+              omitKeys: explicitSession ? { ga_current_session: true } : {}
+            });
           }
+          replaceSessionStorageWithImport(session);
           var merged = readSession();
           if (typeof GAStorage !== "undefined" && GAStorage.syncHubProgressFromUserData) {
             GAStorage.syncHubProgressFromUserData(merged);
@@ -715,26 +710,6 @@
           return readSession();
         }
 
-        function syncObserverCommentTextarea(session) {
-          var el = document.getElementById("observer-session-comment");
-          if (!el) return;
-          var o = session && session.observer_report;
-          var t = o && o.summaryComment != null ? String(o.summaryComment) : "";
-          el.value = t;
-        }
-
-        function persistObserverCommentFromTextarea() {
-          var el = document.getElementById("observer-session-comment");
-          if (!el || typeof GAStorage === "undefined" || !GAStorage.writeSession) return;
-          var text = el.value != null ? String(el.value) : "";
-          var s = readSession();
-          var prev = s.observer_report && typeof s.observer_report === "object" ? s.observer_report : {};
-          GAStorage.writeSession({
-            observer_report: Object.assign({}, prev, { summaryComment: text })
-          });
-        }
-
-        /** aiResult 갱신 + AI 분석 영역 즉시 반영 */
         function applyAiResultToView(text) {
           aiResult = text != null ? String(text) : "";
           var trimmed = aiResult.trim();
@@ -1798,7 +1773,6 @@
           document.getElementById("user-summary").innerHTML =
             "세션 <strong>" + escapeHtml(id) + "</strong> · 장애 <strong>" + escapeHtml(disability) + "</strong>";
           scheduleUpdateSheetArLengthWarning();
-          syncObserverCommentTextarea(session);
         }
 
         function downloadSessionJson(session) {
@@ -1830,9 +1804,8 @@
           }
         }
 
-        /** 관찰자 코멘트 반영 후 세션을 session/localStorage(+ga_session_id)에 다시 기록하고 허브 진행률을 맞춤 */
+        /** 관찰자 세션을 session/localStorage(+ga_session_id)에 다시 기록하고 허브 진행률을 맞춤 */
         function persistCurrentSessionToStorage() {
-          persistObserverCommentFromTextarea();
           var s = readSession();
           if (typeof GAStorage !== "undefined" && GAStorage.writeSession) {
             s = GAStorage.writeSession(s);
@@ -2035,10 +2008,15 @@
         function buildAiAnalysisCombinedPayload(session) {
           var s = session && typeof session === "object" ? session : {};
           var expert = s.observer_report && typeof s.observer_report === "object" ? s.observer_report : {};
-          var ta = document.getElementById("observer-session-comment");
-          var live = ta && ta.value != null ? String(ta.value).trim() : "";
-          var stored = expert.summaryComment != null ? String(expert.summaryComment).trim() : "";
-          var observerComment = live || stored;
+          var observerComment = [
+            expert.quitReason,
+            expert.altBehavior,
+            expert.analysisSummary,
+            expert.summaryComment
+          ]
+            .filter(Boolean)
+            .join("\n\n")
+            .trim();
           return {
             participantData: {
               diagnostics: buildGeminiDiagnosticsPayload(s),
@@ -2507,13 +2485,14 @@
             });
           }
           syncAiAnalyzeButtonEnabledState();
-          var obsCommentEl = document.getElementById("observer-session-comment");
-          if (obsCommentEl && !obsCommentEl.dataset.gaSummaryBound) {
-            obsCommentEl.dataset.gaSummaryBound = "1";
-            obsCommentEl.addEventListener("input", persistObserverCommentFromTextarea);
-            obsCommentEl.addEventListener("blur", persistObserverCommentFromTextarea);
-          }
         }
+
+        window.addEventListener("pageshow", function () {
+          try {
+            render(readSession());
+            syncAiAnalyzeButtonEnabledState();
+          } catch (e) {}
+        });
 
         const AI_ANALYZE_BTN_DEFAULT = "AI 분석 시작";
 
@@ -2569,7 +2548,6 @@
               alert("API 키를 입력해주세요");
               return;
             }
-            persistObserverCommentFromTextarea();
             var collected = collectResultsForAiAnalysis();
             var session = collected.session;
             var errs = validateSession(session);
