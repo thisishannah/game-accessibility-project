@@ -247,11 +247,12 @@
     <main id="main-content" class="test-container" role="main" aria-labelledby="page-title-h1" tabindex="-1">
       <h1 id="page-title-h1" class="sr-only">정밀도 테스트</h1>
       <div class="instruction" id="instruction">
-        <p>바둑판 교차점에 나타나는 타겟의 정중앙을 클릭하세요.</p>
-        <p>(총 20회)</p>
+        <p>바둑판 위에 표시되는 타겟의 <strong>정중앙</strong>을 클릭하세요.</p>
+        <p>타겟은 <strong>서로 아주 가까운 위치</strong>와 <strong>화면 멀리 떨어진 위치</strong>가 섞여 있어, 미세 조준과 이동 후 조준을 함께 볼 수 있습니다.</p>
+        <p>(총 10회)</p>
       </div>
       <div class="precision-progress" id="precision-progress">
-        <div class="info-panel" id="info-panel">클릭: 0/20</div>
+        <div class="info-panel" id="info-panel">클릭: 0/10</div>
       </div>
       <div id="target-area" role="application" aria-label="바둑판 교차점 클릭 영역">
         <div class="grid-lines" aria-hidden="true"></div>
@@ -292,16 +293,33 @@
         const saveBtn = document.getElementById("save-btn");
         const visualizeBtn = document.getElementById("visualize-btn");
 
-        const TOTAL_CLICKS = 20;
-        const COLS = 5;
-        const ROWS = 4;
-        const TARGET_RADIUS = 20;
+        const TOTAL_CLICKS = 10;
+        /**
+         * 비균일 배치: (0~1) 정규화 좌표 — 가까운 쌍/삼각, 먼 점프, 중앙 미세 간격 등 10회.
+         * 실제 px = margin + u*gridW, margin + v*gridH
+         */
+        const TRIAL_NORMALIZED_POSITIONS = [
+          { u: 0.1, v: 0.82 },
+          { u: 0.125, v: 0.805 },
+          { u: 0.108, v: 0.838 },
+          { u: 0.88, v: 0.18 },
+          { u: 0.898, v: 0.202 },
+          { u: 0.5, v: 0.5 },
+          { u: 0.518, v: 0.482 },
+          { u: 0.22, v: 0.42 },
+          { u: 0.238, v: 0.445 },
+          { u: 0.84, v: 0.78 }
+        ];
+        /** 참고용 얇은 격자(타겟은 이 교차점에만 있지 않음) */
+        const REF_GRID_DIV_X = 7;
+        const REF_GRID_DIV_Y = 6;
 
         let clicks = [];
         let currentClick = 0;
         let gridPositions = [];
         let areaWidth = 600;
         let areaHeight = 500;
+        const TARGET_RADIUS = 20;
 
         function buildGrid() {
           const w = targetArea.offsetWidth || areaWidth;
@@ -312,27 +330,22 @@
           const gridW = w - 2 * margin;
           const gridH = h - 2 * margin;
 
-          gridPositions = [];
-          for (let row = 0; row < ROWS; row++) {
-            for (let col = 0; col < COLS; col++) {
-              const x = margin + (col / (COLS - 1)) * gridW;
-              const y = margin + (row / (ROWS - 1)) * gridH;
-              gridPositions.push({ x: x, y: y });
-            }
-          }
+          gridPositions = TRIAL_NORMALIZED_POSITIONS.map(function (p) {
+            return { x: margin + p.u * gridW, y: margin + p.v * gridH };
+          });
 
           const gridEl = targetArea.querySelector(".grid-lines");
           gridEl.innerHTML = "";
           const lineStyle = "position:absolute; background:rgba(148,163,184,0.25);";
-          for (let i = 0; i < COLS; i++) {
+          for (let i = 0; i <= REF_GRID_DIV_X; i++) {
             const div = document.createElement("div");
-            const x = margin + (i / (COLS - 1)) * gridW;
+            const x = margin + (i / REF_GRID_DIV_X) * gridW;
             div.style.cssText = lineStyle + "left:" + x + "px;top:" + margin + "px;width:1px;height:" + gridH + "px;";
             gridEl.appendChild(div);
           }
-          for (let i = 0; i < ROWS; i++) {
+          for (let j = 0; j <= REF_GRID_DIV_Y; j++) {
             const div = document.createElement("div");
-            const y = margin + (i / (ROWS - 1)) * gridH;
+            const y = margin + (j / REF_GRID_DIV_Y) * gridH;
             div.style.cssText = lineStyle + "left:" + margin + "px;top:" + y + "px;height:1px;width:" + gridW + "px;";
             gridEl.appendChild(div);
           }
@@ -447,16 +460,16 @@
           const gridH = areaH - 2 * margin;
           visCtx.strokeStyle = "rgba(148, 163, 184, 0.25)";
           visCtx.lineWidth = 1;
-          for (let i = 0; i < COLS; i++) {
-            const x = margin + (i / (COLS - 1)) * gridW;
+          for (let i = 0; i <= REF_GRID_DIV_X; i++) {
+            const x = margin + (i / REF_GRID_DIV_X) * gridW;
             const p = toCanvas(x, margin);
             visCtx.beginPath();
             visCtx.moveTo(p.x, p.y);
             visCtx.lineTo(p.x, p.y + gridH * scale);
             visCtx.stroke();
           }
-          for (let i = 0; i < ROWS; i++) {
-            const y = margin + (i / (ROWS - 1)) * gridH;
+          for (let j = 0; j <= REF_GRID_DIV_Y; j++) {
+            const y = margin + (j / REF_GRID_DIV_Y) * gridH;
             const p = toCanvas(margin, y);
             visCtx.beginPath();
             visCtx.moveTo(p.x, p.y);
